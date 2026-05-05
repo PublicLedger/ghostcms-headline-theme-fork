@@ -1,0 +1,16 @@
+node_modules
+
+# Build outputs
+assets/built/
+dist/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Theme packages
+*.zip
+node_modules
