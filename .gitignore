@@ -10,7 +10,3 @@ dist/
 # OS files
 .DS_Store
 Thumbs.db
-
-# Theme packages
-*.zip
-node_modules
