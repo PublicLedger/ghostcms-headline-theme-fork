@@ -8,9 +8,36 @@ jobs:
   deploy:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v3
-      - name: Deploy Ghost Theme
-        uses: TryGhost/action-deploy-theme@v1
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
+          node-version: '24'
+          
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+        
+      - name: Build theme
+        run: yarn zip
+        
+      - name: Get version
+        id: package-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+        
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.package-version.outputs.version }}-${{ github.run_number }}
+          name: Release v${{ steps.package-version.outputs.version }} (Build ${{ github.run_number }})
+          files: dist/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        
+      - name: Deploy Ghost Theme publicledger-headline-fork
+        uses: TryGhost/action-deploy-theme@v1.6.6
+        with:
+          theme-name: "publicledger-headline-fork"
           api-url: ${{ secrets.GHOST_ADMIN_API_URL }}
           api-key: ${{ secrets.GHOST_ADMIN_API_KEY }}
