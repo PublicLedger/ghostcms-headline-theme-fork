@@ -3,6 +3,7 @@ node_modules
 # Build outputs
 assets/built/
 dist/
+*.zip
 
 # Logs
 *.log
