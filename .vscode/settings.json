@@ -1,0 +1,85 @@
+{
+  // Default formatter
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+
+  // Format on save to surface issues
+  "editor.formatOnSave": true,
+
+  // Limit formatting work during save to changed regions when supported
+  // Note: If Prettier has bugs with incremental formatting, switch to "file" mode
+  "editor.formatOnSaveMode": "modificationsIfAvailable",
+
+  // Enable format on paste
+  "editor.formatOnPaste": false,
+
+  // Line length and wrapping
+  "editor.wordWrap": "off",
+  "editor.wordWrapColumn": 100,
+  "editor.rulers": [100, 120],
+
+  // Prettier configuration
+  "prettier.requireConfig": true,
+  "prettier.useEditorConfig": true,
+
+  // Enable ESLint for linting (but not formatting - Prettier handles that)
+  "eslint.enable": true,
+  "eslint.format.enable": false,
+  "eslint.validate": ["javascript"],
+
+  // Use Prettier as the only JavaScript formatter and disable built-in formatter fallback
+  "js/ts.format.enabled": false,
+  "js/ts.validate.enabled": true,
+
+  // Language-specific formatters
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[handlebars]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.codeActionsOnSave": {
+      // ESLint auto-fix on save
+      // Disable if it causes issues: remove or set to "never"
+      "source.fixAll.eslint": "explicit"
+    }
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  // YAML validation: flags syntax errors and duplicate keys inline as you edit
+  // Requires the Red Hat YAML extension (redhat.vscode-yaml)
+  "yaml.validate": true,
+  "yaml.schemas": {
+    "https://json.schemastore.org/github-workflow.json": ".github/workflows/*.{yml,yaml}"
+  },
+
+  // File associations
+  "files.associations": {
+    "*.hbs": "handlebars",
+    "*.html": "html",
+    "*.md": "markdown"
+  },
+
+  // Files to exclude from watcher
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/dist/**": true,
+    "**/assets/built/**": true
+  },
+
+  "remote.autoForwardPortsFallback": 0
+}

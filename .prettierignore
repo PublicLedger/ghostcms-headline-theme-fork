@@ -1,0 +1,23 @@
+# Build outputs (auto-generated, don't format)
+dist/
+assets/built/
+
+# Dependencies
+node_modules/
+.bundle/
+.vscode/
+tmp/
+
+# Skip markdown for now (formatting can change semantics)
+*.md
+
+# Compiled/minified files
+*.min.js
+*.min.css
+
+# Git metadata
+.git/
+
+# Lock files (formatting breaks them)
+package-lock.json
+*.lock

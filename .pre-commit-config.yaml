@@ -1,0 +1,58 @@
+repos:
+  # YAML schema validation for GitHub workflows
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.30.0
+    hooks:
+      - id: check-github-workflows
+        args: [--verbose]
+
+  - repo: local
+    hooks:
+      # Ghost theme validation - CRITICAL for Ghost compatibility
+      - id: gscan
+        name: GScan (Ghost theme validator)
+        entry: npx gscan .
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+        verbose: true
+
+      # JSON validation for locales and package.json
+      - id: check-json
+        name: Check JSON syntax
+        entry: bash -c 'for file in "$@"; do jq empty "$file" || exit 1; done' --
+        language: system
+        files: \.(json)$
+        pass_filenames: true
+
+      # Prevent accidentally editing built assets (should edit source files)
+      - id: no-built-assets
+        name: Block commits to built assets
+        entry: Built assets are auto-generated - edit source files in assets/css/ or assets/js/ instead
+        language: fail
+        files: ^assets/built/.*\.(css|js)$
+
+      # Validate routes.yaml syntax
+      - id: check-yaml
+        name: Check YAML syntax
+        entry: python3 -c "import sys, yaml; yaml.safe_load(open(sys.argv[1]))"
+        language: system
+        files: ^routes\.yaml$
+        pass_filenames: true
+
+      # Prettier formatting for consistent code style
+      - id: prettier
+        name: Prettier
+        entry: npx prettier --write
+        language: system
+        files: \.(hbs|html|css|js|json|yml|yaml)$
+        exclude: ^(node_modules|assets/built|dist)/
+
+      # ESLint validation for JavaScript code quality
+      - id: eslint
+        name: ESLint
+        entry: npx eslint --fix
+        language: system
+        files: \.js$
+        exclude: ^(node_modules|assets/built|dist)/
