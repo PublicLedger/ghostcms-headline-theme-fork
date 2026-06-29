@@ -1,0 +1,52 @@
+{
+  "name": "Ghost Theme Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+  
+  // Features to install in the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24"
+    },
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "bradlc.vscode-tailwindcss",
+        "TryGhost.ghost"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+      }
+    }
+  },
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally
+  "forwardPorts": [2368, 3001],
+  
+  // Port attributes for better labeling
+  "portsAttributes": {
+    "2368": {
+      "label": "Ghost (Production)",
+      "onAutoForward": "notify"
+    },
+    "3001": {
+      "label": "Ghost (Development)",
+      "onAutoForward": "openBrowser"
+    }
+  },
+
+  // Use 'postCreateCommand' to run commands after the container is created
+  "postCreateCommand": "npm install && npm run zip",
+
+  // Comment out to connect as root instead
+  "remoteUser": "node"
+}

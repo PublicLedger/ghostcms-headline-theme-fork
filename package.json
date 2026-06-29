@@ -1,6 +1,6 @@
 {
     "name": "publicledger-headline-fork",
-    "description": "A Ghost theme",
+    "description": "A custom Ghost theme for The Public Ledger project",
     "version": "1.0.0",
     "private": true,
     "engines": {
@@ -9,9 +9,9 @@
     },
     "license": "MIT",
     "author": {
-        "name": "Ghost Foundation",
-        "email": "hello@ghost.org",
-        "url": "https://ghost.org"
+        "name": "Gasworks Data",
+        "email": "info@gasworksdata.com",
+        "url": "https://gasworksdata.com"
     },
     "keywords": [
         "ghost",
@@ -46,7 +46,7 @@
             "navigation_layout": {
                 "type": "select",
                 "options": ["Logo on the left", "Logo in the middle", "Stacked"],
-                "default": "Stacked"
+                "default": "Logo on the left"
             },
             "header_style": {
                 "type": "select",
@@ -56,19 +56,19 @@
             "title_font": {
                 "type": "select",
                 "options": ["Modern sans-serif", "Elegant serif"],
-                "default": "Modern sans-serif"
+                "default": "Elegant serif"
             },
             "body_font": {
                 "type": "select",
                 "options": ["Modern sans-serif", "Elegant serif"],
-                "default": "Elegant serif"
+                "default": "Modern sans-serif"
             },
             "white_publication_logo_for_transparent_header": {
                 "type": "image"
             },
             "email_signup_text": {
                 "type": "text",
-                "default": "Don't miss out on the latest news. Sign up now to get access to the library of members-only articles."
+                "default": "Follow The Public Ledger. Sign up now to get access once we launch."
             },
             "footer_text": {
                 "type": "text"
@@ -86,7 +86,13 @@
     "scripts": {
         "dev": "gulp",
         "test": "gscan .",
-        "zip": "gulp zip"
+        "zip": "gulp zip",
+        "validate": "gscan . --verbose",
+        "ghost:dev": "echo 'Ghost dev instance available at http://localhost:3001'",
+        "ghost:prod": "docker compose --profile production up -d ghost-prod db",
+        "ghost:stop": "docker compose down",
+        "ghost:logs": "docker compose logs -f ghost-dev",
+        "ghost:restart": "docker compose restart ghost-dev"
     },
     "packageManager": "pnpm@11.9.0",
     "devDependencies": {

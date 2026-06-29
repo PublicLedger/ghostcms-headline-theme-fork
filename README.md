@@ -1,3 +1,7 @@
+> **📦 PublicLedger Fork:** This is a customized fork with devcontainer setup. See [README.FORK.md](README.FORK.md) for fork-specific documentation, setup instructions, and development guide.
+
+---
+
 # Headline
 
 Headline is a [Ghost](https://github.com/TryGhost/Ghost) theme built from the ground up for local news. While it can be used for any purpose, the theme takes a thoughtful approach to displaying large amounts of content across various areas of coverage. Headline adapts to your content by showcasing your most written about topics or by giving you the control to decide which topics are front and center.

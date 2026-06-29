@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+  # Development container with Node.js for theme building
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/javascript-node:24
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+    network_mode: service:ghost-dev
+    depends_on:
+      - ghost-dev
+
+  # Ghost development instance (SQLite, auto-reload)
+  ghost-dev:
+    image: ghost:6-alpine
+    restart: unless-stopped
+    ports:
+      - "3001:2368"
+    environment:
+      NODE_ENV: development
+      url: http://localhost:3001
+      database__client: sqlite3
+      database__connection__filename: /var/lib/ghost/content/data/ghost-dev.db
+    volumes:
+      # Mount the theme from workspace
+      - ..:/var/lib/ghost/content/themes/headline:cached
+      # Persistent storage for Ghost content
+      - ghost-dev-data:/var/lib/ghost/content/data
+      - ghost-dev-images:/var/lib/ghost/content/images
+      - ghost-dev-logs:/var/lib/ghost/content/logs
+      - ghost-dev-apps:/var/lib/ghost/content/apps
+      - ghost-dev-settings:/var/lib/ghost/content/settings
+
+  # Optional: Ghost production-like instance with MySQL
+  ghost-prod:
+    image: ghost:6-alpine
+    restart: unless-stopped
+    ports:
+      - "2368:2368"
+    environment:
+      NODE_ENV: production
+      url: http://localhost:2368
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: ghost
+      database__connection__password: ghostpassword
+      database__connection__database: ghost
+    volumes:
+      # Mount the theme from workspace
+      - ..:/var/lib/ghost/content/themes/headline:cached
+      # Persistent storage for Ghost content
+      - ghost-prod-data:/var/lib/ghost/content/data
+      - ghost-prod-images:/var/lib/ghost/content/images
+      - ghost-prod-logs:/var/lib/ghost/content/logs
+      - ghost-prod-apps:/var/lib/ghost/content/apps
+      - ghost-prod-settings:/var/lib/ghost/content/settings
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - production
+
+  # MySQL database for production-like testing
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ghost
+      MYSQL_USER: ghost
+      MYSQL_PASSWORD: ghostpassword
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+    profiles:
+      - production
+
+volumes:
+  ghost-dev-data:
+  ghost-dev-images:
+  ghost-dev-logs:
+  ghost-dev-apps:
+  ghost-dev-settings:
+  ghost-prod-data:
+  ghost-prod-images:
+  ghost-prod-logs:
+  ghost-prod-apps:
+  ghost-prod-settings:
+  db-data:
