@@ -1,0 +1,70 @@
+#!/bin/bash
+# Pre-commit hook: Validate fork integrity
+# Prevents commits that violate license compliance or break sync compatibility
+
+set -e
+
+echo "🔍 Validating fork integrity..."
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Check if LICENSE file is staged
+if git diff --cached --name-only | grep -q "^LICENSE$"; then
+    echo -e "${RED}❌ ERROR: LICENSE file cannot be modified${NC}"
+    echo ""
+    echo "The LICENSE file must remain identical to TryGhost/Headline upstream."
+    echo "This is required by MIT license compliance."
+    echo ""
+    echo "To unstage:"
+    echo "  git restore --staged LICENSE"
+    echo "  git restore LICENSE"
+    exit 1
+fi
+
+# Check package.json author field if staged
+if git diff --cached --name-only | grep -q "^package.json$"; then
+    echo "Checking package.json author field..."
+    
+    # Get staged package.json
+    staged_author=$(git show :package.json | jq -r '.author.name' 2>/dev/null || echo "")
+    
+    if [[ "$staged_author" != "Ghost Foundation" ]]; then
+        echo -e "${RED}❌ ERROR: package.json author must be 'Ghost Foundation'${NC}"
+        echo ""
+        echo "Current staged author: $staged_author"
+        echo ""
+        echo "MIT license requires preserving original attribution."
+        echo "Set author to Ghost Foundation and add yourself to contributors array."
+        echo ""
+        echo "To fix:"
+        echo "  # Edit package.json to restore author"
+        echo '  "author": {'
+        echo '    "name": "Ghost Foundation",'
+        echo '    "email": "hello@ghost.org",'
+        echo '    "url": "https://ghost.org"'
+        echo '  },'
+        exit 1
+    fi
+    
+    echo -e "${GREEN}✅ package.json author correct${NC}"
+fi
+
+# Check for changes to theme template files
+theme_files_changed=$(git diff --cached --name-only | grep -E '\.(hbs|css|js)$' | wc -l)
+
+if [[ $theme_files_changed -gt 0 ]]; then
+    echo -e "${YELLOW}⚠️  Theme files modified (requires careful testing):${NC}"
+    git diff --cached --name-only | grep -E '\.(hbs|css|js)$' | sed 's/^/  - /'
+    echo ""
+    echo "Remember to:"
+    echo "  1. Test in devcontainer: pnpm dev"
+    echo "  2. Validate: pnpm test"
+    echo "  3. Build: pnpm zip"
+    echo "  4. Document changes for upstream sync conflicts"
+fi
+
+echo -e "${GREEN}✅ Fork integrity validated${NC}"
