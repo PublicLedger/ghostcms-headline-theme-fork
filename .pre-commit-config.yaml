@@ -56,3 +56,19 @@ repos:
         language: system
         files: \.js$
         exclude: ^(node_modules|assets/built|dist)/
+
+      # Shellcheck for bash script validation
+      - id: shellcheck
+        name: Shellcheck (bash linting)
+        entry: shellcheck
+        language: system
+        files: \.sh$
+        pass_filenames: true
+
+      # Actionlint for GitHub Actions workflow validation
+      - id: actionlint
+        name: Actionlint (GitHub Actions)
+        entry: actionlint
+        language: system
+        files: ^\.github/workflows/.*\.ya?ml$
+        pass_filenames: true

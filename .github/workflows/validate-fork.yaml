@@ -151,7 +151,7 @@ jobs:
           fi
 
       - name: Create issue if significantly behind
-        if: steps.sync.outputs.behind > 10 && github.event_name == 'schedule'
+        if: ${{ steps.sync.outputs.behind > 10 && github.event_name == 'schedule' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
