@@ -1,9 +1,14 @@
 node_modules
+.pnpm-store
 
 # Build outputs
 assets/built/
 dist/
 *.zip
+
+# Package manager lockfiles (fork uses pnpm/pnpm-lock.yaml only)
+yarn.lock
+package-lock.json
 
 # Logs
 *.log
