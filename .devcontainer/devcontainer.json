@@ -3,13 +3,14 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
   "workspaceFolder": "/workspace",
-  
+
   // Features to install in the dev container
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
       "version": "24"
     },
-    "ghcr.io/devcontainers/features/git:1": {}
+    "ghcr.io/devcontainers/features/git:1": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
 
   // Configure tool-specific properties
@@ -31,7 +32,7 @@
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally
   "forwardPorts": [2368, 3001],
-  
+
   // Port attributes for better labeling
   "portsAttributes": {
     "2368": {
@@ -45,7 +46,7 @@
   },
 
   // Use 'postCreateCommand' to run commands after the container is created
-  "postCreateCommand": "npm install && npm run zip",
+  "postCreateCommand": "pnpm install && pnpm zip",
 
   // Comment out to connect as root instead
   "remoteUser": "node"
