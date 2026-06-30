@@ -20,7 +20,11 @@
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
-        "TryGhost.ghost"
+        "TryGhost.ghost",
+        "andrejunges.Handlebars",
+        "github.vscode-github-actions",
+        "timonwong.shellcheck",
+        "redhat.vscode-yaml"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
