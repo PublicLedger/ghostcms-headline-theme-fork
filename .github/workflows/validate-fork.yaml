@@ -158,42 +158,17 @@ jobs:
           behind=${{ steps.sync.outputs.behind }}
           upstream_head=${{ steps.sync.outputs.upstream_head }}
           
-          # Check if issue already exists
           existing=$(gh issue list --label "upstream-sync" --state open --json number --jq '.[0].number')
           
           if [[ -n "$existing" ]]; then
             echo "Issue #$existing already exists, updating..."
-            gh issue comment "$existing" --body "Still $behind commits behind upstream/main (${upstream_head:0:7})"
+            gh issue comment "$existing" --body "Still $behind commits behind upstream/main"
           else
             echo "Creating new upstream sync issue..."
             gh issue create \
               --title "Fork is $behind commits behind upstream" \
               --label "upstream-sync" \
-              --body "The fork is currently **$behind commits behind** TryGhost/Headline main branch.
-
-Latest upstream commit: ${upstream_head:0:7}
-
-## Sync Instructions
-
-    # Automatic sync (recommended)
-    ./sync/upstream-sync.sh
-
-    # Or manual sync
-    git fetch upstream
-    git rebase upstream/main
-    git push origin staging --force-with-lease
-
-See [sync/README.md](sync/README.md) for detailed instructions.
-
-## Testing After Sync
-
-- [ ] pnpm test passes (GScan validation)
-- [ ] pnpm zip builds successfully
-- [ ] Test in devcontainer Ghost instance
-- [ ] Verify custom features still work
-
----
-*This issue was automatically created by the validate-fork.yaml workflow.*"
+              --body "The fork is $behind commits behind TryGhost/Headline. Run ./sync/upstream-sync.sh to sync. See sync/README.md for details."
           fi
 
   theme-integrity:
