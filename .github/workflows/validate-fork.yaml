@@ -1,0 +1,252 @@
+name: Validate Fork Integrity
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - staging
+  schedule:
+    # Run weekly on Mondays at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  license-compliance:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/TryGhost/Headline.git || true
+          git fetch upstream main
+
+      - name: Validate LICENSE file unchanged
+        run: |
+          echo "🔍 Checking LICENSE file matches upstream..."
+          
+          if ! diff <(git show upstream/main:LICENSE) LICENSE; then
+            echo "❌ ERROR: LICENSE file differs from upstream"
+            echo ""
+            echo "The LICENSE file must remain identical to TryGhost/Headline."
+            echo "This is required by the MIT license terms."
+            echo ""
+            echo "To fix:"
+            echo "  git show upstream/main:LICENSE > LICENSE"
+            echo "  git add LICENSE"
+            echo "  git commit -m 'fix: restore original LICENSE file'"
+            exit 1
+          fi
+          
+          echo "✅ LICENSE file is correct"
+
+      - name: Validate package.json attribution
+        run: |
+          echo "🔍 Checking package.json author field..."
+          
+          # Extract author from upstream
+          upstream_author=$(git show upstream/main:package.json | jq -r '.author.name')
+          
+          # Extract author from fork
+          fork_author=$(jq -r '.author.name' package.json)
+          
+          if [[ "$fork_author" != "$upstream_author" ]]; then
+            echo "❌ ERROR: package.json author must be '$upstream_author'"
+            echo "Current author: $fork_author"
+            echo ""
+            echo "MIT license requires preserving original attribution."
+            echo ""
+            echo "To fix, set package.json author field to:"
+            echo '  "author": {'
+            echo '    "name": "Ghost Foundation",'
+            echo '    "email": "hello@ghost.org",'
+            echo '    "url": "https://ghost.org"'
+            echo '  },'
+            exit 1
+          fi
+          
+          echo "✅ Author attribution is correct: $fork_author"
+
+      - name: Validate contributors field exists
+        run: |
+          echo "🔍 Checking package.json contributors field..."
+          
+          if ! jq -e '.contributors' package.json > /dev/null; then
+            echo "⚠️  WARNING: No contributors field found"
+            echo "Consider adding fork maintainer to contributors array"
+          else
+            echo "✅ Contributors field exists"
+            jq '.contributors' package.json
+          fi
+
+      - name: Validate description mentions fork
+        run: |
+          description=$(jq -r '.description' package.json)
+          
+          if [[ ! "$description" =~ [Ff]ork ]] && [[ ! "$description" =~ [Bb]ased ]]; then
+            echo "⚠️  WARNING: Description should mention this is a fork"
+            echo "Current: $description"
+          else
+            echo "✅ Description indicates fork status: $description"
+          fi
+
+  upstream-sync-check:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout fork
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Add upstream remote
+        run: |
+          git remote add upstream https://github.com/TryGhost/Headline.git
+          git fetch upstream main
+
+      - name: Check sync status
+        id: sync
+        run: |
+          # Get merge base (last common commit)
+          merge_base=$(git merge-base HEAD upstream/main)
+          
+          # Count commits ahead/behind
+          ahead=$(git rev-list --count $merge_base..HEAD)
+          behind=$(git rev-list --count $merge_base..upstream/main)
+          
+          # Get latest upstream commit
+          upstream_head=$(git rev-parse upstream/main)
+          upstream_message=$(git log -1 --pretty=format:"%s" upstream/main)
+          upstream_date=$(git log -1 --pretty=format:"%ci" upstream/main)
+          
+          echo "ahead=$ahead" >> $GITHUB_OUTPUT
+          echo "behind=$behind" >> $GITHUB_OUTPUT
+          echo "upstream_head=$upstream_head" >> $GITHUB_OUTPUT
+          
+          echo "## 📊 Upstream Sync Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Fork vs TryGhost/Headline:**" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔼 Commits ahead: $ahead" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔽 Commits behind: $behind" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Latest upstream commit:**" >> $GITHUB_STEP_SUMMARY
+          echo "- SHA: \`$upstream_head\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Message: $upstream_message" >> $GITHUB_STEP_SUMMARY
+          echo "- Date: $upstream_date" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ $behind -gt 0 ]]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ⚠️ Fork is behind upstream" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Consider syncing with upstream:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`bash" >> $GITHUB_STEP_SUMMARY
+            echo "./sync/upstream-sync.sh" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Create issue if significantly behind
+        if: steps.sync.outputs.behind > 10 && github.event_name == 'schedule'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          behind=${{ steps.sync.outputs.behind }}
+          upstream_head=${{ steps.sync.outputs.upstream_head }}
+          
+          # Check if issue already exists
+          existing=$(gh issue list --label "upstream-sync" --state open --json number --jq '.[0].number')
+          
+          if [[ -n "$existing" ]]; then
+            echo "Issue #$existing already exists, updating..."
+            gh issue comment "$existing" --body "Still $behind commits behind upstream/main (${upstream_head:0:7})"
+          else
+            echo "Creating new upstream sync issue..."
+            gh issue create \
+              --title "Fork is $behind commits behind upstream" \
+              --label "upstream-sync" \
+              --body "The fork is currently **$behind commits behind** TryGhost/Headline main branch.
+
+Latest upstream commit: \`${upstream_head:0:7}\`
+
+## Sync Instructions
+
+\`\`\`bash
+# Automatic sync (recommended)
+./sync/upstream-sync.sh
+
+# Or manual sync
+git fetch upstream
+git rebase upstream/main
+git push origin staging --force-with-lease
+\`\`\`
+
+See [sync/README.md](sync/README.md) for detailed instructions.
+
+## Testing After Sync
+
+- [ ] \`pnpm test\` passes (GScan validation)
+- [ ] \`pnpm zip\` builds successfully
+- [ ] Test in devcontainer Ghost instance
+- [ ] Verify custom features still work
+
+---
+*This issue was automatically created by the \`validate-fork.yaml\` workflow.*"
+          fi
+
+  theme-integrity:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate theme builds
+        run: pnpm zip
+
+      - name: Validate GScan passes
+        run: pnpm test
+
+      - name: Check protected fork files
+        run: |
+          echo "🔍 Checking protected fork files exist..."
+          
+          protected_files=(
+            "package.json"
+            "LICENSE"
+            "README.md"
+            "sync/README.md"
+            "sync/upstream-sync.sh"
+          )
+          
+          for file in "${protected_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "❌ ERROR: Protected file missing: $file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All protected files present"
+
+      - name: Summary
+        run: |
+          echo "## ✅ Fork Integrity Validated" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- LICENSE compliance: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Attribution correct: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- Theme builds: ✅" >> $GITHUB_STEP_SUMMARY
+          echo "- GScan validation: ✅" >> $GITHUB_STEP_SUMMARY

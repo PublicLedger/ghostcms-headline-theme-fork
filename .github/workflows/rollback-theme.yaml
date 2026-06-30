@@ -1,0 +1,99 @@
+name: Rollback Theme
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to rollback to (e.g., 1.2.3)'
+        required: true
+        type: string
+      delete_failed_release:
+        description: 'Delete the failed release?'
+        required: false
+        type: boolean
+        default: false
+      
+permissions:
+  contents: write
+  
+jobs:
+  rollback:
+    runs-on: ubuntu-22.04
+    
+    steps:
+      - name: Validate version format
+        run: |
+          if ! [[ "${{ inputs.version }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid version format: ${{ inputs.version }}"
+            echo "Expected: X.Y.Z (e.g., 1.2.3)"
+            exit 1
+          fi
+          echo "✅ Version format valid: ${{ inputs.version }}"
+      
+      - name: Checkout rollback version
+        uses: actions/checkout@v4
+        with:
+          ref: v${{ inputs.version }}
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build theme
+        run: pnpm zip
+      
+      - name: Validate theme compatibility
+        run: pnpm test
+      
+      - name: Deploy to Ghost
+        uses: TryGhost/action-deploy-theme@v1.6.6
+        with:
+          theme-name: "publicledger-headline-fork"
+          api-url: ${{ secrets.GHOST_ADMIN_API_URL }}
+          api-key: ${{ secrets.GHOST_ADMIN_API_KEY }}
+      
+      - name: Get current version
+        id: current
+        run: |
+          current=$(node -p "require('./package.json').version")
+          echo "version=$current" >> $GITHUB_OUTPUT
+      
+      - name: Delete failed release
+        if: inputs.delete_failed_release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get the tag of the version we're rolling back FROM
+          # This assumes we're rolling back from the latest release
+          latest_tag=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          
+          if [[ "$latest_tag" == "v${{ inputs.version }}" ]]; then
+            echo "⚠️  Latest release is the rollback target - nothing to delete"
+            exit 0
+          fi
+          
+          echo "🗑️  Deleting failed release: $latest_tag"
+          gh release delete "$latest_tag" --yes
+          
+          # Delete the tag
+          git push origin --delete "$latest_tag" || echo "Tag already deleted"
+      
+      - name: Summary
+        run: |
+          echo "## 🔄 Rollback Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Rolled back to:** v${{ inputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Theme deployed to Ghost:** publicledger-headline-fork" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "1. Verify theme in Ghost admin" >> $GITHUB_STEP_SUMMARY
+          echo "2. Test site functionality" >> $GITHUB_STEP_SUMMARY
+          echo "3. Fix issues that caused rollback" >> $GITHUB_STEP_SUMMARY
+          echo "4. Deploy fix with appropriate version bump" >> $GITHUB_STEP_SUMMARY

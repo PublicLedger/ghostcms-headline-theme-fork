@@ -1,0 +1,72 @@
+version: 2
+updates:
+  # Fork-specific dependencies (safe to merge immediately)
+  # These are tools added by this fork, not managed by upstream TryGhost/Headline
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "staging"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "fork-specific"
+      - "safe-to-merge"
+    groups:
+      fork-code-quality:
+        patterns:
+          - "prettier"
+          - "@gitkumi/prettier-plugin-handlebars"
+          - "eslint"
+          - "eslint-plugin-*"
+          - "@eslint/*"
+          - "@typescript-eslint/*"
+          - "globals"
+        update-types:
+          - "minor"
+          - "patch"
+    # Workflow: Review and merge when ready - these don't conflict with upstream
+
+  # Upstream-managed dependencies (check parent theme first)
+  # These deps are also in TryGhost/Headline - upstream may have newer versions
+  - package-ecosystem: "npm"
+    directory: "/"
+    target-branch: "staging"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "upstream-managed"
+      - "check-parent-theme"
+    groups:
+      upstream-build-tools:
+        patterns:
+          - "@tryghost/*"
+          - "gscan"
+          - "gulp*"
+          - "postcss*"
+          - "autoprefixer"
+          - "cssnano"
+          - "beeper"
+          - "pump"
+          - "ordered-read-streams"
+        update-types:
+          - "minor"
+          - "patch"
+    # Workflow:
+    # 1. Check if upstream TryGhost/Headline has same or newer version
+    # 2. If upstream sync is coming soon, close PR and wait
+    # 3. If urgent security fix, merge and document for next sync
+    # See sync/README.md for dependency merge strategy
+
+  # Maintain GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "staging"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "github-actions"

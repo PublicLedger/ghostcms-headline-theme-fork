@@ -4,6 +4,7 @@ on:
     branches:
       - master
       - main
+  workflow_dispatch:
       
 permissions:
   contents: write
@@ -11,37 +12,122 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-22.04
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message || '', '[skip-ci]')
+    
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '24'
+      
+      - name: Determine version bump
+        id: bump
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || 'manual release' }}
+        run: |
+          # Parse commit message for version tags: [major], [minor], [patch]
+          # Default to [patch] if none specified
           
+          if echo "$COMMIT_MESSAGE" | grep -qiE '\[major\]'; then
+            echo "type=major" >> $GITHUB_OUTPUT
+            echo "Detected: MAJOR version bump"
+          elif echo "$COMMIT_MESSAGE" | grep -qiE '\[minor\]'; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+            echo "Detected: MINOR version bump"
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+            echo "Detected: PATCH version bump (default)"
+          fi
+      
+      - name: Get current version and calculate next
+        id: version
+        run: |
+          current=$(node -p "require('./package.json').version")
+          echo "current=$current" >> $GITHUB_OUTPUT
+          
+          # Split version into parts
+          IFS='.' read -r major minor patch <<< "$current"
+          
+          # Bump based on type
+          case "${{ steps.bump.outputs.type }}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          next="${major}.${minor}.${patch}"
+          echo "next=$next" >> $GITHUB_OUTPUT
+          echo "Version: $current → $next"
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@0ebf47130e4866e96fce0953f49152a61190b271 # v6
+      
+      - name: Update package.json version
+        run: |
+          pnpm version ${{ steps.version.outputs.next }} --no-git-tag-version
+      
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
-        
+        run: pnpm install --frozen-lockfile
+      
       - name: Build theme
-        run: yarn zip
-        
-      - name: Get version
-        id: package-version
-        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
-        
+        run: pnpm zip
+      
+      - name: Validate theme compatibility
+        run: pnpm test
+      
+      - name: Commit version change
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          git add package.json pnpm-lock.yaml
+          
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: Bump version to ${{ steps.version.outputs.next }} [skip-ci]"
+            git push
+          else
+            echo "No version changes to commit"
+          fi
+      
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.package-version.outputs.version }}-${{ github.run_number }}
-          name: Release v${{ steps.package-version.outputs.version }} (Build ${{ github.run_number }})
+          tag_name: v${{ steps.version.outputs.next }}
+          name: v${{ steps.version.outputs.next }}
           files: dist/*.zip
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: Deploy Ghost Theme publicledger-headline-fork
+      
+      - name: Deploy to Ghost
         uses: TryGhost/action-deploy-theme@v1.6.6
         with:
           theme-name: "publicledger-headline-fork"
           api-url: ${{ secrets.GHOST_ADMIN_API_URL }}
           api-key: ${{ secrets.GHOST_ADMIN_API_KEY }}
+      
+      - name: Summary
+        run: |
+          echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v${{ steps.version.outputs.next }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Theme:** publicledger-headline-fork" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔄 Rollback" >> $GITHUB_STEP_SUMMARY
+          echo "If this deployment fails, rollback via:" >> $GITHUB_STEP_SUMMARY
+          echo "**Actions → Rollback Theme → Run workflow → v${{ steps.version.outputs.current }}**" >> $GITHUB_STEP_SUMMARY
