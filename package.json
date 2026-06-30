@@ -1,6 +1,7 @@
 {
+  "_comment_identity": "Fork-specific identity fields",
   "name": "publicledger-headline-fork",
-  "description": "A custom Ghost theme for The Public Ledger project",
+  "description": "Fork of Ghost Foundation's Headline theme for The Public Ledger project",
   "version": "1.0.0",
   "private": true,
   "engines": {
@@ -8,13 +9,28 @@
     "ghost": ">=6.0.0"
   },
   "license": "MIT",
+  "_comment_author": "REQUIRED: Must preserve Ghost Foundation as author per MIT license",
   "author": {
-    "name": "Gasworks Data",
-    "email": "info@gasworksdata.com",
-    "url": "https://gasworksdata.com"
+    "name": "Ghost Foundation",
+    "email": "hello@ghost.org",
+    "url": "https://ghost.org"
   },
-  "keywords": ["ghost", "theme", "ghost-theme"],
+  "_comment_contributors": "Fork maintainer attribution goes here",
+  "contributors": [
+    {
+      "name": "Gasworks Data",
+      "email": "info@gasworksdata.com",
+      "url": "https://gasworksdata.com"
+    }
+  ],
+  "_comment_repository": "Fork-specific repository URL",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/PublicLedger/ghostcms-headline-theme-fork.git"
+  },
+  "keywords": ["ghost", "theme", "ghost-theme", "fork"],
   "docs": "https://headline.ghost.io/about/",
+  "_comment_config": "UPSTREAM: Ghost theme configuration - do not modify unless syncing from TryGhost/Headline",
   "config": {
     "posts_per_page": 7,
     "image_sizes": {
@@ -79,11 +95,13 @@
       }
     }
   },
+  "_comment_scripts": "UPSTREAM scripts: dev, test, zip. FORK additions: validate:fork, ghost:*, lint*",
   "scripts": {
     "dev": "gulp",
     "test": "gscan .",
     "zip": "gulp zip",
     "validate": "gscan . --verbose",
+    "validate:fork": "bash scripts/validate-fork.sh",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "ghost:dev": "echo 'Ghost dev instance available at http://localhost:3001'",
@@ -92,7 +110,9 @@
     "ghost:logs": "docker compose logs -f ghost-dev",
     "ghost:restart": "docker compose restart ghost-dev"
   },
+  "_comment_packageManager": "Pinned to match TryGhost/Headline upstream (easier sync)",
   "packageManager": "pnpm@11.9.0",
+  "_comment_devDependencies": "UPSTREAM: All dependencies from TryGhost/Headline - do not modify",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@gitkumi/prettier-plugin-handlebars": "^1.5.0",
