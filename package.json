@@ -104,8 +104,6 @@
     "validate:fork": "bash scripts/validate-fork.sh",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "lint:shell": "shellcheck sync/*.sh scripts/**/*.sh scripts/hooks/*",
-    "lint:actions": "actionlint",
     "ghost:dev": "echo 'Ghost dev instance available at http://localhost:3001'",
     "ghost:prod": "docker compose --profile production up -d ghost-prod db",
     "ghost:stop": "docker compose down",

@@ -171,31 +171,29 @@ jobs:
               --label "upstream-sync" \
               --body "The fork is currently **$behind commits behind** TryGhost/Headline main branch.
 
-Latest upstream commit: \`${upstream_head:0:7}\`
+Latest upstream commit: ${upstream_head:0:7}
 
 ## Sync Instructions
 
-\`\`\`bash
-# Automatic sync (recommended)
-./sync/upstream-sync.sh
+    # Automatic sync (recommended)
+    ./sync/upstream-sync.sh
 
-# Or manual sync
-git fetch upstream
-git rebase upstream/main
-git push origin staging --force-with-lease
-\`\`\`
+    # Or manual sync
+    git fetch upstream
+    git rebase upstream/main
+    git push origin staging --force-with-lease
 
 See [sync/README.md](sync/README.md) for detailed instructions.
 
 ## Testing After Sync
 
-- [ ] \`pnpm test\` passes (GScan validation)
-- [ ] \`pnpm zip\` builds successfully
+- [ ] pnpm test passes (GScan validation)
+- [ ] pnpm zip builds successfully
 - [ ] Test in devcontainer Ghost instance
 - [ ] Verify custom features still work
 
 ---
-*This issue was automatically created by the \`validate-fork.yaml\` workflow.*"
+*This issue was automatically created by the validate-fork.yaml workflow.*"
           fi
 
   theme-integrity:

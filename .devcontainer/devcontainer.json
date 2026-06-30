@@ -22,9 +22,7 @@
         "bradlc.vscode-tailwindcss",
         "TryGhost.ghost",
         "andrejunges.Handlebars",
-        "github.vscode-github-actions",
-        "timonwong.shellcheck",
-        "redhat.vscode-yaml"
+        "github.vscode-github-actions"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
