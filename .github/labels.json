@@ -1,0 +1,22 @@
+[
+  {
+    "name": "fork-specific",
+    "description": "Dependencies added by this fork, not managed by upstream",
+    "color": "0E8A16"
+  },
+  {
+    "name": "upstream-managed",
+    "description": "Dependencies also in TryGhost/Headline - check parent theme first",
+    "color": "D93F0B"
+  },
+  {
+    "name": "safe-to-merge",
+    "description": "Safe to merge immediately - no upstream conflicts",
+    "color": "0E8A16"
+  },
+  {
+    "name": "check-parent-theme",
+    "description": "Review upstream TryGhost/Headline before merging",
+    "color": "FBCA04"
+  }
+]
