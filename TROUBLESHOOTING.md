@@ -47,8 +47,8 @@ If you're seeing unexpected behavior, the browser console often reveals template
 **Solutions:**
 
 - Verify Ghost is running: `docker compose ps` (should show ghost-dev as "Up")
-- Check Ghost logs: `npm run ghost:logs` (look for startup errors or crashes)
-- Restart Ghost: `npm run ghost:restart`
+- Check Ghost logs: `pnpm ghost:logs` (look for startup errors or crashes)
+- Restart Ghost: `pnpm ghost:restart`
 - Verify port 3001 is accessible: `curl http://localhost:3001`
 - Check for port conflicts: `lsof -i :3001` (make sure only Ghost is using it)
 - Try accessing from host browser (not container): http://localhost:3001/ghost
@@ -62,9 +62,9 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 - Verify theme is mounted: `docker compose exec ghost-dev ls /var/lib/ghost/content/themes/`
 - Check for package.json in theme directory: `docker compose exec ghost-dev cat /var/lib/ghost/content/themes/headline/package.json`
-- Review Ghost logs for theme errors: `npm run ghost:logs | grep -i error`
-- Restart Ghost to reload themes: `npm run ghost:restart`
-- Validate theme structure: `npm run test` (GScan validation)
+- Review Ghost logs for theme errors: `pnpm ghost:logs | grep -i error`
+- Restart Ghost to reload themes: `pnpm ghost:restart`
+- Validate theme structure: `pnpm test` (GScan validation)
 - Check file permissions in container: `docker compose exec ghost-dev ls -la /var/lib/ghost/content/themes/headline/`
 
 ### Template Errors
@@ -73,7 +73,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 **Solutions:**
 
-- Check Ghost logs immediately: `npm run ghost:logs` (errors appear here with template name and line number)
+- Check Ghost logs immediately: `pnpm ghost:logs` (errors appear here with template name and line number)
 - Common template errors:
   - **Undefined helper**: Using `{{helper_name}}` that doesn't exist or is wrong Ghost version
   - **Undefined variable**: Using `{{variable}}` not in current context (e.g., `{{author}}` in tag.hbs)
@@ -85,22 +85,22 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 ### Asset Compilation Issues
 
-**Symptoms:** CSS changes not appearing, JavaScript errors, styles broken after editing, npm run dev shows errors
+**Symptoms:** CSS changes not appearing, JavaScript errors, styles broken after editing, pnpm dev shows errors
 
 **Solutions:**
 
 - Verify you're editing **source files** not built files:
   - ✅ Edit: `assets/css/*.css`, `assets/js/*.js`
   - ❌ Don't edit: `assets/built/screen.css`, `assets/built/main.min.js`
-- Restart asset watcher: Stop `npm run dev` (Ctrl+C) and restart
+- Restart asset watcher: Stop `pnpm dev` (Ctrl+C) and restart
 - Check for syntax errors in terminal output (PostCSS errors, JS parse errors)
 - Clear built assets and rebuild:
   ```bash
   rm -rf assets/built/*
-  npm run dev
+  pnpm dev
   ```
 - Verify Gulp is watching correct files: Check gulpfile.js configuration
-- Test production build: `npm run zip` (compiles all assets fresh)
+- Test production build: `pnpm zip` (compiles all assets fresh)
 
 ### Live Reload Not Working
 
@@ -108,12 +108,12 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 **Solutions:**
 
-- Verify `npm run dev` is running (should show "Watching..." in terminal)
-- Restart Ghost after major template changes: `npm run ghost:restart`
-- Check Ghost logs for theme reload messages: `npm run ghost:logs`
+- Verify `pnpm dev` is running (should show "Watching..." in terminal)
+- Restart Ghost after major template changes: `pnpm ghost:restart`
+- Check Ghost logs for theme reload messages: `pnpm ghost:logs`
 - Force browser refresh: Hard reload (Ctrl+Shift+R / Cmd+Shift+R)
 - For `.hbs` files: Ghost watches automatically, but may need restart for partials
-- For CSS/JS: Must have `npm run dev` running to compile changes
+- For CSS/JS: Must have `pnpm dev` running to compile changes
 
 ## Devcontainer-Specific Issues
 
@@ -146,7 +146,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 **Solutions:**
 
-- View Ghost crash logs: `npm run ghost:logs` or `docker compose logs ghost-dev`
+- View Ghost crash logs: `pnpm ghost:logs` or `docker compose logs ghost-dev`
 - Common causes:
   - **SQLite corruption**: Delete volume and restart: `docker compose down -v && docker compose up -d`
   - **Port already in use**: Change port in docker-compose.yml or stop conflicting process
@@ -179,30 +179,30 @@ If you're seeing unexpected behavior, the browser console often reveals template
   docker compose exec ghost-dev ls /var/lib/ghost/content/themes/headline/
   docker compose exec ghost-dev cat /var/lib/ghost/content/themes/headline/index.hbs
   ```
-- Restart Ghost to reload theme: `npm run ghost:restart`
+- Restart Ghost to reload theme: `pnpm ghost:restart`
 - Rebuild container if mount is broken: "Dev Containers: Rebuild Container"
 - Check file permissions (shouldn't need sudo to edit files)
 
-### npm Commands Failing in Container
+### pnpm Commands Failing in Container
 
-**Symptoms:** `npm install` errors, `npm run dev` fails, package not found errors
+**Symptoms:** `pnpm install` errors, `pnpm dev` fails, package not found errors
 
 **Solutions:**
 
 - Verify Node.js 24 is installed: `node --version` (should be 24.x.x)
-- Clear npm cache and reinstall:
+- Clear pnpm cache and reinstall:
   ```bash
-  rm -rf node_modules package-lock.json
-  npm install
+  rm -rf node_modules pnpm-lock.yaml
+  pnpm install
   ```
-- Check npm permissions (shouldn't need sudo inside container)
+- Check pnpm permissions (shouldn't need sudo inside container)
 - Verify package.json is valid JSON: `cat package.json | jq .`
-- Update npm itself: `npm install -g npm@latest`
+- Update pnpm itself: `pnpm add -g pnpm@latest`
 - Check network connectivity from container: `ping github.com`
 
 ### Production Ghost (MySQL) Won't Start
 
-**Symptoms:** `npm run ghost:prod` fails, ghost-prod container exits, port 2368 not accessible
+**Symptoms:** `pnpm ghost:prod` fails, ghost-prod container exits, port 2368 not accessible
 
 **Solutions:**
 
@@ -214,16 +214,16 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - View ghost-prod logs: `docker compose logs ghost-prod`
 - Reset production environment (⚠️ deletes production data):
   ```bash
-  npm run ghost:stop
-  docker compose down -v
-  npm run ghost:prod
+  pnpm ghost:stop
+  docker compose down
+  pnpm ghost:prod
   ```
 
 ## Theme Development Issues
 
 ### GScan Validation Failures
 
-**Symptoms:** `npm run test` shows errors, theme upload to Ghost fails validation, incompatibility warnings
+**Symptoms:** `pnpm test` shows errors, theme upload to Ghost fails validation, incompatibility warnings
 
 **Solutions:**
 
@@ -233,8 +233,8 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - **Invalid Ghost helpers**: Using deprecated or Ghost 7+ helpers (we support Ghost 6+)
   - **Package.json errors**: Missing required fields (name, version, engines.ghost)
   - **Invalid routes.yaml**: Syntax errors in routing configuration
-- Fix errors and retest: `npm run test`
-- Verbose validation report: `npm run validate`
+- Fix errors and retest: `pnpm test`
+- Verbose validation report: `pnpm validate`
 - Online validator: https://gscan.ghost.org/ (upload dist/headline.zip)
 
 ### Theme Upload Fails
@@ -243,15 +243,15 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 **Solutions:**
 
-- Build fresh production zip: `npm run zip`
-- Validate before uploading: `npm run test` (must pass GScan)
+- Build fresh production zip: `pnpm zip`
+- Validate before uploading: `pnpm test` (must pass GScan)
 - Check zip file size (Ghost has max upload size, usually 5-10MB)
 - Verify zip contains package.json in root: `unzip -l dist/headline.zip | head -20`
 - Try uploading via Ghost CLI instead:
   ```bash
   ghost-cli theme install dist/headline.zip
   ```
-- Check Ghost logs during upload: `npm run ghost:logs`
+- Check Ghost logs during upload: `pnpm ghost:logs`
 
 ### Handlebars Context Errors
 
@@ -274,7 +274,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
     No author available
   {{/if}}
   ```
-- Check Ghost logs for specific context errors: `npm run ghost:logs`
+- Check Ghost logs for specific context errors: `pnpm ghost:logs`
 
 ### Translation Strings Not Working
 
@@ -289,7 +289,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Check JSON syntax is valid: `cat locales/en.json | jq .`
 - Match key exactly (case-sensitive): `{{t "Subscribe"}}` needs `"Subscribe": "..."`
 - For other languages, ensure translation file exists: `locales/de.json`, etc.
-- Restart Ghost to reload locales: `npm run ghost:restart`
+- Restart Ghost to reload locales: `pnpm ghost:restart`
 - Check Ghost language setting: Admin → Settings → General → Publication language
 
 ### Custom Template Not Selectable
@@ -301,9 +301,9 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Verify file naming: Must be `custom-*.hbs` or `page-*.hbs`
 - Example: `custom-wide-feature-image.hbs` → "Wide feature image" in dropdown
 - Check template is in theme root, not in subdirectory
-- Restart Ghost to reload templates: `npm run ghost:restart`
-- Verify template has valid Handlebars syntax: `npm run test`
-- Check Ghost logs for template parsing errors: `npm run ghost:logs`
+- Restart Ghost to reload templates: `pnpm ghost:restart`
+- Verify template has valid Handlebars syntax: `pnpm test`
+- Check Ghost logs for template parsing errors: `pnpm ghost:logs`
 
 ## Fork-Specific Issues
 
@@ -330,8 +330,8 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 **Solutions:**
 
-- Review conflict resolution guide: [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md)
-- Follow step-by-step checklist: [UPSTREAM_SYNC_CHECKLIST.md](UPSTREAM_SYNC_CHECKLIST.md)
+- Review conflict resolution guide: [sync/README.md](sync/README.md)
+- Follow step-by-step guide: [sync/README.md](sync/README.md)
 - Check which files have conflicts:
   ```bash
   git status
@@ -339,7 +339,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
   ```
 - Preserve fork customizations marked with `{{!-- FORK CUSTOM: ... --}}`
 - For package.json conflicts, always keep fork name/author/engines.node
-- Test after resolving: `npm run test && npm run zip`
+- Test after resolving: `pnpm test && pnpm zip`
 
 ### Custom Locales Overwritten
 
@@ -355,7 +355,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
   ```bash
   git checkout locales/en.json
   ```
-- Mark in UPSTREAM_SYNC_PLAN.md before syncing
+- Mark in sync/README.md before syncing
 
 ### Devcontainer Config Changed
 
@@ -399,7 +399,7 @@ environment:
   DEBUG: "ghost:*"
 ```
 
-Restart Ghost: `npm run ghost:restart`
+Restart Ghost: `pnpm ghost:restart`
 
 ### Check Theme Structure
 
@@ -447,7 +447,7 @@ curl http://localhost:3001/ghost/api/content/posts/
 
 - **Devcontainer Guide**: [DEVCONTAINER.md](DEVCONTAINER.md)
 - **Quick Reference**: [.devcontainer/QUICKREF.md](.devcontainer/QUICKREF.md)
-- **Upstream Sync**: [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md)
+- **Upstream Sync**: [sync/README.md](sync/README.md)
 - **Agent Guidelines**: [AI_DEVELOPMENT.md](AI_DEVELOPMENT.md)
 - **Common Mistakes**: [AGENT_LESSONS.md](AGENT_LESSONS.md)
 - **Ghost Theme Docs**: https://ghost.org/docs/themes/

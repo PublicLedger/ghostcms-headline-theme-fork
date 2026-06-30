@@ -37,28 +37,28 @@ This is a forked version of the [Headline theme](https://github.com/TryGhost/Hea
 
 4. **Start Developing**
    - Edit theme files in VS Code
-   - Run `npm run dev` to watch for changes and rebuild assets
+   - Run `pnpm dev` to watch for changes and rebuild assets
    - Changes auto-reload in the browser
 
 ## Available Scripts
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Watch mode for asset compilation (Gulp) |
-| `npm run test` | Validate theme with GScan |
-| `npm run validate` | Verbose GScan validation |
-| `npm run zip` | Build theme zip for upload |
-| `npm run ghost:dev` | Show Ghost dev instance URL |
-| `npm run ghost:prod` | Start production-like Ghost with MySQL |
-| `npm run ghost:stop` | Stop all Ghost containers |
-| `npm run ghost:logs` | View Ghost development logs |
-| `npm run ghost:restart` | Restart Ghost development instance |
+| `pnpm dev` | Watch mode for asset compilation (Gulp) |
+| `pnpm test` | Validate theme with GScan |
+| `pnpm validate` | Verbose GScan validation |
+| `pnpm zip` | Build theme zip for upload |
+| `pnpm ghost:dev` | Show Ghost dev instance URL |
+| `pnpm ghost:prod` | Start production-like Ghost with MySQL |
+| `pnpm ghost:stop` | Stop all Ghost containers |
+| `pnpm ghost:logs` | View Ghost development logs |
+| `pnpm ghost:restart` | Restart Ghost development instance |
 
 ## Architecture
 
 ### Containers
 
-1. **devcontainer**: Your development environment with Node.js, npm, and all theme build tools
+1. **devcontainer**: Your development environment with Node.js, pnpm, and all theme build tools
 2. **ghost-dev**: Ghost in development mode with SQLite (auto-starts, port 3001)
 3. **ghost-prod**: Ghost in production mode with MySQL (optional, port 2368)
 4. **db**: MySQL 8.0 database (optional, for production testing)
@@ -80,16 +80,16 @@ This is a forked version of the [Headline theme](https://github.com/TryGhost/Hea
 **Production Mode (optional, port 2368)**
 - Uses MySQL database
 - Full caching enabled
-- Requires `npm run ghost:prod` to start
+- Requires `pnpm ghost:prod` to start
 - More accurate testing environment
 
 ## Theme Development Workflow
 
 1. **Make Changes**: Edit `.hbs` templates, CSS in `assets/css/`, or JavaScript in `assets/js/`
-2. **Build Assets**: Run `npm run dev` to watch and compile CSS/JS
+2. **Build Assets**: Run `pnpm dev` to watch and compile CSS/JS
 3. **View Changes**: Ghost automatically detects template changes
-4. **Validate**: Run `npm run test` to check theme compatibility
-5. **Package**: Run `npm run zip` to create distributable theme
+4. **Validate**: Run `pnpm test` to check theme compatibility
+5. **Package**: Run `pnpm zip` to create distributable theme
 
 ## Ghost Documentation
 
@@ -115,7 +115,7 @@ docker compose restart
 docker compose exec ghost-dev ls -la /var/lib/ghost/content/themes/
 
 # Restart Ghost to detect theme
-npm run ghost:restart
+pnpm ghost:restart
 ```
 
 ### Port conflicts
@@ -124,7 +124,7 @@ If ports 2368 or 3001 are in use, edit `.devcontainer/docker-compose.yml` and ch
 ### Clear Ghost data
 ```bash
 # Stop containers
-npm run ghost:stop
+pnpm ghost:stop
 
 # Remove volumes (WARNING: deletes all Ghost content)
 docker compose down -v
@@ -134,8 +134,8 @@ docker compose down -v
 
 When ready to deploy:
 
-1. Validate theme: `npm run test`
-2. Build production zip: `npm run zip`
+1. Validate theme: `pnpm test`
+2. Build production zip: `pnpm zip`
 3. Upload `dist/headline.zip` to your Ghost instance via Admin → Settings → Design
 
 ## Theme Structure

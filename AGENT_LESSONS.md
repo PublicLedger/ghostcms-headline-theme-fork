@@ -17,11 +17,11 @@ cat AGENT_LESSONS.md
 # 2. Check current state
 git status
 git branch
-npm run test    # GScan validation
-npm run dev     # Compile assets
+pnpm test    # GScan validation
+pnpm dev     # Compile assets
 
 # 3. Understand fork constraints
-cat UPSTREAM_SYNC_PLAN.md | head -100
+cat sync/README.md | head -100
 cat AI_DEVELOPMENT.md | grep -A10 "Never change"
 cat package.json | grep -E "name|author|engines"
 
@@ -33,7 +33,7 @@ git log --oneline HEAD..upstream/main  # What we're behind
 # 5. Verify devcontainer works
 docker compose ps
 curl -s http://localhost:3001 | head -20
-npm run ghost:logs | tail -20
+pnpm ghost:logs | tail -20
 ```
 
 **If you skip this**, you will:
@@ -78,16 +78,16 @@ Think holistically about the **fork lifecycle**:
 
 **What "fork context" means**:
 
-- Read `UPSTREAM_SYNC_PLAN.md` to see which files have upstream conflicts
+- Read `sync/README.md` to see which files have upstream conflicts
 - Check `package.json` for protected fields (name, author, engines.node, ghost:\* scripts)
-- Verify Ghost helper compatibility with `npm run test` (GScan)
+- Verify Ghost helper compatibility with `pnpm test` (GScan)
 - Test in actual Ghost instance at http://localhost:3001, not just file edits
 - Mark custom code with `{{!-- FORK CUSTOM: reason --}}` for future merge clarity
 
 **Examples of holistic thinking**:
 
-- ❌ "Update all dependencies to latest" → ✅ "Check UPSTREAM_SYNC_PLAN.md first - upstream might have updated them differently"
-- ❌ "Edit assets/built/screen.css for quick fix" → ✅ "Edit assets/css/screen.css source, run npm run dev to compile"
+- ❌ "Update all dependencies to latest" → ✅ "Check sync/README.md first - upstream might have updated them differently"
+- ❌ "Edit assets/built/screen.css for quick fix" → ✅ "Edit assets/css/screen.css source, run pnpm dev to compile"
 - ❌ "Use new Ghost 7 helper for feature" → ✅ "Fork supports Ghost 6.0+, check compatibility first"
 - ❌ "Change package.json name to 'headline'" → ✅ "NEVER - fork identity is 'publicledger-headline-fork'"
 
@@ -113,7 +113,7 @@ cat AI_DEVELOPMENT.md | grep -A5 "Never change"
 
 ### 2. Editing Built Assets Instead of Source Files
 
-**Pattern**: See CSS bug in devtools → edit `assets/built/screen.css` → fix disappears on next `npm run dev`
+**Pattern**: See CSS bug in devtools → edit `assets/built/screen.css` → fix disappears on next `pnpm dev`
 **Why**: AI follows file paths from browser without understanding build pipeline
 **Fix**: Never edit `assets/built/*` - always edit source:
 
@@ -123,7 +123,7 @@ vim assets/built/screen.css
 
 # ✅ RIGHT
 vim assets/css/screen.css
-npm run dev  # Compile to built/
+pnpm dev  # Compile to built/
 ```
 
 ### 3. Not Checking Upstream Sync Status Before Editing
@@ -136,7 +136,7 @@ npm run dev  # Compile to built/
 git fetch upstream
 git log upstream/main..HEAD -- path/to/file  # Our changes
 git log HEAD..upstream/main -- path/to/file  # Their changes
-grep "path/to/file" UPSTREAM_SYNC_PLAN.md    # Known conflicts?
+grep "path/to/file" sync/README.md    # Known conflicts?
 ```
 
 ### 4. Ghost API Version Assumptions
@@ -150,7 +150,7 @@ grep "path/to/file" UPSTREAM_SYNC_PLAN.md    # Known conflicts?
 grep "ghost" package.json  # ">=6.0.0"
 
 # Validate theme compatibility
-npm run test  # GScan checks Ghost 6.0 compatibility
+pnpm test  # GScan checks Ghost 6.0 compatibility
 
 # Check Ghost docs version history
 # https://ghost.org/docs/themes/helpers/
@@ -165,11 +165,11 @@ npm run test  # GScan checks Ghost 6.0 compatibility
 ```bash
 # Start Ghost if not running
 docker compose ps
-npm run ghost:restart
+pnpm ghost:restart
 
 # View in browser
 curl http://localhost:3001  # Or visit in browser
-npm run ghost:logs          # Check for template errors
+pnpm ghost:logs          # Check for template errors
 ```
 
 ### 6. Handlebars Context Confusion
@@ -197,9 +197,9 @@ npm run ghost:logs          # Check for template errors
 **Fix**: Always validate before committing:
 
 ```bash
-npm run test      # Quick validation
-npm run validate  # Verbose report with warnings
-npm run zip       # Build production package (also validates)
+pnpm test      # Quick validation
+pnpm validate  # Verbose report with warnings
+pnpm zip       # Build production package (also validates)
 ```
 
 ### 8. Not Marking Fork-Specific Code
@@ -304,7 +304,7 @@ git ls-tree -r upstream/main --name-only | grep -i "agent\|contrib\|troubleshoot
 # - Add FORK_ prefix: FORK_GUIDELINES.md
 # - Use descriptive names: AI_DEVELOPMENT.md, DEV_WORKFLOW.md
 # - Fork-only dirs: .devcontainer/, custom-*/
-# - Check UPSTREAM_SYNC_PLAN.md for documented upstream files
+# - Check sync/README.md for documented upstream files
 ```
 
 **Real example from this fork**:
@@ -334,14 +334,14 @@ cat package.json | grep -E "name|author|engines"
 git fetch upstream
 git log upstream/main..HEAD -- path/to/file    # Our changes
 git log HEAD..upstream/main -- path/to/file    # Their changes
-grep "path/to/file" UPSTREAM_SYNC_PLAN.md      # Documented conflicts?
+grep "path/to/file" sync/UPSTREAM_SYNC.md      # Documented conflicts?
 
 # 3. If creating NEW files, check upstream for name conflicts
 git ls-tree -r upstream/main --name-only | grep "^NEW_FILE_NAME"
 # If exists: choose different name to avoid merge conflicts
 
 # 4. Verify Ghost compatibility
-npm run test  # GScan validation for Ghost 6.0+
+pnpm test  # GScan validation for Ghost 6.0+
 
 # 5. Check if devcontainer is running
 docker compose ps
@@ -358,7 +358,7 @@ vim assets/built/main.min.js
 # ✅ RIGHT - edit source, compile with Gulp
 vim assets/css/screen.css
 vim assets/js/main.js
-npm run dev  # Watch mode - auto-compiles on save
+pnpm dev  # Watch mode - auto-compiles on save
 ```
 
 **Ghost helpers have version constraints** (check compatibility):
@@ -374,7 +374,7 @@ npm run dev  # Watch mode - auto-compiles on save
 
 {{! Check version compatibility:
      https://ghost.org/docs/themes/helpers/
-     npm run test (GScan validates) }}
+     pnpm test (GScan validates) }}
 ```
 
 **Template context is route-specific** (check available objects):
@@ -420,12 +420,12 @@ npm run dev  # Watch mode - auto-compiles on save
 - **Active fork**: 5 commits ahead, ~19 commits behind (as of 2026-06-28)
 - **High conflict files**: package.json, gulpfile.js, core templates (default.hbs, post.hbs, etc.)
 - **Safe custom files**: custom-_.hbs templates, .devcontainer/_, .github/workflows/\*
-- **Protocol**: See UPSTREAM_SYNC_PLAN.md before editing shared files
+- **Protocol**: See sync/UPSTREAM_SYNC.md before editing shared files
 
 ### Ghost Compatibility
 
 - **Version**: Ghost 6.0+ (not 7+ features)
-- **Validation**: `npm run test` (GScan) before every commit
+- **Validation**: `pnpm test` (GScan) before every commit
 - **Helpers**: Check https://ghost.org/docs/themes/helpers/ for version support
 - **Context**: Route-specific - https://ghost.org/docs/themes/context/
 
@@ -433,18 +433,18 @@ npm run dev  # Watch mode - auto-compiles on save
 
 - **Devcontainer**: Multi-container Docker (ghost-dev:3001, ghost-prod:2368, db:3306)
 - **Node**: 24+ (container requirement, don't downgrade)
-- **Asset compilation**: `npm run dev` watches source files → compiles to built/
+- **Asset compilation**: `pnpm dev` watches source files → compiles to built/
 - **Live reload**: Theme mounted at `/var/lib/ghost/content/themes/headline`
-- **Testing**: View at http://localhost:3001, logs via `npm run ghost:logs`
+- **Testing**: View at http://localhost:3001, logs via `pnpm ghost:logs`
 
 ### Build Pipeline
 
 ```bash
-npm run dev      # Watch mode: assets/css/*.css → assets/built/screen.css
+pnpm dev      # Watch mode: assets/css/*.css → assets/built/screen.css
                  #             assets/js/*.js → assets/built/main.min.js
-npm run zip      # Production build to dist/ (validates + compiles + packages)
-npm run test     # GScan validation (Ghost 6.0 compatibility)
-npm run validate # Verbose GScan report with all warnings
+pnpm zip      # Production build to dist/ (validates + compiles + packages)
+pnpm test     # GScan validation (Ghost 6.0 compatibility)
+pnpm validate # Verbose GScan report with all warnings
 ```
 
 ---
@@ -454,13 +454,13 @@ npm run validate # Verbose GScan report with all warnings
 Before committing:
 
 - [ ] Check `package.json` name/author/engines unchanged
-- [ ] Run `npm run test` (GScan validation passes)
+- [ ] Run `pnpm test` (GScan validation passes)
 - [ ] Test in devcontainer at http://localhost:3001
-- [ ] Check `npm run ghost:logs` for template errors
+- [ ] Check `pnpm ghost:logs` for template errors
 - [ ] Mark fork-custom code with `{{!-- FORK CUSTOM: ... --}}` comments
-- [ ] Check `UPSTREAM_SYNC_PLAN.md` if editing shared files
+- [ ] Check `sync/UPSTREAM_SYNC.md` if editing shared files
 - [ ] Verify edits are in SOURCE files (assets/css/_, assets/js/_), not built/
-- [ ] Run `npm run zip` to ensure production build works
+- [ ] Run `pnpm zip` to ensure production build works
 - [ ] Check `get_errors()` in VS Code for lint/validation issues
 
 ---
@@ -526,7 +526,7 @@ Before committing:
 - ❌ **Bug report**: "In PR #42 line 12 had wrong indentation" → Too specific, will become irrelevant
 - ❌ **Code-specific**: "default.hbs line 89 should use {{post.title}}" → Brittle, breaks when code changes
 - ❌ **Symptom-focused**: "Template error" → Doesn't explain why or how to prevent
-- ❌ **One-time event**: "Forgot to run npm run test" → If it only happened once, it's not a pattern
+- ❌ **One-time event**: "Forgot to run pnpm test" → If it only happened once, it's not a pattern
 
 **Decision tree for new entries**:
 
@@ -558,7 +558,7 @@ Is it repeating across multiple sessions?
 **Fix**: Before using ANY Ghost helper, check compatibility:
 ```bash
 grep "ghost" package.json  # ">=6.0.0"
-npm run test  # GScan validates Ghost 6.0
+pnpm test  # GScan validates Ghost 6.0
 # https://ghost.org/docs/themes/helpers/
 ````
 
@@ -569,6 +569,6 @@ npm run test  # GScan validates Ghost 6.0
 ---
 
 **Last Updated**: 2026-06-29
-**Fork Status**: 5 ahead, ~19 behind (see UPSTREAM_SYNC_PLAN.md)
+**Fork Status**: 5 ahead, ~19 behind (see sync/UPSTREAM_SYNC.md)
 **Ghost Version**: 6.0+ support (see package.json)
 ```

@@ -4,7 +4,7 @@ This document outlines the AI agent guidelines for the Ghost Headline theme fork
 
 ## Overview
 
-This is a **forked Ghost theme** from TryGhost/Headline with active upstream synchronization. Core stack: Node.js 24 (Gulp build system), Ghost 6.0+, Handlebars templating. DevContainer runs multi-container environment (ghost-dev on SQLite:3001, optional ghost-prod on MySQL:2368). Theme auto-mounted with live reload. See [DEVCONTAINER.md](DEVCONTAINER.md) for environment setup, [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md) for fork maintenance workflow.
+This is a **forked Ghost theme** from TryGhost/Headline with active upstream synchronization. Core stack: Node.js 24 (Gulp build system), Ghost 6.0+, Handlebars templating. DevContainer runs multi-container environment (ghost-dev on SQLite:3001, optional ghost-prod on MySQL:2368). Theme auto-mounted with live reload. See [DEVCONTAINER.md](DEVCONTAINER.md) for environment setup, [sync/README.md](sync/README.md) for fork maintenance workflow.
 
 **Critical constraint:** Every code change must preserve fork identity and account for future upstream merges.
 
@@ -27,10 +27,10 @@ This is a **forked Ghost theme** from TryGhost/Headline with active upstream syn
 All AI agents working on this theme must:
 
 1. **Preserve fork identity** - Never change `package.json` name, author, Node 24 requirement, or `ghost:*` scripts
-2. **Check upstream conflicts** - Review [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md) before editing files
+2. **Check upstream conflicts** - Review [sync/README.md](sync/README.md) before editing files
 3. **Test in devcontainer** - Verify changes at http://localhost:3001 before committing
 4. **Document fork changes** - Mark custom code with `{{!-- FORK CUSTOM: ... --}}` comments
-5. **Follow sync protocol** - See [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md) for merge procedures
+5. **Follow sync protocol** - See [sync/README.md](sync/README.md) for merge procedures
 
 **Never change:**
 
@@ -63,7 +63,7 @@ All AI agents working on this theme must:
 When proposing changes:
 
 1. Read [DEVCONTAINER.md](DEVCONTAINER.md) - Environment architecture and workflow
-2. Check [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md) - Known divergences and conflict resolution
+2. Check [sync/README.md](sync/README.md) - Known divergences and conflict resolution
 3. Review [.devcontainer/FORK_STATUS.md](.devcontainer/FORK_STATUS.md) - Current fork state
 4. Consider: "Will this conflict with upstream merges? Is documentation needed?"
 
@@ -71,21 +71,21 @@ When proposing changes:
 
 ### Development
 
-- `npm run dev` — Watch and compile assets (Gulp), starts live reload
-- `npm run zip` — Build production theme package to `dist/`
+- `pnpm dev` — Watch and compile assets (Gulp), starts live reload
+- `pnpm zip` — Build production theme package to `dist/`
 
 ### Validation & Testing
 
-- `npm run test` — Validate theme with GScan
-- `npm run validate` — Verbose GScan validation with compatibility report
+- `pnpm test` — Validate theme with GScan
+- `pnpm validate` — Verbose GScan validation with compatibility report
 
 ### Ghost Management (devcontainer)
 
-- `npm run ghost:dev` — Show development Ghost URL (http://localhost:3001)
-- `npm run ghost:logs` — View Ghost development logs
-- `npm run ghost:restart` — Restart Ghost development instance
-- `npm run ghost:prod` — Start production-like Ghost with MySQL (port 2368)
-- `npm run ghost:stop` — Stop all Ghost containers
+- `pnpm ghost:dev` — Show development Ghost URL (http://localhost:3001)
+- `pnpm ghost:logs` — View Ghost development logs
+- `pnpm ghost:restart` — Restart Ghost development instance
+- `pnpm ghost:prod` — Start production-like Ghost with MySQL (port 2368)
+- `pnpm ghost:stop` — Stop all Ghost containers
 
 ### Docker Management
 
@@ -100,9 +100,9 @@ When proposing changes:
 1. **Start devcontainer** - VS Code "Reopen in Container"
 2. **Access Ghost Admin** - http://localhost:3001/ghost (create account if first run)
 3. **Activate theme** - Settings → Design → Change theme → headline
-4. **Start asset watcher** - `npm run dev` in terminal
+4. **Start asset watcher** - `pnpm dev` in terminal
 5. **Edit files** - Templates (.hbs) auto-reload, assets rebuild on save
-6. **Validate before commit** - `npm run test && npm run zip`
+6. **Validate before commit** - `pnpm test && pnpm zip`
 
 ## Upstream Sync Protocol
 
@@ -111,7 +111,7 @@ When proposing changes:
 3. **Test in devcontainer** - Always verify changes work in the Ghost development instance
 4. **Document breaking changes** - Note any changes that might conflict with future syncs
 
-**Full sync workflow:** See [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md) for detailed merge procedures and [UPSTREAM_SYNC_CHECKLIST.md](UPSTREAM_SYNC_CHECKLIST.md) for step-by-step guide.
+**Full sync workflow:** See [sync/README.md](sync/README.md) for detailed sync procedures and step-by-step guide.
 
 ## Editing Rules
 
@@ -165,7 +165,7 @@ When modifying package.json:
 1. Use custom page templates (`custom-*.hbs`) over modifying core templates
 2. Add custom CSS in separate files, import in screen.css
 3. Document in code comments if feature depends on specific Ghost version
-4. Test with `npm run validate` for Ghost compatibility
+4. Test with `pnpm validate` for Ghost compatibility
 
 ### Modifying Existing Templates
 
@@ -176,8 +176,8 @@ When modifying package.json:
 
 ### Asset Compilation
 
-- CSS: Edit `assets/css/*.css`, run `npm run dev` to compile
-- JS: Edit `assets/js/*.js`, run `npm run dev` to compile
+- CSS: Edit `assets/css/*.css`, run `pnpm dev` to compile
+- JS: Edit `assets/js/*.js`, run `pnpm dev` to compile
 - Built files: Never manually edit `assets/built/*`
 
 ## Ghost-Specific Patterns
@@ -230,7 +230,7 @@ When modifying package.json:
 2. Access Ghost Admin: http://localhost:3001/ghost
 3. Activate theme if not active: Settings → Design → headline
 4. View frontend: http://localhost:3001
-5. Watch logs: `npm run ghost:logs`
+5. Watch logs: `pnpm ghost:logs`
 
 ## Common Questions
 
@@ -246,13 +246,13 @@ When modifying package.json:
 
 ### "How do I test production mode?"
 
-- `npm run ghost:prod` starts MySQL-backed Ghost on port 2368
+- `pnpm ghost:prod` starts MySQL-backed Ghost on port 2368
 - More realistic caching/performance testing
-- `npm run ghost:stop` to clean up
+- `pnpm ghost:stop` to clean up
 
 ### "What if GScan validation fails?"
 
-- Review `npm run validate` output
+- Review `pnpm validate` output
 - Check if Ghost version requirement needs updating
 - Some warnings are acceptable (check upstream's GScan status)
 
@@ -262,14 +262,14 @@ When modifying package.json:
 
 ```bash
 docker compose exec ghost-dev ls /var/lib/ghost/content/themes/
-npm run ghost:restart
+pnpm ghost:restart
 ```
 
 ### "CSS/JS changes not compiling"
 
 ```bash
 # Ensure dev watcher is running
-npm run dev
+pnpm dev
 # Check for syntax errors in terminal
 ```
 

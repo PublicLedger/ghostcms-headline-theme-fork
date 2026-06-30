@@ -30,7 +30,7 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
 3. Wait for containers to start (~1-2 minutes first time)
 4. Visit http://localhost:3001/ghost to set up your Ghost admin account
 5. Activate the "headline" theme in Settings → Design
-6. Run `npm run dev` to start development with live reload
+6. Run `pnpm dev` to start development with live reload
 
 **📖 Full Documentation:** See [DEVCONTAINER.md](DEVCONTAINER.md) for complete setup guide and troubleshooting.
 
@@ -52,20 +52,20 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
 ## Theme Development
 
 ```bash
-npm run dev          # Watch and compile theme assets with live reload
-npm run test         # Validate theme with GScan
-npm run zip          # Build production theme zip file
-npm run lint         # Run ESLint on JavaScript files
-npm run lint:fix     # Auto-fix ESLint issues
+pnpm dev          # Watch and compile theme assets with live reload
+pnpm test         # Validate theme with GScan
+pnpm zip          # Build production theme zip file
+pnpm lint         # Run ESLint on JavaScript files
+pnpm lint:fix     # Auto-fix ESLint issues
 ```
 
 ## Ghost Management (Devcontainer Only)
 
 ```bash
-npm run ghost:logs     # View Ghost development logs
-npm run ghost:restart  # Restart Ghost development instance
-npm run ghost:stop     # Stop Ghost development instance
-npm run ghost:start    # Start Ghost development instance
+pnpm ghost:logs     # View Ghost development logs
+pnpm ghost:restart  # Restart Ghost development instance
+pnpm ghost:stop     # Stop Ghost development instance
+pnpm ghost:start    # Start Ghost development instance
 ```
 
 ## Code Quality
@@ -103,20 +103,20 @@ If you prefer traditional development without Docker:
 **Requirements:**
 
 - Node.js v24+ (fork requirement)
-- npm (comes with Node.js)
+- pnpm (manages dependencies)
 - Your own Ghost instance to test the theme
 
 **Setup:**
 
 ```bash
 # Install dependencies
-npm install
+pnpm install
 
 # Run build & watch for changes
-npm run dev
+pnpm dev
 
 # Create production zip
-npm run zip
+pnpm zip
 ```
 
 The `zip` task packages the theme into `dist/headline.zip` for upload to your Ghost site.
@@ -131,7 +131,7 @@ The `zip` task packages the theme into `dist/headline.zip` for upload to your Gh
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development workflow, code quality standards, testing practices
 - **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** - Common issues, debugging tips, and solutions
 - **[DEVCONTAINER.md](DEVCONTAINER.md)** - Complete devcontainer setup guide and environment architecture
-- **[UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md)** - Strategy for merging upstream changes safely
+- **[sync/README.md](sync/README.md)** - Complete upstream sync guide (strategy, commands, checklist)
 - **[AI_DEVELOPMENT.md](AI_DEVELOPMENT.md)** - AI agent development guidelines and fork architecture
 - **[AGENT_LESSONS.md](AGENT_LESSONS.md)** - Common mistakes to avoid when maintaining the fork
 
@@ -177,7 +177,7 @@ General bug fixes and improvements that benefit the original theme can be contri
 
 ## Package Manager
 
-- **Fork uses:** npm with `package-lock.json`
+| **Package Manager** | pnpm 11.9.0             | pnpm 11.9.0             | Easier upstream sync      |
 - **Upstream uses:** pnpm with `pnpm-lock.yaml`
 - **Reason:** Simpler devcontainer setup, Node 24 compatibility
 
@@ -210,21 +210,23 @@ See [AGENT_LESSONS.md](AGENT_LESSONS.md) for protected files that must be preser
 
 # Upstream Sync Status
 
-**Last upstream sync:** Check [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md)  
+**Last upstream sync:** 2026-06-29 (commit 73ee6a5)  
 **Divergence:** See `git log --oneline upstream/main..staging`  
 **Automated sync:** Planned via GitHub Actions (weekly cron)
 
 To manually sync with upstream:
 
 ```bash
+# Quick sync with helper script
+./sync/upstream-sync.sh
+
+# Or manual sync
 git fetch upstream
 git rebase upstream/main
-# Resolve conflicts, rebuild assets, test
-npm run test
-npm run zip
+pnpm install && pnpm test && pnpm zip
 ```
 
-See [UPSTREAM_SYNC_PLAN.md](UPSTREAM_SYNC_PLAN.md) for complete sync procedure.
+See [sync/README.md](sync/README.md) for complete sync procedure.
 
 ---
 
