@@ -24,8 +24,6 @@
             </footer>
         </section>
 
-        {{!-- Fork: Hardcoded to show top 3 tags --}}
-        {{!-- For custom sections, modify this to use {{#get "pages"}} pattern --}}
         {{#match posts.length ">" 1}}
             {{#get "tags" include="count.posts" order="count.posts desc" limit="3"}}
                 {{#foreach tags}}
@@ -34,5 +32,16 @@
             {{/get}}
         {{/match}}
 
+        {{#match posts.length ">" 1}}
+            {{#get "tags" include="count.posts" order="count.posts desc"}}
+                {{#if tags.[3]}}
+                    <div class="gh-topic-list">
+                        {{#foreach tags from="4" limit="3"}}
+                            {{> "topic-minimal"}}
+                        {{/foreach}}
+                    </div>
+                {{/if}}
+            {{/get}}
+        {{/match}}
     </div>
 </main>

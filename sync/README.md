@@ -131,11 +131,27 @@ These customizations **must be preserved** during sync:
 - Logo: Single logo only (removed white_publication_logo_for_transparent_header)
 - Search button: Hardcoded placement (removed navigation_layout conditionals)
 
+### routes.yaml
+
+**Fork-specific routing** - Forces static homepage
+
+```yaml
+routes:
+  /:
+    data: page.home
+    template: page    # Uses page.hbs with Ghost page slug "home"
+```
+
+**Strategy during sync**: Keep fork routes.yaml, accept upstream only if intentionally switching to posts homepage
+
 ### home.hbs
 
 **Fork modifications:**
-- Tag sections: Shows top 3 tags by post count (removed tag slug filtering settings)
-- Comment added for future custom page-based sections
+- Removed `@custom.enter_tag_slugs_for_primary_sections` conditionals (setting deleted)
+- Removed `@custom.enter_tag_slugs_for_secondary_sections` conditionals (setting deleted)
+- Shows default behavior: top 3 tags (grid) + tags 4-6 (list)
+
+**Note:** Not actually used - routes.yaml forces static page homepage
 
 ### locales/en.json
 
