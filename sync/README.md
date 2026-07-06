@@ -110,6 +110,33 @@ These customizations **must be preserved** during sync:
 - All `devDependencies` versions
 - Standard `scripts`: dev, test, zip, validate
 
+**Remove after upstream sync (fork has hardcoded these):**
+- `config.custom.title_font` - Fork uses Cardo (fonts-custom.css)
+- `config.custom.body_font` - Fork uses Manrope (fonts-custom.css)
+- `config.custom.navigation_layout` - Fork hardcoded "Logo on the left"
+- `config.custom.header_style` - Fork hardcoded "Light"
+- `config.custom.white_publication_logo_for_transparent_header` - Not used
+- `config.custom.enter_tag_slugs_for_primary_sections` - Custom homepage sections
+- `config.custom.enter_tag_slugs_for_secondary_sections` - Custom homepage sections
+
+**Keep fork-only settings:**
+- `config.custom.footer_publisher_logo` - Publisher logo upload
+- `config.custom.funding_credit` - Site-wide funding credit text
+
+### default.hbs
+
+**Fork modifications:**
+- Body class: Hardcoded `is-head-left-logo` (removed navigation_layout logic)
+- Header style: Hardcoded to "Light" (removed header_style logic)  
+- Logo: Single logo only (removed white_publication_logo_for_transparent_header)
+- Search button: Hardcoded placement (removed navigation_layout conditionals)
+
+### home.hbs
+
+**Fork modifications:**
+- Tag sections: Shows top 3 tags by post count (removed tag slug filtering settings)
+- Comment added for future custom page-based sections
+
 ### locales/en.json
 
 **Fork customizations to preserve:**
@@ -118,6 +145,40 @@ These customizations **must be preserved** during sync:
 - Removed subscription-related strings
 
 **Strategy:** Keep fork strings, add any new upstream keys
+
+### assets/css/fonts-custom.css
+
+**Fork-specific custom fonts** - Does not exist upstream
+
+Import custom fonts here to avoid conflicts with upstream `fonts.css`. Already imported in `screen.css`.
+
+### assets/css/footer-custom.css
+
+**Fork-specific custom footer styles** - Does not exist upstream
+
+Styles for the custom footer design. Already imported in `screen.css`.
+
+### partials/footer-custom.hbs
+
+**Fork-specific custom footer template** - Does not exist upstream
+
+Custom footer with page-content hybrid approach:
+- Uses Ghost Pages: `footer-about`, `footer-tagline` (rich HTML content)
+- Uses `{{@custom.footer_publisher_logo}}` - Publisher logo image
+- Uses `{{@custom.funding_credit}}` - Site-wide funding credit text
+- Uses `{{navigation type="secondary"}}` - Footer navigation links
+- Hardcoded CTA links: `/about`, `/tools`
+- Hardcoded legal links: `/site-map`, `/design-reference`
+
+**Strategy during sync**: Keep fork footer partial, restore if accidentally overwritten
+
+### assets/css/screen.css
+
+**Fork modifications:**
+- Imports `fonts-custom.css` (Cardo + Manrope)
+- Imports `footer-custom.css` (custom footer styles)
+
+**Strategy during sync**: Keep fork imports, add any new upstream imports
 
 ### Other Protected Files
 
@@ -178,16 +239,6 @@ Then rebuild after merge: `pnpm dev`
     // Take ALL from upstream (latest versions)
   }
 }
-```
-
-### README.md
-
-**Strategy:** Keep upstream content, preserve fork note at top
-
-```markdown
-> **Fork:** This is a customized version. See [README.FORK.md](README.FORK.md) for fork-specific documentation.
-
-[Rest of upstream README content...]
 ```
 
 ### Conflict Markers

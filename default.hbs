@@ -10,7 +10,7 @@
     {{ghost_head}}
 </head>
 
-<body class="{{body_class}}{{{block "body_class"}}} is-head-{{#match @custom.navigation_layout "Logo on the left"}}left-logo{{else match @custom.navigation_layout "Logo in the middle"}}middle-logo{{else}}stacked{{/match}}{{#match @custom.title_font "=" "Elegant serif"}} has-serif-title{{/match}}{{#match @custom.body_font "=" "Elegant serif"}} has-serif-body{{/match}}{{#is "tag"}}{{#if tag.feature_image}} is-head-transparent{{/if}}{{/is}}{{#match @custom.header_style "Accent color"}} is-head-brand{{/match}}{{#match @custom.header_style "Dark"}} is-head-dark{{/match}}">
+<body class="{{body_class}}{{{block "body_class"}}} is-head-left-logo{{#is "tag"}}{{#if tag.feature_image}} is-head-transparent{{/if}}{{/is}}">
 <div class="gh-site">
 
     <header id="gh-head" class="gh-head gh-outer">
@@ -21,9 +21,6 @@
                     <a {{^is "home"}}class="gh-head-logo"{{/is}} href="{{@site.url}}">
                         {{#if @site.logo}}
                             <img src="{{@site.logo}}" alt="{{@site.title}}">
-                            {{#if @custom.white_publication_logo_for_transparent_header}}
-                                <img src="{{@custom.white_publication_logo_for_transparent_header}}" alt="{{@site.title}}">
-                            {{/if}}
                         {{else}}
                             {{@site.title}}
                         {{/if}}
@@ -36,18 +33,11 @@
 
             <nav class="gh-head-menu">
                 {{navigation}}
-                {{#unless @site.members_enabled}}
-                    {{#match @custom.navigation_layout "Stacked"}}
-                        <button class="gh-search gh-icon-btn" aria-label="{{t "Search this site"}}" data-ghost-search>{{> "icons/search"}}</button>
-                    {{/match}}
-                {{/unless}}
             </nav>
 
             <div class="gh-head-actions">
                 {{#unless @site.members_enabled}}
-                    {{^match @custom.navigation_layout "Stacked"}}
-                        <button class="gh-search gh-icon-btn" aria-label="{{t "Search this site"}}" data-ghost-search>{{> "icons/search"}}</button>
-                    {{/match}}
+                    <button class="gh-search gh-icon-btn" aria-label="{{t "Search this site"}}" data-ghost-search>{{> "icons/search"}}</button>
                 {{else}}
                     <button class="gh-search gh-icon-btn" aria-label="{{t "Search this site"}}" data-ghost-search>{{> "icons/search"}}</button>
                     <div class="gh-head-members">
@@ -69,44 +59,8 @@
 
     {{{body}}}
 
-    <footer class="gh-foot gh-outer">
-        <div class="gh-foot-inner gh-inner">
-            {{#if @site.members_enabled}}
-            {{#unless @member}}
-                <section class="gh-subscribe">
-                    <h3 class="gh-subscribe-title">{{t "Subscribe to {sitetitle}" sitetitle=@site.title}}</h3>
-                    {{#if @custom.email_signup_text}}
-                        <div class="gh-subscribe-description">{{@custom.email_signup_text}}</div>
-                    {{/if}}
-                    <button class="gh-subscribe-btn gh-btn" data-portal="signup">{{> "icons/email"}} {{t "Subscribe now"}}</button>
-                </section>
-            {{/unless}}
-            {{/if}}
-
-            <nav class="gh-foot-menu">
-                {{navigation type="secondary"}}
-            </nav>
-
-            <div class="gh-social-links">
-                {{#social_accounts @site}}
-                    <a href="{{href}}" target="_blank" rel="noopener" aria-label="{{name}}">
-                        {{#> (concat "icons/" type)}}
-                            {{!-- Fallback when no per-platform icon partial exists --}}
-                            <span>{{name}}</span>
-                        {{/undefined}}
-                    </a>
-                {{/social_accounts}}
-            </div>
-
-            <div class="gh-copyright">
-                {{#unless @custom.footer_text}}
-                    {{@site.title}} © {{date format="YYYY"}}. {{{t "Powered by {ghostlink}" ghostlink="<a href=\"https://ghost.org/\" target=\"_blank\" rel=\"noopener\">Ghost</a>"}}}
-                {{else}}
-                    {{@custom.footer_text}}
-                {{/unless}}
-            </div>
-        </div>
-    </footer>
+    {{!-- Custom fork footer - editable in Ghost Admin → Settings → Design --}}
+    {{> "footer-custom"}}
 
 </div>
 

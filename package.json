@@ -55,43 +55,13 @@
     },
     "card_assets": true,
     "custom": {
-      "navigation_layout": {
-        "type": "select",
-        "options": ["Logo on the left", "Logo in the middle", "Stacked"],
-        "default": "Logo on the left"
+      "footer_publisher_logo": {
+        "type": "image",
+        "group": "post"
       },
-      "header_style": {
-        "type": "select",
-        "options": ["Light", "Accent color", "Dark"],
-        "default": "Light"
-      },
-      "title_font": {
-        "type": "select",
-        "options": ["Modern sans-serif", "Elegant serif"],
-        "default": "Elegant serif"
-      },
-      "body_font": {
-        "type": "select",
-        "options": ["Modern sans-serif", "Elegant serif"],
-        "default": "Modern sans-serif"
-      },
-      "white_publication_logo_for_transparent_header": {
-        "type": "image"
-      },
-      "email_signup_text": {
+      "funding_credit": {
         "type": "text",
-        "default": "Follow The Public Ledger. Sign up now to get access once we launch."
-      },
-      "footer_text": {
-        "type": "text"
-      },
-      "enter_tag_slugs_for_primary_sections": {
-        "type": "text",
-        "group": "homepage"
-      },
-      "enter_tag_slugs_for_secondary_sections": {
-        "type": "text",
-        "group": "homepage"
+        "default": "Lancaster County Local Journalism Fund"
       }
     }
   },
