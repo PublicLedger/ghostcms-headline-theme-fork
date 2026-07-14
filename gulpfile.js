@@ -80,23 +80,63 @@ function js(done) {
     ], handleError(done));
 }
 
+function dataLoader(done) {
+  pump(
+    [
+      src("assets/js/data-loader.js", { sourcemaps: true }),
+      concat("data-loader.min.js"),
+      uglify(),
+      dest("assets/built/", { sourcemaps: "." }),
+      livereload(),
+    ],
+    handleError(done)
+  );
+}
+
+function dataCopy(done) {
+  // Use mock @publicledger/data package for development
+  // In production, this will come from the real NPM package
+  const mockPackagePath = "test/mocks/publicledger-data/data";
+  const dataSource = fs.existsSync(mockPackagePath)
+    ? `${mockPackagePath}/**/*.json`
+    : "data/**/*.json"; // Fallback if real package is installed
+
+  pump([src(dataSource, { encoding: false }), dest("assets/built/data/")], handleError(done));
+}
+
 function zipper(done) {
     const filename = require('./package.json').name + '.zip';
 
-    pump([
-        src([
-            '**',
-            '!node_modules', '!node_modules/**',
-            '!dist', '!dist/**',
-            '!pnpm-debug.log',
-            '!pnpm-lock.yaml',
-            '!pnpm-workspace.yaml',
-            '!AGENTS.md',
-            '!CLAUDE.md',
-        ], {encoding: false}),
+    pump(
+      [
+        src(
+          [
+            "**",
+            "!node_modules",
+            "!node_modules/**",
+            "!dist",
+            "!dist/**",
+            "!pnpm-debug.log",
+            "!pnpm-lock.yaml",
+            "!pnpm-workspace.yaml",
+            "!AGENTS.md",
+            "!CLAUDE.md",
+            "!docs-local",
+            "!docs-local/**",
+            "!test",
+            "!test/**",
+            "!data",
+            "!data/**",
+            // Explicitly include built assets (in .gitignore but needed in package)
+            "assets/built/**",
+          ],
+          { encoding: false, dot: true }
+        ),
         zip(filename),
-        dest('dist/')
-    ], handleError(done));
+        dest("dist/"),
+      ],
+      handleError(done)
+    );
 }
 
 function locales(done) {
@@ -110,8 +150,17 @@ const localesWatcher = () => watch('./locales-local/**/*.json', locales);
 const hbsWatcher = () => watch(['*.hbs', 'partials/**/*.hbs'], hbs);
 const cssWatcher = () => watch('assets/css/**/*.css', css);
 const jsWatcher = () => watch('assets/js/**/*.js', js);
-const watcher = parallel(hbsWatcher, cssWatcher, jsWatcher, localesWatcher);
-const build = series(css, js, locales);
+const dataLoaderWatcher = () => watch("assets/js/data-loader.js", dataLoader);
+const dataWatcher = () => watch("test/mocks/publicledger-data/data/**/*.json", dataCopy);
+const watcher = parallel(
+  hbsWatcher,
+  cssWatcher,
+  jsWatcher,
+  dataLoaderWatcher,
+  dataWatcher,
+  localesWatcher
+);
+const build = series(css, js, dataLoader, dataCopy, locales);
 
 exports.build = build;
 exports.zip = series(build, zipper);

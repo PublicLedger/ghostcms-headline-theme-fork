@@ -224,6 +224,7 @@ body:not(.home-template) .gh-topic-grid .gh-card {
     overflow-y: hidden;
     font-size: 1.6rem;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
 }
 

@@ -1,0 +1,340 @@
+{{!< default}} {{!-- Finance Explorer Template --}}
+
+<article class="gh-article gh-finance-explorer">
+  <header class="gh-article-header gh-canvas">
+    <h1 class="gh-article-title">Lancaster Campaign Finance Explorer</h1>
+    <p class="gh-article-excerpt">Explore campaign finance data from Lancaster County elections (2016-2023)</p>
+  </header>
+
+  <section class="gh-content gh-canvas">
+    <div class="explorer-summary">
+      <h2>Overall Summary</h2>
+      <div class="finance-cards">
+        <div class="finance-card">
+          <span class="label">Total Raised</span>
+          <span class="value" data-amount="totalRaised">Loading...</span>
+        </div>
+        <div class="finance-card">
+          <span class="label">Total Candidates</span>
+          <span class="value" data-count="candidateCount">0</span>
+        </div>
+        <div class="finance-card">
+          <span class="label">Total Donors</span>
+          <span class="value" data-count="donorCount">0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="explorer-top-donors">
+      <h2>Top Donors</h2>
+
+      <h3>Top Individual Donors</h3>
+      <div id="topIndividuals">
+        <p>Loading...</p>
+      </div>
+
+      <h3>Top Organizational Donors</h3>
+      <div id="topOrganizations">
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="explorer-spending">
+      <h2>Spending by Category</h2>
+      <div id="spendingCategories">
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="explorer-trends">
+      <h2>Trends by Year</h2>
+      <div id="yearlyTrends">
+        <p>Loading...</p>
+      </div>
+    </div>
+
+    <div class="explorer-top-races">
+      <h2>Top Fundraising Races</h2>
+      <div id="topRaces">
+        <p>Loading...</p>
+      </div>
+    </div>
+  </section>
+</article>
+
+<script>
+  (async function () {
+    const { getFinanceAggregates, formatCurrency } = window.PublicLedgerData;
+
+    try {
+      // Load aggregated finance data
+      const data = await getFinanceAggregates();
+
+      if (!data) {
+        document.querySelector(".gh-content").innerHTML = '<p class="error">Failed to load finance data.</p>';
+        return;
+      }
+
+      // Update summary cards
+      document.querySelector('[data-amount="totalRaised"]').textContent = formatCurrency(data.summary.totalRaised);
+      document.querySelector('[data-count="candidateCount"]').textContent = data.summary.candidateCount;
+      document.querySelector('[data-count="donorCount"]').textContent = data.summary.donorCount;
+
+      // Display top individual donors
+      const topIndividuals = document.getElementById("topIndividuals");
+      if (data.topDonors.individuals && data.topDonors.individuals.length > 0) {
+        topIndividuals.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Donor</th>
+                            <th>Total Contributed</th>
+                            <th>Recipients</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.topDonors.individuals
+                          .map(
+                            d => `
+                            <tr>
+                                <td>${d.name}</td>
+                                <td>${formatCurrency(d.total)}</td>
+                                <td>${d.recipientCount || "N/A"}</td>
+                            </tr>
+                        `
+                          )
+                          .join("")}
+                    </tbody>
+                </table>
+            `;
+      } else {
+        topIndividuals.innerHTML = "<p>No individual donor data available.</p>";
+      }
+
+      // Display top organizational donors
+      const topOrgs = document.getElementById("topOrganizations");
+      if (data.topDonors.organizations && data.topDonors.organizations.length > 0) {
+        topOrgs.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Organization</th>
+                            <th>Total Contributed</th>
+                            <th>Recipients</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.topDonors.organizations
+                          .map(
+                            d => `
+                            <tr>
+                                <td>${d.name}</td>
+                                <td>${formatCurrency(d.total)}</td>
+                                <td>${d.recipientCount || "N/A"}</td>
+                            </tr>
+                        `
+                          )
+                          .join("")}
+                    </tbody>
+                </table>
+            `;
+      } else {
+        topOrgs.innerHTML = "<p>No organizational donor data available.</p>";
+      }
+
+      // Display spending by category
+      const spendingCats = document.getElementById("spendingCategories");
+      if (data.spendingByCategory) {
+        const categories = Object.entries(data.spendingByCategory).sort((a, b) => b[1] - a[1]);
+
+        spendingCats.innerHTML = `
+                <div class="category-bars">
+                    ${categories
+                      .map(([cat, amount]) => {
+                        const percentage = ((amount / data.summary.totalSpent) * 100).toFixed(1);
+                        return `
+                            <div class="category-bar">
+                                <div class="category-label">
+                                    <span class="cat-name">${cat.replace(/_/g, " ")}</span>
+                                    <span class="cat-amount">${formatCurrency(amount)}</span>
+                                </div>
+                                <div class="bar-container">
+                                    <div class="bar-fill" style="width: ${percentage}%"></div>
+                                </div>
+                            </div>
+                        `;
+                      })
+                      .join("")}
+                </div>
+            `;
+      }
+
+      // Display yearly trends
+      const trendsDiv = document.getElementById("yearlyTrends");
+      if (data.trends && data.trends.byYear && data.trends.byYear.length > 0) {
+        trendsDiv.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Total Raised</th>
+                            <th>Candidates</th>
+                            <th>Avg per Candidate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.trends.byYear
+                          .map(
+                            y => `
+                            <tr>
+                                <td><a href="/elections/${y.year}/">${y.year}</a></td>
+                                <td>${formatCurrency(y.totalRaised)}</td>
+                                <td>${y.candidateCount}</td>
+                                <td>${formatCurrency(y.avgRaised)}</td>
+                            </tr>
+                        `
+                          )
+                          .join("")}
+                    </tbody>
+                </table>
+            `;
+      }
+
+      // Display top races
+      const racesDiv = document.getElementById("topRaces");
+      if (data.topRaces && data.topRaces.length > 0) {
+        racesDiv.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Office</th>
+                            <th>Year</th>
+                            <th>Total Raised</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.topRaces
+                          .map(
+                            r => `
+                            <tr>
+                                <td>${r.office}</td>
+                                <td><a href="/elections/${r.year}/">${r.year}</a></td>
+                                <td>${formatCurrency(r.totalRaised)}</td>
+                            </tr>
+                        `
+                          )
+                          .join("")}
+                    </tbody>
+                </table>
+            `;
+      }
+    } catch (error) {
+      console.error("Error loading finance data:", error);
+      document.querySelector(".gh-content").innerHTML = '<p class="error">Failed to load finance data.</p>';
+    }
+  })();
+</script>
+
+<style>
+  .finance-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .finance-card {
+    padding: 1.5rem;
+    background: var(--color-lighter-gray);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .finance-card .label {
+    font-size: 0.9rem;
+    color: var(--color-secondary-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .finance-card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-darker-gray);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .data-table th {
+    font-weight: 700;
+    background: var(--color-lighter-gray);
+  }
+
+  .data-table a {
+    color: var(--ghost-accent-color);
+    text-decoration: none;
+  }
+
+  .data-table a:hover {
+    text-decoration: underline;
+  }
+
+  .category-bars {
+    margin: 1rem 0;
+  }
+
+  .category-bar {
+    margin-bottom: 1.5rem;
+  }
+
+  .category-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+
+  .cat-name {
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+
+  .cat-amount {
+    color: var(--color-secondary-text);
+  }
+
+  .bar-container {
+    width: 100%;
+    height: 24px;
+    background: var(--color-lighter-gray);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: var(--ghost-accent-color);
+    transition: width 0.3s ease;
+  }
+
+  .explorer-top-donors h3 {
+    margin-top: 2rem;
+  }
+
+  .error {
+    color: #d00;
+    padding: 1rem;
+    background: #fee;
+    border-radius: 4px;
+  }
+</style>

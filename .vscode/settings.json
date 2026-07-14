@@ -58,6 +58,9 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
 
+  // CSS validation: ignore vendor prefix warnings (we include both standard and prefixed properties)
+  "css.lint.vendorPrefix": "ignore",
+
   // YAML validation: flags syntax errors and duplicate keys inline as you edit
   // Requires the Red Hat YAML extension (redhat.vscode-yaml)
   "yaml.validate": true,

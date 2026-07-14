@@ -1,0 +1,200 @@
+{{!< default}} {{!-- Office Profile Template --}}
+
+<article class="gh-article gh-office-profile">
+  <header class="gh-article-header gh-canvas">
+    <h1 class="gh-article-title office-name" data-office-slug="{{slug}}"></h1>
+    <div class="office-meta">
+      <span class="office-jurisdiction"></span>
+      <span class="office-seats"></span>
+    </div>
+  </header>
+
+  <section class="gh-content gh-canvas">
+    <div class="office-summary">
+      <h2>Office Details</h2>
+      <div class="office-info">
+        <p class="office-level"></p>
+        <p class="office-term"></p>
+        <p class="office-incumbents"></p>
+      </div>
+    </div>
+
+    <div class="office-stats">
+      <h2>Historical Finance Data</h2>
+      <div class="finance-cards">
+        <div class="finance-card">
+          <span class="label">Total Raised (All Time)</span>
+          <span class="value" data-amount="totalRaisedAllTime">Loading...</span>
+        </div>
+        <div class="finance-card">
+          <span class="label">Avg per Race</span>
+          <span class="value" data-amount="avgRaisedPerRace">Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="office-candidates">
+      <h2>Recent Candidates</h2>
+      <div id="candidatesList">
+        <p>Loading candidate information...</p>
+      </div>
+    </div>
+  </section>
+</article>
+
+<script>
+  (async function () {
+    const slug = "{{slug}}";
+    const { getOffice, getCandidatesByOffice, formatCurrency } = window.PublicLedgerData;
+
+    try {
+      // Load office data
+      const office = await getOffice(slug);
+
+      if (!office) {
+        document.querySelector(".office-name").textContent = "Office Not Found";
+        return;
+      }
+
+      // Update header
+      document.querySelector(".office-name").textContent = office.name;
+      document.querySelector(".office-jurisdiction").textContent = office.jurisdiction;
+      document.querySelector(".office-seats").textContent = `${office.seats} seat${office.seats > 1 ? "s" : ""}`;
+
+      // Update office info
+      document.querySelector(".office-level").innerHTML = `<strong>Level:</strong> ${office.level}`;
+      document.querySelector(".office-term").innerHTML = `<strong>Term:</strong> ${office.termLength} years`;
+
+      if (office.incumbents && office.incumbents.length > 0) {
+        document.querySelector(".office-incumbents").innerHTML =
+          `<strong>Current Incumbent(s):</strong> ${office.incumbents.length}`;
+      }
+
+      // Update finance stats
+      document.querySelector('[data-amount="totalRaisedAllTime"]').textContent = formatCurrency(
+        office.totalRaisedAllTime || 0
+      );
+      document.querySelector('[data-amount="avgRaisedPerRace"]').textContent = formatCurrency(
+        office.avgRaisedPerRace || 0
+      );
+
+      // Load candidates for this office
+      const candidates = await getCandidatesByOffice(office.id);
+
+      const candidatesList = document.getElementById("candidatesList");
+      if (candidates && candidates.length > 0) {
+        candidatesList.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Year</th>
+                            <th>Amount Raised</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${candidates
+                          .map(
+                            c => `
+                            <tr>
+                                <td><a href="/candidates/${c.id.replace("-001", "")}/">${c.name}</a></td>
+                                <td>${c.year || "N/A"}</td>
+                                <td>${formatCurrency(c.raised || 0)}</td>
+                            </tr>
+                        `
+                          )
+                          .join("")}
+                    </tbody>
+                </table>
+            `;
+      } else {
+        candidatesList.innerHTML = "<p>No candidate information available.</p>";
+      }
+    } catch (error) {
+      console.error("Error loading office data:", error);
+      document.querySelector(".gh-content").innerHTML = '<p class="error">Failed to load office data.</p>';
+    }
+  })();
+</script>
+
+<style>
+  .office-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    color: var(--color-secondary-text);
+  }
+
+  .office-info {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: var(--color-lighter-gray);
+    border-radius: 4px;
+  }
+
+  .office-info p {
+    margin: 0.5rem 0;
+  }
+
+  .finance-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .finance-card {
+    padding: 1.5rem;
+    background: var(--color-lighter-gray);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .finance-card .label {
+    font-size: 0.9rem;
+    color: var(--color-secondary-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .finance-card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-darker-gray);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .data-table th {
+    font-weight: 700;
+    background: var(--color-lighter-gray);
+  }
+
+  .data-table a {
+    color: var(--ghost-accent-color);
+    text-decoration: none;
+  }
+
+  .data-table a:hover {
+    text-decoration: underline;
+  }
+
+  .error {
+    color: #d00;
+    padding: 1rem;
+    background: #fee;
+    border-radius: 4px;
+  }
+</style>

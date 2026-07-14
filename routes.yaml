@@ -3,6 +3,22 @@ routes:
     data: page.home
     template: page
 
+  # Data-driven election/finance routes
+  /candidates/{slug}/:
+    template: candidate
+  
+  /offices/{slug}/:
+    template: office
+  
+  /elections/{year}/:
+    template: election
+  
+  /donors/{id}/:
+    template: donor
+  
+  /finance/:
+    template: finance-explorer
+
 collections:
   /:
     permalink: /{slug}/

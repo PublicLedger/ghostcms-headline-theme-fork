@@ -1,0 +1,224 @@
+{{!< default}} {{!-- Election Year Template --}}
+
+<article class="gh-article gh-election-profile">
+  <header class="gh-article-header gh-canvas">
+    <h1 class="gh-article-title election-year" data-election-year="{{year}}"></h1>
+    <div class="election-meta">
+      <span class="election-type"></span>
+      <span class="election-date"></span>
+    </div>
+  </header>
+
+  <section class="gh-content gh-canvas">
+    <div class="election-summary">
+      <h2>Election Summary</h2>
+      <div class="finance-cards">
+        <div class="finance-card">
+          <span class="label">Total Races</span>
+          <span class="value" data-count="raceCount">0</span>
+        </div>
+        <div class="finance-card">
+          <span class="label">Total Candidates</span>
+          <span class="value" data-count="candidateCount">0</span>
+        </div>
+        <div class="finance-card">
+          <span class="label">Total Raised</span>
+          <span class="value" data-amount="totalRaised">$0</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="election-races">
+      <h2>Races</h2>
+      <div id="racesList">
+        <p>Loading race information...</p>
+      </div>
+    </div>
+  </section>
+</article>
+
+<script>
+  (async function () {
+    const year = "{{year}}";
+    const { getElectionByYear, formatCurrency, formatDate } = window.PublicLedgerData;
+
+    try {
+      // Load election data
+      const election = await getElectionByYear(year);
+
+      if (!election) {
+        document.querySelector(".election-year").textContent = `${year} Election - Not Found`;
+        return;
+      }
+
+      // Update header
+      document.querySelector(".election-year").textContent = `${election.year} ${election.electionType}`;
+      document.querySelector(".election-type").textContent = election.electionType;
+      document.querySelector(".election-date").textContent = formatDate(election.date);
+
+      // Update summary stats
+      document.querySelector('[data-count="raceCount"]').textContent = election.summary.raceCount;
+      document.querySelector('[data-count="candidateCount"]').textContent = election.summary.candidateCount;
+      document.querySelector('[data-amount="totalRaised"]').textContent = formatCurrency(election.summary.totalRaised);
+
+      // Display races
+      const racesList = document.getElementById("racesList");
+      if (election.races && election.races.length > 0) {
+        racesList.innerHTML = election.races
+          .map(
+            race => `
+                <div class="race-card">
+                    <h3 class="race-title">
+                        <a href="/offices/${race.slug}/">${race.officeName}</a>
+                    </h3>
+                    <div class="race-details">
+                        <p><strong>Jurisdiction:</strong> ${race.jurisdiction}</p>
+                        <p><strong>Seats:</strong> ${race.seats}</p>
+                        <p><strong>Total Raised:</strong> ${formatCurrency(race.totalRaised || 0)}</p>
+                    </div>
+                    <div class="race-candidates">
+                        <h4>Candidates</h4>
+                        <ul>
+                            ${race.candidates
+                              .map(
+                                c => `
+                                <li>
+                                    <a href="/candidates/${c.candidateId.replace("-001", "")}/">${c.name}</a>
+                                    <span class="candidate-party">(${c.party})</span>
+                                    ${c.raised ? `<span class="candidate-raised">- ${formatCurrency(c.raised)}</span>` : ""}
+                                </li>
+                            `
+                              )
+                              .join("")}
+                        </ul>
+                    </div>
+                    ${race.raceNotes ? `<p class="race-notes">${race.raceNotes}</p>` : ""}
+                </div>
+            `
+          )
+          .join("");
+      } else {
+        racesList.innerHTML = "<p>No race information available.</p>";
+      }
+    } catch (error) {
+      console.error("Error loading election data:", error);
+      document.querySelector(".gh-content").innerHTML = '<p class="error">Failed to load election data.</p>';
+    }
+  })();
+</script>
+
+<style>
+  .election-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    color: var(--color-secondary-text);
+  }
+
+  .finance-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+  }
+
+  .finance-card {
+    padding: 1.5rem;
+    background: var(--color-lighter-gray);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .finance-card .label {
+    font-size: 0.9rem;
+    color: var(--color-secondary-text);
+    margin-bottom: 0.5rem;
+  }
+
+  .finance-card .value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--color-darker-gray);
+  }
+
+  .race-card {
+    padding: 1.5rem;
+    background: var(--color-lighter-gray);
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+
+  .race-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.4rem;
+  }
+
+  .race-title a {
+    color: var(--ghost-accent-color);
+    text-decoration: none;
+  }
+
+  .race-title a:hover {
+    text-decoration: underline;
+  }
+
+  .race-details {
+    margin-bottom: 1rem;
+  }
+
+  .race-details p {
+    margin: 0.25rem 0;
+  }
+
+  .race-candidates ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0;
+  }
+
+  .race-candidates li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .race-candidates li:last-child {
+    border-bottom: none;
+  }
+
+  .race-candidates a {
+    color: var(--ghost-accent-color);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .race-candidates a:hover {
+    text-decoration: underline;
+  }
+
+  .candidate-party {
+    color: var(--color-secondary-text);
+    margin-left: 0.5rem;
+  }
+
+  .candidate-raised {
+    color: var(--color-secondary-text);
+    margin-left: 0.5rem;
+  }
+
+  .race-notes {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+    font-style: italic;
+    color: var(--color-secondary-text);
+  }
+
+  .error {
+    color: #d00;
+    padding: 1rem;
+    background: #fee;
+    border-radius: 4px;
+  }
+</style>

@@ -7,6 +7,10 @@ assets/built/
 dist/
 *.zip
 
+# Data directory (will be populated from @publicledger/data NPM package)
+# Mock data for development is in test/mocks/publicledger-data/
+data/
+
 # Package manager lockfiles (fork uses pnpm/pnpm-lock.yaml only)
 yarn.lock
 package-lock.json
@@ -17,3 +21,6 @@ package-lock.json
 # OS files
 .DS_Store
 Thumbs.db
+
+# Local documentation (not for upstream)
+docs-local/
