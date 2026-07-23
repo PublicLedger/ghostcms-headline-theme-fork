@@ -53,16 +53,24 @@
         "width": 2000
       }
     },
-    "card_assets": true,
-    "custom": {
-      "footer_publisher_logo": {
-        "type": "image",
-        "group": "post"
-      },
-      "funding_credit": {
-        "type": "text",
-        "default": "Lancaster County Local Journalism Fund"
-      }
+    "packageManager": "pnpm@11.15.1",
+    "devDependencies": {
+        "@tryghost/shared-theme-assets": "2.7.1",
+        "@tryghost/theme-translations": "^0.0.9",
+        "autoprefixer": "10.5.2",
+        "beeper": "2.1.0",
+        "cssnano": "8.0.2",
+        "gscan": "6.4.2",
+        "gulp": "5.0.1",
+        "gulp-concat": "2.6.1",
+        "gulp-livereload": "4.0.2",
+        "gulp-postcss": "10.0.0",
+        "gulp-uglify": "3.0.2",
+        "gulp-zip": "5.1.0",
+        "ordered-read-streams": "2.0.0",
+        "postcss": "8.5.16",
+        "postcss-easy-import": "4.0.0",
+        "pump": "3.0.4"
     }
   },
   "_comment_scripts": "UPSTREAM scripts: dev, test, zip. FORK additions: validate:fork, ghost:*, lint*",
