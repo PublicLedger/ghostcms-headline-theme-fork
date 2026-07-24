@@ -41,13 +41,13 @@ repos:
         files: ^routes\.yaml$
         pass_filenames: true
 
-      # Prettier formatting for consistent code style
+      # Prettier formatting for consistent code style (fork files only)
       - id: prettier
         name: Prettier
         entry: npx prettier --write
         language: system
         files: \.(hbs|html|css|js|json|yml|yaml)$
-        exclude: ^(node_modules|assets/built|dist)/
+        exclude: ^(node_modules|assets/built|dist|locales|assets/css/(fonts|screen)\.css|assets/js/main\.js|gulpfile\.js|routes\.yaml|author\.hbs|default\.hbs|home\.hbs|index\.hbs|page\.hbs|post\.hbs|tag\.hbs|custom-(full|wide)-feature-image\.hbs|partials/(comments|feature-image|loop-(grid|minimal)|post-meta|pswp|related-posts|topic-(grid|minimal)|icons/))/
 
       # ESLint validation for JavaScript code quality
       - id: eslint

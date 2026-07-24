@@ -21,3 +21,41 @@ tmp/
 # Lock files (formatting breaks them)
 package-lock.json
 *.lock
+
+# UPSTREAM FILES - Do not format (parent theme doesn't use prettier)
+# Only format fork-specific files below
+
+# Upstream root templates
+author.hbs
+default.hbs
+home.hbs
+index.hbs
+page.hbs
+post.hbs
+tag.hbs
+custom-full-feature-image.hbs
+custom-wide-feature-image.hbs
+
+# Upstream CSS/JS (not custom)
+assets/css/fonts.css
+assets/css/screen.css
+assets/js/main.js
+
+# Upstream partials (not custom)
+partials/comments.hbs
+partials/feature-image.hbs
+partials/loop-grid.hbs
+partials/loop-minimal.hbs
+partials/post-meta.hbs
+partials/pswp.hbs
+partials/related-posts.hbs
+partials/topic-grid.hbs
+partials/topic-minimal.hbs
+partials/icons/
+
+# Upstream config
+gulpfile.js
+routes.yaml
+
+# Upstream locales
+locales/
