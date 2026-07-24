@@ -1,4 +1,4 @@
-<!-- 
+<!--
 This PR template enforces consistent PR description format.
 Delete instructional comments before submitting.
 -->
@@ -17,7 +17,7 @@ Delete instructional comments before submitting.
 - **Another category**
   - Implementation detail
 
-<!-- 
+<!--
 Guidelines:
 - Use one unified bullet list under ## Work (not separate sections)
 - Bold parent bullets that group related changes

@@ -2,7 +2,7 @@
 
 ## Scope
 
-This is the **PublicLedger fork** of the Headline Ghost theme from TryGhost/Headline. 
+This is the **PublicLedger fork** of the Headline Ghost theme from TryGhost/Headline.
 
 **Fork Repository:** https://github.com/PublicLedger/ghostcms-headline-theme-fork  
 **Upstream Repository:** https://github.com/TryGhost/Headline
@@ -111,6 +111,7 @@ See [DEVCONTAINER.md](DEVCONTAINER.md) for setup.
 ### Option 2: Traditional Setup
 
 Requirements:
+
 - Node.js 24+
 - pnpm (specified in package.json, version 11.9.0)
 - Your own Ghost instance for testing
@@ -142,11 +143,11 @@ pnpm dev
 
 ## Package Manager Differences
 
-| Aspect | Upstream | This Fork |
-|--------|----------|-----------|
-| Package Manager | pnpm 11.9.0 | pnpm 11.9.0 |
-| Lock File | pnpm-lock.yaml | pnpm-lock.yaml |
-| Node Version | 18+ | 24+ |
-| Rationale | Monorepo workspace | Easier upstream sync |
+| Aspect          | Upstream           | This Fork            |
+| --------------- | ------------------ | -------------------- |
+| Package Manager | pnpm 11.9.0        | pnpm 11.9.0          |
+| Lock File       | pnpm-lock.yaml     | pnpm-lock.yaml       |
+| Node Version    | 18+                | 24+                  |
+| Rationale       | Monorepo workspace | Easier upstream sync |
 
 Both use the same package manager for conflict-free upstream merges.

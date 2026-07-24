@@ -179,15 +179,9 @@ pnpm ghost:logs          # Check for template errors
 **Fix**: Understand context before using variables:
 
 ```handlebars
-{{! ❌ WRONG - author not in tag context }}
-{{#tag}}
-  <p>By {{author.name}}</p>
-{{/tag}}
-
-{{! ✅ RIGHT - check available context }}
-{{! tag.hbs has: tag, posts }}
-{{! post.hbs has: post, author }}
-{{! See: https://ghost.org/docs/themes/context/ }}
+{{! ❌ WRONG - author not in tag context }} {{#tag}}<p>By {{author.name}}</p>{{/tag}}
+{{! ✅ RIGHT - check available context }} {{! tag.hbs has: tag, posts }}
+{{! post.hbs has: post, author }} {{! See: https://ghost.org/docs/themes/context/ }}
 ```
 
 ### 7. Missing GScan Validation
@@ -210,10 +204,7 @@ pnpm zip       # Build production package (also validates)
 
 ```handlebars
 {{! FORK CUSTOM: Password protection UI for Public Ledger }}
-<div class="custom-password-form">
-  {{t "Access site"}}
-  {{! Custom translation string }}
-</div>
+<div class="custom-password-form">{{t "Access site"}} {{! Custom translation string }}</div>
 ```
 
 ### 9. Devcontainer Environment Assumptions
@@ -278,6 +269,112 @@ custom-*.hbs templates      # Custom templates
 .devcontainer/*             # Fork-only directory
 ```
 
+### 13. Forgetting Template Specificity Pattern
+
+**Pattern**: "Let's simplify these templates" → remove nested `{{#get}}` queries → specific Pages no longer work
+**Why**: AI sees nested Handlebars as "code smell" without understanding the specificity hierarchy is INTENTIONAL
+**Fix**: Before modifying data route templates, understand the pattern:
+
+```bash
+# Check if template uses specificity
+grep -A10 "{{#get" job-agency-seat.hbs
+# Should see: specific slug attempt → generic fallback → hardcoded
+
+# Read architecture doc
+cat docs-local/TEMPLATE_SPECIFICITY.md | head -50
+cat AGENTS.md | grep -A20 "Template Specificity"
+```
+
+**Common mistakes when forgetting this pattern:**
+
+1. **Removing "redundant" nested `{{#get}}`:**
+
+   ```handlebars
+   {{!-- ❌ WRONG - removes specificity --}}
+   {{#get "pages" filter="slug:job-agency-seat" limit="1"}}
+     {{#foreach pages}}{{{content}}}{{/foreach}}
+   {{/get}} {{!-- ✓ RIGHT - maintains specific → generic hierarchy --}}
+   {{#get "pages" filter="slug:job-agency-seat-{{agency}}-{{seat}}" limit="1"}}
+     {{#foreach pages}}{{{content}}}{{/foreach}}
+   {{else}}
+     {{#get "pages" filter="slug:job-agency-seat" limit="1"}}
+       {{#foreach pages}}{{{content}}}{{/foreach}}
+     {{/get}}
+   {{/get}}
+   ```
+
+2. **Creating Pages with wrong slug patterns:**
+   - URL: `/jobs/lancaster-county/sheriff/`
+   - ❌ Creating Page: `lancaster-county-sheriff` (missing template prefix)
+   - ❌ Creating Page: `job-agency-lancaster-county-sheriff` (wrong template name)
+   - ✓ Creating Page: `job-agency-seat-lancaster-county-sheriff` (correct)
+
+3. **Using Handlebars in Page content:**
+
+   ```html
+   <!-- ❌ WRONG - in Ghost Page editor -->
+   <h1>Current {{seat}} for {{agency}}</h1>
+   <!-- This renders literally: "Current {{seat}} for {{agency}}" -->
+
+   <!-- ✓ RIGHT - in .hbs template file -->
+   {{#get "pages" filter="slug:..." limit="1"}} {{#foreach pages}}{{{content}}}{{/foreach}} {{/get}}
+   <h1>Current {{seat}} for {{agency}}</h1>
+   ```
+
+4. **Hardcoding content thinking it's the fallback:**
+
+   ```handlebars
+   {{!-- ❌ WRONG - editing hardcoded fallback thinking it's primary content --}}
+   {{#get "pages" .. .}}
+     ...
+   {{else}}
+     <h1>Detailed custom content here</h1>
+     <!-- This should be in a Page! -->
+   {{/get}}
+   {{!-- ✓ RIGHT - hardcoded fallback is minimal --}}
+   {{#get "pages" .. .}}
+     ...
+   {{else}}
+     <p>Configure by creating Page: <code>job-agency-seat</code></p>
+   {{/get}}
+   ```
+
+5. **Not testing in actual Ghost:**
+   - Edit template → assume it works → commit
+   - ❌ Should: Edit template → create test Page in Ghost → visit route → verify correct Page loads
+   - Slug typos only caught at runtime: `job-agency-seats` vs `job-agency-seat`
+
+**Why this matters for fork maintenance:**
+
+- **15 templates** use this pattern (lookup, job, official, election, finance, donor routes)
+- **~50-100 Pages** in production Ghost depend on exact slug matching
+- **Breaking the pattern** makes all data routes show hardcoded fallbacks (looks like site is broken)
+- **Upstream won't have these templates** (fork-specific), so can't "sync fix" from them
+- **Hard to debug** because error is "site works but shows wrong content" not "site crashes"
+
+**Before modifying any template with `{{#get "pages"}}`:**
+
+```bash
+# 1. Check if it uses specificity
+grep -c "{{#get" template.hbs  # Should be ≥2 for specificity pattern
+
+# 2. Understand what it's doing
+head -30 template.hbs  # Read the structure
+
+# 3. Test changes in Ghost
+docker compose ps  # Verify Ghost running
+# Create test Page with correct slug
+# Visit route in browser
+# Verify correct Page renders
+```
+
+**Documentation references:**
+
+- Pattern explanation: `docs-local/TEMPLATE_SPECIFICITY.md`
+- Architecture decision: `AGENTS.md` → "Template Specificity Pattern"
+- Troubleshooting: `TROUBLESHOOTING.md` → "Template Specificity Issues"
+- Developer guide: `CONTRIBUTING.md` → "Template Specificity Pattern"
+
 ### 13. Creating Files Without Checking Upstream for Name Conflicts
 
 **Pattern**: Create AGENTS.md for AI development guidelines → later discover upstream has AGENTS.md for monorepo documentation → merge conflict on every upstream sync → forced to rename
@@ -308,6 +405,7 @@ git ls-tree -r upstream/main --name-only | grep -i "agent\|contrib\|troubleshoot
 ```
 
 **Real example from this fork**:
+
 - Created `AGENTS.md` for AI agent guidelines (2026-06-29)
 - Upstream already had `AGENTS.md` for TryGhost/Themes monorepo docs
 - Forced to rename → `AI_DEVELOPMENT.md` + update 5 files + memory
@@ -364,15 +462,10 @@ pnpm dev  # Watch mode - auto-compiles on save
 **Ghost helpers have version constraints** (check compatibility):
 
 ```handlebars
-{{! ❌ WRONG - Ghost 7+ only helper }}
-{{reading_time}}
-
-{{! ✅ RIGHT - Ghost 6.0+ compatible }}
+{{! ❌ WRONG - Ghost 7+ only helper }} {{reading_time}} {{! ✅ RIGHT - Ghost 6.0+ compatible }}
 {{#if feature_image}}
   {{img_url feature_image size="l"}}
-{{/if}}
-
-{{! Check version compatibility:
+{{/if}} {{! Check version compatibility:
      https://ghost.org/docs/themes/helpers/
      pnpm test (GScan validates) }}
 ```
@@ -380,27 +473,17 @@ pnpm dev  # Watch mode - auto-compiles on save
 **Template context is route-specific** (check available objects):
 
 ```handlebars
-{{! Each template has specific context objects }}
-{{! index.hbs: posts, pagination }}
-{{! post.hbs: post, author }}
-{{! tag.hbs: tag, posts }}
-{{! author.hbs: author, posts }}
-
-{{! ❌ WRONG - using undefined context }}
-{{!-- tag.hbs trying to use {{author}} --}}
-
-{{! ✅ RIGHT - check Ghost docs for context }}
-{{! https://ghost.org/docs/themes/context/ }}
+{{! Each template has specific context objects }} {{! index.hbs: posts, pagination }}
+{{! post.hbs: post, author }} {{! tag.hbs: tag, posts }} {{! author.hbs: author, posts }}
+{{! ❌ WRONG - using undefined context }} {{!-- tag.hbs trying to use {{author}} --}}
+{{! ✅ RIGHT - check Ghost docs for context }} {{! https://ghost.org/docs/themes/context/ }}
 ```
 
 **Fork customizations must be marked** (for future merge clarity):
 
 ```handlebars
 {{! FORK CUSTOM: Public Ledger password protection UI }}
-<div class="custom-login">
-  {{t "Access site"}}
-  {{! FORK CUSTOM: Not "Access code" }}
-</div>
+<div class="custom-login">{{t "Access site"}} {{! FORK CUSTOM: Not "Access code" }}</div>
 ```
 
 ---

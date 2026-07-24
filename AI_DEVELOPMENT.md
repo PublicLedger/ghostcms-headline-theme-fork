@@ -140,9 +140,7 @@ When modifying package.json:
 {
   "name": "publicledger-headline-fork", // NEVER CHANGE
   "description": "...", // NEVER CHANGE
-  "author": {
-    /* Gasworks Data */
-  }, // NEVER CHANGE
+  "author": {/* Gasworks Data */}, // NEVER CHANGE
   "engines": {
     "node": ">=24.0.0", // NEVER CHANGE (fork requirement)
     "ghost": ">=6.0.0" // Update if needed
@@ -185,16 +183,13 @@ When modifying package.json:
 ### Template Context
 
 ```handlebars
-{{! Context automatically available based on route }}
-{{#post}}
+{{! Context automatically available based on route }} {{#post}}
   {{! Current post object }}
   {{title}}
   {{content}}
   {{! Renders post HTML }}
   {{excerpt}}
-{{/post}}
-
-{{#foreach posts}}
+{{/post}} {{#foreach posts}}
   {{! Loop collection }}
   {{title}}
 {{/foreach}}
@@ -203,17 +198,14 @@ When modifying package.json:
 ### Responsive Images
 
 ```handlebars
-{{! Ghost generates responsive srcset }}
-{{img_url feature_image size="l"}}
+{{! Ghost generates responsive srcset }} {{img_url feature_image size="l"}}
 {{img_url feature_image size="m"}}
 ```
 
 ### Translations
 
 ```handlebars
-{{! Use locales/*.json }}
-{{t "Subscribe"}}
-{{t "Email"}}
+{{! Use locales/*.json }} {{t "Subscribe"}} {{t "Email"}}
 ```
 
 ## Devcontainer Workflow
