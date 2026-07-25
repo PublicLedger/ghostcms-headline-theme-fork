@@ -1,0 +1,33 @@
+{{!< default}}
+
+<main class="gh-main">
+  <section class="gh-content gh-canvas">
+    {{#get "pages" filter="slug:finance-seat-{{seat}}" limit="1"}}
+      {{#foreach pages}}
+        {{{content}}}
+      {{/foreach}}
+    {{else}}
+      {{#get "pages" filter="slug:finance-seat" limit="1"}}
+      
+        {{#foreach pages}}
+          {{{content}}}
+        {{/foreach}}
+
+    {{else}}
+      <h1>Campaign Finance - {{seat}}</h1>
+      <p>Contributions and spending for this seat.</p>
+      <p>
+        <em>Configure by creating a Page with slug: <code>finance-seat</code> or <code>finance-seat-{{seat}}</code></em>
+      </p>
+    {{/get}}
+    {{/get}}
+  </section>
+
+  <section class="seat-finance">
+    <div class="gh-canvas">
+      <div id="finance-seat-app" data-seat="{{seat}}">
+        <p>Campaign finance data loads here (top donors, spending, candidate reports)</p>
+      </div>
+    </div>
+  </section>
+</main>

@@ -4,23 +4,51 @@ routes:
     template: page
 
   # Data-driven election/finance routes
-  /candidates/{slug}/:
-    template: candidate
+  /lookup/:
+    template: lookup
+  /lookup/{agency}/:
+    template: lookup-agency
+    # next link /officials/{slug}/
   
-  /offices/{slug}/:
-    template: office
-  
-  /elections/{year}/:
+  /jobs/:
+    template: job
+  /jobs/{agency}/:
+    template: job-agency
+  /jobs/{agency}/{seat}/:
+    template: job-agency-seat
+
+  /elections/:
     template: election
+  /elections/{agency}/:
+    template: election-agency
+  /elections/{agency}/{seat}/:
+    template: election-agency-seat
+  /elections/{agency}/{seat}/{year}/:
+    template: election-agency-seat-year
   
-  /donors/{id}/:
+  /donors/:
+    template: donors
+  /donors/{slug}/:
     template: donor
   
   /finance/:
-    template: finance-explorer
+    template: finance
+  /finance/{agency}/{seat}/:
+    template: finance-agency-seat
+  /finance/{seat}/:
+    template: finance-seat
+  /finance/{seat}/{donor}/:
+    template: finance-seat-donor
+
+  /officials/:
+    template: officials
+  /official/{slug}/:
+    template: official
+  /officials/{agency}/: #seo
+    template: official-agency
 
 collections:
-  /:
+  /collections/:
     permalink: /{slug}/
     template: index
 
