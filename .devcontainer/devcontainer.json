@@ -3,26 +3,35 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "devcontainer",
   "workspaceFolder": "/workspace",
+  "runServices": ["ghost-dev"],
 
   // Features to install in the dev container
   "features": {
-    "ghcr.io/devcontainers/features/node:1": {
+    "ghcr.io/devcontainers/features/node:2.1.0": {
       "version": "24"
     },
-    "ghcr.io/devcontainers/features/git:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {}
+    "ghcr.io/devcontainers/features/git:1.3.8": {},
+    "ghcr.io/devcontainers/features/github-cli:1.1.0": {},
+    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+      "moby": false
+    }
   },
 
   // Configure tool-specific properties
   "customizations": {
     "vscode": {
+      // Extensions are installed in the container, not on host
+      // They reinstall on rebuild because the container is recreated
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
         "bradlc.vscode-tailwindcss",
         "TryGhost.ghost",
         "andrejunges.Handlebars",
-        "github.vscode-github-actions"
+        "github.vscode-pull-request-github",
+        "github.vscode-github-actions",
+        "redhat.vscode-yaml",
+        "orta.vscode-jest"
       ],
       "settings": {
         "terminal.integrated.defaultProfile.linux": "bash",
@@ -34,22 +43,22 @@
   },
 
   // Use 'forwardPorts' to make a list of ports inside the container available locally
-  "forwardPorts": [2368, 3001],
+  // Note: Only forward 3001 since Docker already maps 3001:2368 in ghost-dev service
+  "forwardPorts": [3001],
 
   // Port attributes for better labeling
   "portsAttributes": {
-    "2368": {
-      "label": "Ghost (Production)",
-      "onAutoForward": "notify"
-    },
     "3001": {
-      "label": "Ghost (Development)",
+      "label": "Ghost CMS (Dev)",
       "onAutoForward": "openBrowser"
     }
   },
 
   // Use 'postCreateCommand' to run commands after the container is created
-  "postCreateCommand": "pnpm install && pnpm zip",
+  "postCreateCommand": "pnpm install && pnpm gulp build && echo '✓ Theme built and ready'",
+
+  // Wait for Ghost setup to complete before allowing user interaction
+  "postStartCommand": "timeout 120 sh -c 'while [ ! -f /workspace/.ghost-setup-complete ]; do sleep 1; done' && echo '✓ Ghost is ready at http://localhost:3001/ghost/' || echo '⚠ Ghost setup timeout - check: pnpm ghost:logs'",
 
   // Comment out to connect as root instead
   "remoteUser": "node"
