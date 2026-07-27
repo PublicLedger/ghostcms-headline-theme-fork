@@ -103,7 +103,7 @@ These customizations **must be preserved** during sync:
 - `author`: Gasworks Data info
 - `engines.node`: ">=24.0.0"
 - `engines.ghost`: ">=6.0.0"
-- Custom `scripts`: ghost:dev, ghost:prod, ghost:logs, ghost:restart, ghost:stop
+- Custom `scripts`: ghost:seed, ghost:logs, ghost:restart
 
 **Take from upstream:**
 - `packageManager`: "pnpm@11.9.0"
@@ -245,9 +245,7 @@ Then rebuild after merge: `pnpm dev`
     "test": "gscan .",
     "zip": "gulp zip",
     "validate": "gscan . --verbose",
-    "ghost:dev": "echo 'Ghost dev at http://localhost:3001'",
-    "ghost:prod": "docker compose --profile production up -d ghost-prod db",
-    "ghost:stop": "docker compose down",
+    "ghost:seed": "...",
     "ghost:logs": "docker compose logs -f ghost-dev",
     "ghost:restart": "docker compose restart ghost-dev"
   },
