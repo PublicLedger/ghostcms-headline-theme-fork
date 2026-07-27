@@ -56,7 +56,7 @@
     },
     "card_assets": true
   },
-  "_comment_scripts": "UPSTREAM scripts: dev, test, zip. FORK additions: validate:fork, ghost:{seed,logs,restart}, docker:clean, lint*, format*, check-env",
+  "_comment_scripts": "UPSTREAM scripts: dev, test, zip. FORK additions: validate:fork, ghost:*, lint*",
   "scripts": {
     "dev": "gulp",
     "test": "gscan .",
