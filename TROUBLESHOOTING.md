@@ -51,7 +51,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Restart Ghost: `pnpm ghost:restart`
 - Verify port 3001 is accessible: `curl http://localhost:3001`
 - Check for port conflicts: `lsof -i :3001` (make sure only Ghost is using it)
-- Try accessing from host browser (not container): http://localhost:3001/ghost
+- Try accessing from host browser (not container): <http://localhost:3001/ghost>
 - Clear browser cookies for localhost domain
 
 ### Theme Not Appearing in Ghost Admin
@@ -79,9 +79,9 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - **Undefined variable**: Using `{{variable}}` not in current context (e.g., `{{author}}` in tag.hbs)
   - **Malformed syntax**: Missing closing `{{/if}}`, `{{/foreach}}`, or mismatched brackets
   - **Missing partial**: `{{> partial-name}}` file doesn't exist in partials/
-- Verify template context: https://ghost.org/docs/themes/context/
+- Verify template context: <https://ghost.org/docs/themes/context/>
 - Test with minimal template first, then add complexity
-- Check Ghost helper compatibility: https://ghost.org/docs/themes/helpers/
+- Check Ghost helper compatibility: <https://ghost.org/docs/themes/helpers/>
 
 ### Asset Compilation Issues
 
@@ -95,10 +95,12 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Restart asset watcher: Stop `pnpm dev` (Ctrl+C) and restart
 - Check for syntax errors in terminal output (PostCSS errors, JS parse errors)
 - Clear built assets and rebuild:
+
   ```bash
   rm -rf assets/built/*
   pnpm dev
   ```
+
 - Verify Gulp is watching correct files: Check gulpfile.js configuration
 - Test production build: `pnpm zip` (compiles all assets fresh)
 
@@ -127,17 +129,22 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Check Docker has sufficient resources (4GB+ RAM, 20GB+ disk recommended)
 - Try rebuilding without cache: Command Palette → "Dev Containers: Rebuild Container Without Cache"
 - Check for port conflicts:
+
   ```bash
   lsof -i :3001  # Ghost dev port
   ```
+
 - Review Docker logs for errors:
+
   ```bash
   docker compose logs
   docker compose logs ghost-dev
   ```
+
 - Check Docker Compose file syntax: `.devcontainer/docker-compose.yml`
 - Free up disk space if Docker storage is full
 - Clean up Docker cruft (can fix "transport endpoint not connected" errors):
+
   ```bash
   docker system prune -af --volumes  # ⚠️ Deletes all unused Docker data
   ```
@@ -155,11 +162,14 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - **Memory limit**: Increase Docker memory allocation in Docker Desktop settings
   - **Missing environment variables**: Check docker-compose.yml environment section
 - Start Ghost manually to see errors:
+
   ```bash
   docker compose up ghost-dev
   # Watch output for specific error messages
   ```
+
 - Reset Ghost completely (⚠️ deletes all data):
+
   ```bash
   docker compose down -v
   docker compose up -d
@@ -172,15 +182,19 @@ If you're seeing unexpected behavior, the browser console often reveals template
 **Solutions:**
 
 - Verify volume mount in docker-compose.yml:
+
   ```yaml
   volumes:
     - ../:/var/lib/ghost/content/themes/headline
   ```
+
 - Check file exists in container:
+
   ```bash
   docker compose exec ghost-dev ls /var/lib/ghost/content/themes/headline/
   docker compose exec ghost-dev cat /var/lib/ghost/content/themes/headline/index.hbs
   ```
+
 - Restart Ghost to reload theme: `pnpm ghost:restart`
 - Rebuild container if mount is broken: "Dev Containers: Rebuild Container"
 - Check file permissions (shouldn't need sudo to edit files)
@@ -193,10 +207,12 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 - Verify Node.js 24 is installed: `node --version` (should be 24.x.x)
 - Clear pnpm cache and reinstall:
+
   ```bash
   rm -rf node_modules pnpm-lock.yaml
   pnpm install
   ```
+
 - Check pnpm permissions (shouldn't need sudo inside container)
 - Verify package.json is valid JSON: `cat package.json | jq .`
 - Update pnpm itself: `pnpm add -g pnpm@latest`
@@ -218,7 +234,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - **Invalid routes.yaml**: Syntax errors in routing configuration
 - Fix errors and retest: `pnpm test`
 - Verbose validation report: `pnpm validate`
-- Online validator: https://gscan.ghost.org/ (upload dist/headline.zip)
+- Online validator: <https://gscan.ghost.org/> (upload dist/headline.zip)
 
 ### Theme Upload Fails
 
@@ -231,9 +247,11 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Check zip file size (Ghost has max upload size, usually 5-10MB)
 - Verify zip contains package.json in root: `unzip -l dist/headline.zip | head -20`
 - Try uploading via Ghost CLI instead:
+
   ```bash
   ghost-cli theme install dist/headline.zip
   ```
+
 - Check Ghost logs during upload: `pnpm ghost:logs`
 
 ### Handlebars Context Errors
@@ -247,9 +265,10 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - **Post (post.hbs)**: `post`, `author`
   - **Tag (tag.hbs)**: `tag`, `posts`
   - **Author (author.hbs)**: `author`, `posts`
-- Check Ghost docs for context: https://ghost.org/docs/themes/context/
+- Check Ghost docs for context: <https://ghost.org/docs/themes/context/>
 - Debug with `{{log variable}}` helper to see what's available
 - Use conditionals to check existence:
+
   ```handlebars
   {{#if author}}
     {{author.name}}
@@ -257,6 +276,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
     No author available
   {{/if}}
   ```
+
 - Check Ghost logs for specific context errors: `pnpm ghost:logs`
 
 ### Template Specificity Issues (Page-Based Templates)
@@ -284,6 +304,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - No trailing/leading hyphens
   - Pattern: `{template}-{param1}-{param2}...`
 - **Test slug matching:**
+
   ```bash
   # View template to see expected slug
   grep "filter=\"slug:" job-agency-seat.hbs
@@ -301,11 +322,13 @@ If you're seeing unexpected behavior, the browser console often reveals template
 **Solutions:**
 
 - Verify `routes.yaml` defines the route:
+
   ```yaml
   routes:
     /jobs/{agency}/{seat}/:
       template: job-agency-seat
   ```
+
 - Check template file exists: `ls -la job-agency-seat.hbs`
 - Restart Ghost after routes.yaml changes: `pnpm ghost:restart`
 - Check Ghost logs for routing errors: `pnpm ghost:logs`
@@ -324,12 +347,15 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - NOT: `job-agency-seats` (plural)
   - NOT: `jobs-agency-seat` (wrong prefix)
 - **Clear Ghost cache:**
+
   ```bash
   pnpm ghost:restart
   # Hard refresh browser: Ctrl+Shift+R
   ```
-- **Check Page isn't date-restricted** (no publish date in future)
-- **Test query directly in browser console:**
+
+- Check Page isn't date-restricted (no publish date in future)
+- Test query directly in browser console:
+
   ```javascript
   // Visit the route, open console (F12)
   fetch("/ghost/api/content/pages/?key=...&filter=slug:job-agency-seat")
@@ -347,6 +373,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
 **Solutions:**
 
 - **Move dynamic content to template file:**
+
   ```handlebars
   {{!-- In job-agency-seat.hbs (template) --}}
   <h1>{{seat}} - {{agency}}</h1>
@@ -355,6 +382,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
     {{#foreach pages}}{{{content}}}{{/foreach}}
   {{/get}}
   ```
+
 - **Use Page for static content only:**
   - ✓ Rich text descriptions
   - ✓ Editorial notes
@@ -391,10 +419,12 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - **Verify Page exists in production Ghost Admin** (not just local)
 - **Recreate Page in production** with exact same slug
 - **Or use content sync** if available:
+
   ```bash
   # Sync production Pages to local (read-only)
   pnpm ghost:seed
   ```
+
 - **Check production Ghost logs** for Page query errors
 - **Verify production routes.yaml deployed** (theme zip includes it)
 
@@ -431,6 +461,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
    ```
 
 5. **Check Ghost response:**
+
    ```bash
    # View Ghost logs during page load
    pnpm ghost:logs
@@ -447,9 +478,11 @@ If you're seeing unexpected behavior, the browser console often reveals template
 **Solutions:**
 
 - Verify string exists in `locales/en.json`:
+
   ```bash
   grep "String" locales/en.json
   ```
+
 - Check JSON syntax is valid: `cat locales/en.json | jq .`
 - Match key exactly (case-sensitive): `{{t "Subscribe"}}` needs `"Subscribe": "..."`
 - For other languages, ensure translation file exists: `locales/de.json`, etc.
@@ -483,9 +516,11 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - `engines.node`: ">=24.0.0"
   - Ghost scripts: `ghost:seed`, `ghost:logs`, `ghost:restart`
 - Restore from git if accidentally changed:
+
   ```bash
   git checkout package.json
   ```
+
 - Review AI_DEVELOPMENT.md for protected fields: `cat AI_DEVELOPMENT.md | grep -A10 "Never change"`
 
 ### Upstream Merge Conflicts
@@ -497,10 +532,12 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Review conflict resolution guide: [sync/README.md](sync/README.md)
 - Follow step-by-step guide: [sync/README.md](sync/README.md)
 - Check which files have conflicts:
+
   ```bash
   git status
   git diff upstream/main
   ```
+
 - Preserve fork customizations marked with `{{!-- FORK CUSTOM: ... --}}`
 - For package.json conflicts, always keep fork name/author/engines.node
 - Test after resolving: `pnpm test && pnpm zip`
@@ -516,9 +553,11 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - "Password" - custom fork string
 - Check current values: `grep "Access site\|Password" locales/en.json`
 - Restore from git if accidentally changed:
+
   ```bash
   git checkout locales/en.json
   ```
+
 - Mark in sync/README.md before syncing
 
 ### Devcontainer Config Changed
@@ -529,11 +568,14 @@ If you're seeing unexpected behavior, the browser console often reveals template
 
 - **Never merge .devcontainer/ from upstream** (fork-only directory)
 - If accidentally merged, restore fork version:
+
   ```bash
   git checkout .devcontainer/
   ```
+
 - Rebuild container after fixing: "Dev Containers: Rebuild Container"
 - Verify docker-compose.yml is intact:
+
   ```bash
   cat .devcontainer/docker-compose.yml
   ```
@@ -614,6 +656,6 @@ curl http://localhost:3001/ghost/api/content/posts/
 - **Upstream Sync**: [sync/README.md](sync/README.md)
 - **Agent Guidelines**: [AI_DEVELOPMENT.md](AI_DEVELOPMENT.md)
 - **Common Mistakes**: [AGENT_LESSONS.md](AGENT_LESSONS.md)
-- **Ghost Theme Docs**: https://ghost.org/docs/themes/
-- **GScan Validator**: https://gscan.ghost.org/
-- **Ghost Forum**: https://forum.ghost.org/
+- **Ghost Theme Docs**: <https://ghost.org/docs/themes/>
+- **GScan Validator**: <https://gscan.ghost.org/>
+- **Ghost Forum**: <https://forum.ghost.org/>

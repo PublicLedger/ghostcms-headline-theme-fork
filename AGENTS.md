@@ -130,6 +130,34 @@ From the `TryGhost/Themes` monorepo root, validate this package with:
 pnpm test:ci --theme headline
 ```
 
+### Documentation Standards
+
+All Markdown files must pass markdownlint validation:
+
+**Critical Rules:**
+
+- **MD034**: Wrap bare URLs in angle brackets `<https://example.com>` or link syntax `[text](url)`
+- **MD040**: Specify language for all fenced code blocks (`bash`, `json`, `text`, etc.)
+- **MD060**: Align table columns with pipe characters
+- **MD031/MD032**: Add blank lines around code blocks and lists
+
+**Validation:**
+
+```bash
+# Check Problems panel in VS Code for linting errors
+# Or validate specific files programmatically
+```
+
+**When generating Markdown:**
+
+- Always specify code block languages
+- Use `<url>` format for bare URLs
+- Add blank lines around lists and fenced code blocks
+- Align table columns properly
+- Validate with VS Code Problems panel or `get_errors()` after editing
+
+See `/memories/repo/markdown-standards.md` for complete linting requirements.
+
 ---
 
 ## Fork Maintenance

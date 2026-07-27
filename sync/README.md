@@ -2,8 +2,8 @@
 
 This directory contains tools and documentation for syncing the PublicLedger fork with the upstream TryGhost/Headline repository.
 
-**Upstream:** https://github.com/TryGhost/Headline  
-**Fork:** https://github.com/PublicLedger/ghostcms-headline-theme-fork  
+**Upstream:** <https://github.com/TryGhost/Headline>  
+**Fork:** <https://github.com/PublicLedger/ghostcms-headline-theme-fork>  
 **Last Sync:** 2026-06-29 (commit 73ee6a5)
 
 ---
@@ -15,14 +15,15 @@ This directory contains tools and documentation for syncing the PublicLedger for
 ```
 
 The script will:
+
 1. Check working directory is clean
-2. Fetch latest from upstream
-3. Show what's new
-4. Create a backup branch
-5. Rebase onto upstream/main
-6. Rebuild assets with pnpm
-7. Run GScan validation
-8. Provide next steps
+1. Fetch latest from upstream
+1. Show what's new
+1. Create a backup branch
+1. Rebase onto upstream/main
+1. Rebuild assets with pnpm
+1. Run GScan validation
+1. Provide next steps
 
 ---
 
@@ -98,6 +99,7 @@ These customizations **must be preserved** during sync:
 ### package.json
 
 **Keep from fork:**
+
 - `name`: "publicledger-headline-fork"
 - `description`: Custom description
 - `author`: Gasworks Data info
@@ -106,11 +108,13 @@ These customizations **must be preserved** during sync:
 - Custom `scripts`: ghost:seed, ghost:logs, ghost:restart
 
 **Take from upstream:**
+
 - `packageManager`: "pnpm@11.9.0"
 - All `devDependencies` versions
 - Standard `scripts`: dev, test, zip, validate
 
 **Remove after upstream sync (fork has hardcoded these):**
+
 - `config.custom.title_font` - Fork uses Cardo (fonts-custom.css)
 - `config.custom.body_font` - Fork uses Manrope (fonts-custom.css)
 - `config.custom.navigation_layout` - Fork hardcoded "Logo on the left"
@@ -120,12 +124,14 @@ These customizations **must be preserved** during sync:
 - `config.custom.enter_tag_slugs_for_secondary_sections` - Custom homepage sections
 
 **Keep fork-only settings:**
+
 - `config.custom.footer_publisher_logo` - Publisher logo upload
 - `config.custom.funding_credit` - Site-wide funding credit text
 
 ### default.hbs
 
 **Fork modifications:**
+
 - Body class: Hardcoded `is-head-left-logo` (removed navigation_layout logic)
 - Header style: Hardcoded to "Light" (removed header_style logic)  
 - Logo: Single logo only (removed white_publication_logo_for_transparent_header)
@@ -147,6 +153,7 @@ routes:
 ### home.hbs
 
 **Fork modifications:**
+
 - Removed `@custom.enter_tag_slugs_for_primary_sections` conditionals (setting deleted)
 - Removed `@custom.enter_tag_slugs_for_secondary_sections` conditionals (setting deleted)
 - Shows default behavior: top 3 tags (grid) + tags 4-6 (list)
@@ -156,6 +163,7 @@ routes:
 ### locales/en.json
 
 **Fork customizations to preserve:**
+
 - "Access site" (not "Access code")
 - "Password" (not "Please enter a valid email address")
 - Removed subscription-related strings
@@ -179,6 +187,7 @@ Styles for the custom footer design. Already imported in `screen.css`.
 **Fork-specific custom footer template** - Does not exist upstream
 
 Custom footer with page-content hybrid approach:
+
 - Uses Ghost Pages: `footer-about`, `footer-tagline` (rich HTML content)
 - Uses `{{@custom.footer_publisher_logo}}` - Publisher logo image
 - Uses `{{@custom.funding_credit}}` - Site-wide funding credit text
@@ -191,6 +200,7 @@ Custom footer with page-content hybrid approach:
 ### assets/css/screen.css
 
 **Fork modifications:**
+
 - Imports `fonts-custom.css` (Cardo + Manrope)
 - Imports `footer-custom.css` (custom footer styles)
 
@@ -221,7 +231,7 @@ git add assets/built/
 
 Then rebuild after merge: `pnpm dev`
 
-### package.json
+### Parent theme's package.json
 
 **Manual merge required:**
 
@@ -294,17 +304,6 @@ pnpm validate
 
 # Production build
 pnpm zip
-ls -lh dist/*.zip
-```
-
-### Devcontainer Testing
-
-1. Rebuild container: "Dev Containers: Rebuild Container"
-2. Wait for Ghost startup (~1-2 min)
-3. Visit http://localhost:3001/ghost
-4. Settings → Design → Activate "headline" theme
-5. Test live reload: Edit a .hbs file, refresh browser
-6. Test asset compilation: `pnpm dev`, edit CSS, check browser
 
 ### Visual Regression
 
@@ -415,12 +414,14 @@ git rev-list --count staging..upstream/main
 ```
 
 **When to sync:**
+
 - Security updates in dependencies
 - Major Ghost version support added
 - Useful new features
 - Bug fixes affecting fork
 
 **When to skip:**
+
 - Purely cosmetic upstream changes
 - Features not needed in fork
 - Too close to production deployment

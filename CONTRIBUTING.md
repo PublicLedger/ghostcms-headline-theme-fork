@@ -65,8 +65,8 @@ docker compose ps   # Verify Ghost containers running (devcontainer only)
 **Each template implements specificity hierarchy:**
 
 1. Try **specific** Page: `job-agency-seat-lancaster-county-sheriff`
-2. Fall back to **generic** Page: `job-agency-seat`
-3. Show **hardcoded fallback** if neither exists
+1. Fall back to **generic** Page: `job-agency-seat`
+1. Show **hardcoded fallback** if neither exists
 
 ### Why This Pattern?
 
@@ -130,11 +130,11 @@ docker compose ps   # Verify Ghost containers running (devcontainer only)
 **Testing changes:**
 
 1. Start Ghost: `docker compose ps` (verify running)
-2. Create test Page in Ghost Admin with exact slug
-3. Visit route: http://localhost:3001/jobs/lancaster-county/sheriff/
-4. Verify specific Page loads (not generic fallback)
-5. Delete Page, verify falls back to generic
-6. Check hardcoded fallback renders if both missing
+1. Create test Page in Ghost Admin with exact slug
+1. Visit route: <http://localhost:3001/jobs/lancaster-county/sheriff/>
+1. Verify specific Page loads (not generic fallback)
+1. Delete Page, verify falls back to generic
+1. Check hardcoded fallback renders if both missing
 
 **Common mistakes:**
 
@@ -164,11 +164,11 @@ The devcontainer provides a **complete Ghost CMS environment** for theme develop
 **VS Code:**
 
 1. Install [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
-2. Open this repository in VS Code
-3. Click "Reopen in Container" when prompted (or use Command Palette → "Dev Containers: Reopen in Container")
-4. Container builds and Ghost starts automatically (~2 minutes first time)
-5. Visit http://localhost:3001/ghost to create admin account
-6. Activate "headline" theme in Settings → Design
+1. Open this repository in VS Code
+1. Click "Reopen in Container" when prompted (or use Command Palette → "Dev Containers: Reopen in Container")
+1. Container builds and Ghost starts automatically (~2 minutes first time)
+1. Visit <http://localhost:3001/ghost> to create admin account
+1. Activate "headline" theme in Settings → Design
 
 **GitHub Codespaces:**
 
@@ -201,7 +201,7 @@ pnpm dev          # Start asset compilation
 2. **ghost-dev** (development Ghost):
    - Ghost latest (6.0+ compatible)
    - SQLite database (fast, no external dependencies)
-   - Port 3001 → http://localhost:3001
+   - Port 3001 → <http://localhost:3001>
    - Auto-starts on container creation
    - Theme live-mounted at `/var/lib/ghost/content/themes/headline`
    - Volume: `ghost-dev-data` for persistent Ghost data
@@ -411,6 +411,17 @@ npx prettier --write "**/*.hbs"     # Format Handlebars only
 - JavaScript (`*.js`) - 100 char width, double quotes, semicolons
 - JSON (`*.json`) - No trailing commas (strict JSON)
 
+**Markdown linting:**
+
+All Markdown files must pass markdownlint validation:
+
+- **MD034**: Wrap bare URLs in `<https://example.com>` or `[text](url)` format
+- **MD040**: Specify language for code blocks (`` `bash` ``, `` `json` ``, `` `text` ``)
+- **MD060**: Align table columns with pipe characters
+- **MD031/MD032**: Blank lines required around code blocks and lists
+
+Check the VS Code Problems panel for validation errors or use `get_errors()` in Copilot. Excluded: `docs-local/` (contains CSV data).
+
 **Both run automatically on commit** via pre-commit hooks.
 
 ### Running Validation
@@ -447,22 +458,23 @@ pnpm zip           # Validates + compiles + packages
 
 ### Ghost Management (Devcontainer)
 
-| Command               | Purpose                                      |
+| Command | Purpose |
 | --------------------- | -------------------------------------------- |
-| `pnpm check-env`   | Validate full environment setup              |
-| `pnpm ghost:seed`  | Sync from production (requires `.env`)       |
-| `pnpm ghost:logs`  | View Ghost container logs (live tail)        |
-| `pnpm ghost:restart` | Restart Ghost container                    |
+| `pnpm check-env` | Validate full environment setup |
+| `pnpm ghost:seed` | Sync from production (requires `.env`) |
+| `pnpm ghost:logs` | View Ghost container logs (live tail) |
+| `pnpm ghost:restart` | Restart Ghost container |
 | `pnpm docker:clean` | Remove all unused Docker data (⚠️ deletes volumes) |
 
 **Ghost URLs:**
-- **Admin Panel**: http://localhost:3001/ghost/ (from host browser)
-- **Public Site**: http://localhost:3001/
+
+- **Admin Panel**: <http://localhost:3001/ghost/> (from host browser)
+- **Public Site**: <http://localhost:3001/>
 - **Credentials**: `admin@example.com` / `RandomSecure123456789`
 
 ### Testing in Ghost
 
-**Development instance** (http://localhost:3001):
+**Development instance** (<http://localhost:3001>):
 
 ```bash
 # Start asset watcher
@@ -508,10 +520,10 @@ docker compose logs -f ghost-dev
 **Common workflows:**
 
 1. **Template changes**: Edit `.hbs` files → Ghost auto-reloads → hard refresh browser
-2. **CSS changes**: Edit `assets/css/*.css` → `pnpm dev` compiles → hard refresh browser
-3. **JS changes**: Edit `assets/js/*.js` → `pnpm dev` compiles → hard refresh browser
-4. **Route changes**: Edit `routes.yaml` → rebuild theme → restart Ghost → hard refresh
-5. **Data changes**: Edit test mocks → `pnpm dev` → verify in data pages
+1. **CSS changes**: Edit `assets/css/*.css` → `pnpm dev` compiles → hard refresh browser
+1. **JS changes**: Edit `assets/js/*.js` → `pnpm dev` compiles → hard refresh browser
+1. **Route changes**: Edit `routes.yaml` → rebuild theme → restart Ghost → hard refresh
+1. **Data changes**: Edit test mocks → `pnpm dev` → verify in data pages
 
 ## Ghost Theme Architecture
 
@@ -534,13 +546,13 @@ Ghost uses Handlebars templates with specific routing:
 - Reusable components included with `{{> partial-name}}`
 - Example: `{{> loop-grid}}` for post grid layout
 
-**Context objects**: https://ghost.org/docs/themes/context/
+**Context objects**: <https://ghost.org/docs/themes/context/>
 
 ### Ghost Helpers
 
 **Version constraints**: This theme supports Ghost 6.0+. Check helper compatibility:
 
-- https://ghost.org/docs/themes/helpers/
+- <https://ghost.org/docs/themes/helpers/>
 
 **Common helpers:**
 
@@ -623,8 +635,8 @@ Ghost uses Handlebars templates with specific routing:
 **Before editing any file:**
 
 1. Check if upstream modified it: `git log upstream/main..HEAD -- path/to/file`
-2. Review [sync/README.md](sync/README.md) for known conflicts
-3. Mark fork-specific changes: `{{!-- FORK CUSTOM: reason --}}`
+1. Review [sync/README.md](sync/README.md) for known conflicts
+1. Mark fork-specific changes: `{{!-- FORK CUSTOM: reason --}}`
 
 **High conflict risk files:**
 
@@ -695,9 +707,9 @@ git commit -m "docs: Update README [skip-ci]"
 If a deployment fails in production, use the GitHub Actions workflow:
 
 1. GitHub → Actions → **Rollback Theme** → Run workflow
-2. Enter the version to rollback to (e.g., `1.2.3`)
-3. Optionally check "Delete the failed release"
-4. Workflow will:
+1. Enter the version to rollback to (e.g., `1.2.3`)
+1. Optionally check "Delete the failed release"
+1. Workflow will:
    - Checkout the specified version tag
    - Build and validate theme
    - Deploy to Ghost
@@ -768,7 +780,7 @@ Settings → Secrets and variables → Actions → Repository secrets:
 
 ### Fork Integrity Validation
 
-**Automated Validation**
+#### Automated Validation
 
 The fork includes automated validation to prevent license violations and upstream drift:
 
@@ -787,7 +799,7 @@ The fork includes automated validation to prevent license violations and upstrea
 - 🚫 Blocks `package.json` author changes
 - ⚠️ Warns when theme files (.hbs, .css, .js) are modified
 
-**Local Validation**
+#### Local Validation
 
 Before pushing, run local validation:
 
@@ -804,7 +816,7 @@ This runs all the same checks as the GitHub workflow:
 - Theme build
 - GScan validation
 
-**Installing Git Hooks**
+#### Installing Git Hooks
 
 The pre-commit hook is version-controlled in `scripts/hooks/pre-commit`.
 
@@ -821,7 +833,7 @@ Or if already installed, update it:
 cp scripts/hooks/pre-commit .git/hooks/pre-commit
 ```
 
-**Responding to Validation Failures**
+#### Responding to Validation Failures
 
 **LICENSE modified:**
 
@@ -857,20 +869,20 @@ Developers: `git checkout staging`
 
 ### Activating Theme
 
-1. Access Ghost Admin: http://localhost:3001/ghost
-2. Navigate to Settings → Design
-3. Click "Change theme"
-4. Select "headline" from installed themes
-5. Click "Activate"
+1. Access Ghost Admin: <http://localhost:3001/ghost>
+1. Navigate to Settings → Design
+1. Click "Change theme"
+1. Select "headline" from installed themes
+1. Click "Activate"
 
 ### Testing Content
 
 **Create test content:**
 
 1. Posts → New post
-2. Add title, content, feature image
-3. Assign tags and author
-4. Publish
+1. Add title, content, feature image
+1. Assign tags and author
+1. Publish
 
 **Test different contexts:**
 
@@ -882,8 +894,8 @@ Developers: `git checkout staging`
 **Custom templates:**
 
 1. Pages → New page
-2. Settings (gear icon) → Template
-3. Select custom template (e.g., "Full feature image")
+1. Settings (gear icon) → Template
+1. Select custom template (e.g., "Full feature image")
 
 ### Theme Settings
 
@@ -906,12 +918,12 @@ Ghost Admin → Settings → Design → Configure theme:
 ### Ghost Helper Version
 
 ❌ **Don't use** Ghost 7+ exclusive helpers (breaks Ghost 6 compatibility)  
-✅ **Do check** https://ghost.org/docs/themes/helpers/ for version support
+✅ **Do check** <https://ghost.org/docs/themes/helpers/> for version support
 
 ### Template Context
 
 ❌ **Don't assume** all context objects available everywhere  
-✅ **Do check** https://ghost.org/docs/themes/context/ for route-specific context
+✅ **Do check** <https://ghost.org/docs/themes/context/> for route-specific context
 
 ### Package.json Identity
 
@@ -937,10 +949,10 @@ Contact a developer if you see:
 
 ## Additional Resources
 
-- **Ghost Theme Docs**: https://ghost.org/docs/themes/
-- **Handlebars Docs**: https://handlebarsjs.com/
-- **GScan Validation**: https://gscan.ghost.org/
-- **Upstream Repository**: https://github.com/TryGhost/Headline
+- **Ghost Theme Docs**: <https://ghost.org/docs/themes/>
+- **Handlebars Docs**: <https://handlebarsjs.com/>
+- **GScan Validation**: <https://gscan.ghost.org/>
+- **Upstream Repository**: <https://github.com/TryGhost/Headline>
 - **Fork Documentation**:
   - [DEVCONTAINER.md](DEVCONTAINER.md) - Devcontainer setup and workflow
   - [sync/README.md](sync/README.md) - Upstream sync procedures

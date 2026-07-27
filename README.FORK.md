@@ -1,7 +1,7 @@
 # PublicLedger Headline Theme Fork
 
-**Fork Repository:** https://github.com/PublicLedger/ghostcms-headline-theme-fork  
-**Upstream Repository:** https://github.com/TryGhost/Headline
+**Fork Repository:** <https://github.com/PublicLedger/ghostcms-headline-theme-fork>  
+**Upstream Repository:** <https://github.com/TryGhost/Headline>
 
 This is a forked version of the [Headline Ghost theme](https://github.com/TryGhost/Headline) configured with a complete **devcontainer environment** for local Ghost theme development and preview.
 
@@ -21,7 +21,7 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
 
 ---
 
-# 🚀 Quick Start (Devcontainer)
+## 🚀 Quick Start (Devcontainer)
 
 **Automatic setup - Ghost runs your theme immediately:**
 
@@ -36,8 +36,8 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
    - Admin account auto-creates
 
 3. **Access Ghost**
-   - **Admin Panel**: http://localhost:3001/ghost/
-   - **Public Site**: http://localhost:3001
+   - **Admin Panel**: <http://localhost:3001/ghost/>
+   - **Public Site**: <http://localhost:3001>
    - **Auto-login credentials** (development only):
      - Email: `admin@example.com`
      - Password: `RandomSecure123456789`
@@ -49,9 +49,11 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
    - Your PublicLedger fork is now live!
 
 5. **Start Developing**
+
    ```bash
    pnpm dev    # Watch mode (auto-rebuild on changes)
    ```
+
    - Edit templates/CSS/JS in VS Code
    - Ghost auto-detects and reloads changes
 
@@ -60,7 +62,7 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
 ## What You Get
 
 - ✅ **Full Ghost Instance** running locally in development mode (SQLite)
-- ✅ **Auto-login** - Admin account created automatically (admin@example.com / RandomSecure123456789)
+- ✅ **Auto-login** - Admin account created automatically (<admin@example.com> / RandomSecure123456789)
 - ✅ **Live Reload** - Theme changes automatically update in browser
 - ✅ **Node.js 24** environment with all build tools pre-installed
 - ✅ **VS Code Integration** - ESLint, Prettier, Handlebars, Ghost, GitHub PR/Actions extensions
@@ -70,9 +72,9 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
 
 ---
 
-# Development Commands
+## Development Commands
 
-## Theme Development
+### Theme Development
 
 ```bash
 pnpm dev          # Watch and compile theme assets with live reload
@@ -82,14 +84,16 @@ pnpm lint         # Run ESLint on JavaScript files
 pnpm lint:fix     # Auto-fix ESLint issues
 ```
 
-## Ghost Management
+### Ghost Management
 
 **Access URLs:**
-- **Ghost Admin**: http://localhost:3001/ghost/
-- **Public Site**: http://localhost:3001/
+
+- **Ghost Admin**: <http://localhost:3001/ghost/>
+- **Public Site**: <http://localhost:3001/>
 - **Credentials**: `admin@example.com` / `RandomSecure123456789`
 
 **Operational Commands:**
+
 ```bash
 pnpm ghost:seed     # Sync from production (requires .env)
 pnpm ghost:logs     # View Ghost logs
@@ -98,7 +102,7 @@ pnpm ghost:restart  # Restart Ghost
 
 See [DEVCONTAINER.md](DEVCONTAINER.md) for complete setup guide.
 
-## Code Quality
+### Code Quality
 
 ```bash
 npx prettier --write .           # Format all files with Prettier
@@ -108,9 +112,9 @@ pre-commit run --all-files      # Run all pre-commit hooks manually
 
 ---
 
-# Development Environments
+## Development Environments
 
-## Option 1: Devcontainer (Recommended)
+### Option 1: Devcontainer (Recommended)
 
 The devcontainer provides a complete Ghost development environment with:
 
@@ -124,7 +128,7 @@ The devcontainer provides a complete Ghost development environment with:
 
 See [DEVCONTAINER.md](DEVCONTAINER.md) for complete setup guide.
 
-## Option 2: Traditional Setup
+### Option 2: Traditional Setup
 
 If you prefer traditional development without Docker:
 
@@ -151,9 +155,9 @@ The `zip` task packages the theme into `dist/headline.zip` for upload to your Gh
 
 ---
 
-# Documentation
+## Documentation
 
-## Fork-Specific Documentation
+### Fork-Specific Documentation
 
 - **[README.FORK.md](README.FORK.md)** ← You are here! Fork-specific setup and features
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development workflow, code quality standards, testing practices
@@ -163,16 +167,16 @@ The `zip` task packages the theme into `dist/headline.zip` for upload to your Gh
 - **[AI_DEVELOPMENT.md](AI_DEVELOPMENT.md)** - AI agent development guidelines and fork architecture
 - **[AGENT_LESSONS.md](AGENT_LESSONS.md)** - Common mistakes to avoid when maintaining the fork
 
-## Upstream Documentation
+### Upstream Documentation
 
 - **[README.md](README.md)** - Upstream theme documentation (synced from TryGhost/Headline)
 - **[LICENSE](LICENSE)** - MIT License from Ghost Foundation
 
 ---
 
-# Contributing
+## Contributing
 
-## To This Fork
+### To This Fork
 
 For issues or improvements specific to the PublicLedger fork:
 
@@ -181,7 +185,7 @@ For issues or improvements specific to the PublicLedger fork:
 - Fork-specific customizations and features
 - Development tooling and quality configurations
 
-**Open an issue:** https://github.com/PublicLedger/ghostcms-headline-theme-fork/issues
+**Open an issue:** <https://github.com/PublicLedger/ghostcms-headline-theme-fork/issues>
 
 **Development Guidelines:** See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 
@@ -192,7 +196,7 @@ For issues or improvements specific to the PublicLedger fork:
 
 **Need Help?** Check [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for common issues and debugging tips.
 
-## To Upstream Theme
+### To Upstream Theme
 
 General bug fixes and improvements that benefit the original theme can be contributed to:
 
@@ -201,9 +205,9 @@ General bug fixes and improvements that benefit the original theme can be contri
 
 ---
 
-# Fork-Specific Features
+## Fork-Specific Features
 
-## Template Specificity Pattern
+### Template Specificity Pattern
 
 **Data-driven routes with Page-based content** - Generic templates with optional specific overrides:
 
@@ -221,20 +225,20 @@ General bug fixes and improvements that benefit the original theme can be contri
 
 See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for complete implementation guide.
 
-## Package Manager
+### Package Manager
 
 | **Package Manager** | pnpm 11.9.0 | pnpm 11.9.0 | Easier upstream sync |
 
 - **Upstream uses:** pnpm with `pnpm-lock.yaml`
 - **Reason:** Simpler devcontainer setup, Node 24 compatibility
 
-## Node.js Version
+### Node.js Version
 
 - **Fork requires:** Node.js 24+
 - **Upstream requires:** Node.js 18+
 - **Reason:** Latest LTS features and security updates
 
-## Development Tooling
+### Development Tooling
 
 Added to fork (not in upstream):
 
@@ -244,7 +248,7 @@ Added to fork (not in upstream):
 - **EditorConfig** - Cross-editor consistency
 - **VS Code settings** - Recommended editor configuration
 
-## Custom Localization
+### Custom Localization
 
 Modified `locales/en.json` strings:
 
@@ -255,7 +259,7 @@ See [AGENT_LESSONS.md](AGENT_LESSONS.md) for protected files that must be preser
 
 ---
 
-# Upstream Sync Status
+## Upstream Sync Status
 
 **Last upstream sync:** 2026-06-29 (commit 73ee6a5)  
 **Divergence:** See `git log --oneline upstream/main..staging`  
@@ -277,7 +281,7 @@ See [sync/README.md](sync/README.md) for complete sync procedure.
 
 ---
 
-# Copyright & License
+## Copyright & License
 
 **Upstream theme:** Copyright (c) 2013-2026 Ghost Foundation  
 **License:** Released under the [MIT license](LICENSE)

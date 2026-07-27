@@ -81,7 +81,7 @@ Think holistically about the **fork lifecycle**:
 - Read `sync/README.md` to see which files have upstream conflicts
 - Check `package.json` for protected fields (name, author, engines.node, ghost:\* scripts)
 - Verify Ghost helper compatibility with `pnpm test` (GScan)
-- Test in actual Ghost instance at http://localhost:3001, not just file edits
+- Test in actual Ghost instance at <http://localhost:3001>, not just file edits
 - Mark custom code with `{{!-- FORK CUSTOM: reason --}}` for future merge clarity
 
 **Examples of holistic thinking**:
@@ -721,8 +721,8 @@ grep -r "feature" AGENTS.md AI_DEVELOPMENT.md docs-local/
 
 - **Version**: Ghost 6.0+ (not 7+ features)
 - **Validation**: `pnpm test` (GScan) before every commit
-- **Helpers**: Check https://ghost.org/docs/themes/helpers/ for version support
-- **Context**: Route-specific - https://ghost.org/docs/themes/context/
+- **Helpers**: Check <https://ghost.org/docs/themes/helpers/> for version support
+- **Context**: Route-specific - <https://ghost.org/docs/themes/context/>
 
 ### Development Environment
 
@@ -730,7 +730,7 @@ grep -r "feature" AGENTS.md AI_DEVELOPMENT.md docs-local/
 - **Node**: 24+ (container requirement, don't downgrade)
 - **Asset compilation**: `pnpm dev` watches source files → compiles to built/
 - **Live reload**: Theme mounted at `/var/lib/ghost/content/themes/headline`
-- **Testing**: View at http://localhost:3001, logs via `pnpm ghost:logs`
+- **Testing**: View at <http://localhost:3001>, logs via `pnpm ghost:logs`
 
 ### Build Pipeline
 
@@ -750,7 +750,7 @@ Before committing:
 
 - [ ] Check `package.json` name/author/engines unchanged
 - [ ] Run `pnpm test` (GScan validation passes)
-- [ ] Test in devcontainer at http://localhost:3001
+- [ ] Test in devcontainer at <http://localhost:3001>
 - [ ] Check `pnpm ghost:logs` for template errors
 - [ ] Mark fork-custom code with `{{!-- FORK CUSTOM: ... --}}` comments
 - [ ] Check `sync/UPSTREAM_SYNC.md` if editing shared files
@@ -808,9 +808,22 @@ Before committing:
 ```
 ````
 
+```text
+Is it repeating across multiple sessions?
+├─ NO → Don't add to AGENT_LESSONS.md (one-time bug)
+└─ YES → Is it about AI behavior or a technical constraint?
+    ├─ AI behavior → Add to "Chronic AI Behavioral Patterns"
+    │   └─ Ask: Does it represent a CLASS of thinking error?
+    │       ├─ YES → Write it abstractly (e.g., "fork identity confusion")
+    │       └─ NO → Too specific, skip it
+    └─ Technical constraint → Add to "Before Writing Any Code"
+        └─ Ask: Will this apply to future code or just current code?
+            ├─ Future → Document the pattern (e.g., "Ghost helpers have version constraints")
+            └─ Current only → Add inline comment to the code instead
 ```
 
 **Good rule characteristics**:
+
 - ✅ **Timeless**: Describes a class of problem, not tied to specific code
 - ✅ **Actionable**: Tells you what to DO (check this, validate that) not just what went wrong
 - ✅ **Abstract + Concrete**: General pattern + specific example to illustrate
@@ -818,6 +831,7 @@ Before committing:
 - ✅ **Teaches thinking**: Shows the thought process, not just the fix
 
 **Bad rule characteristics**:
+
 - ❌ **Bug report**: "In PR #42 line 12 had wrong indentation" → Too specific, will become irrelevant
 - ❌ **Code-specific**: "default.hbs line 89 should use {{post.title}}" → Brittle, breaks when code changes
 - ❌ **Symptom-focused**: "Template error" → Doesn't explain why or how to prevent
@@ -825,21 +839,7 @@ Before committing:
 
 **Decision tree for new entries**:
 
-```
-
-Is it repeating across multiple sessions?
-├─ NO → Don't add to AGENT_LESSONS.md (one-time bug)
-└─ YES → Is it about AI behavior or a technical constraint?
-├─ AI behavior → Add to "Chronic AI Behavioral Patterns"
-│ └─ Ask: Does it represent a CLASS of thinking error?
-│ ├─ YES → Write it abstractly (e.g., "fork identity confusion")
-│ └─ NO → Too specific, skip it
-└─ Technical constraint → Add to "Before Writing Any Code"
-└─ Ask: Will this apply to future code or just current code?
-├─ Future → Document the pattern (e.g., "Ghost helpers have version constraints")
-└─ Current only → Add inline comment to the code instead
-
-````
+````text
 
 **Example transformation** (bug report → good rule):
 
@@ -855,9 +855,8 @@ Is it repeating across multiple sessions?
 grep "ghost" package.json  # ">=6.0.0"
 pnpm test  # GScan validates Ghost 6.0
 # https://ghost.org/docs/themes/helpers/
-````
-
 ```
+````
 
 **Keep it lean**: If 3 sessions have similar mistakes, abstract them into ONE pattern. Don't list all 3 separately.
 
@@ -866,4 +865,3 @@ pnpm test  # GScan validates Ghost 6.0
 **Last Updated**: 2026-06-29
 **Fork Status**: 5 ahead, ~19 behind (see sync/UPSTREAM_SYNC.md)
 **Ghost Version**: 6.0+ support (see package.json)
-```
