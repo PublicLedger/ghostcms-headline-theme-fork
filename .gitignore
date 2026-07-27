@@ -18,6 +18,9 @@ package-lock.json
 # Environment variables (secrets)
 .env
 
+# Devcontainer setup marker (transient)
+.ghost-setup-complete
+
 # Logs
 *.log
 
