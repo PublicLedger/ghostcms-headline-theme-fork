@@ -1,0 +1,3 @@
+# Markdown linter ignore file
+# Exclude local documentation with CSV data files
+docs-local/
