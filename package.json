@@ -1,6 +1,7 @@
 {
   "_comment_identity": "Fork-specific identity fields",
   "name": "publicledger-headline-fork",
+  "url": "https://publicledger.news",
   "description": "Fork of Ghost Foundation's Headline theme for The Public Ledger project",
   "version": "1.0.0",
   "private": true,
@@ -28,7 +29,7 @@
     "type": "git",
     "url": "https://github.com/PublicLedger/ghostcms-headline-theme-fork.git"
   },
-  "keywords": ["ghost", "theme", "ghost-theme", "fork"],
+  "keywords": ["ghost", "ghost-theme", "fork"],
   "docs": "https://headline.ghost.io/about/",
   "_comment_config": "UPSTREAM: Ghost theme configuration - do not modify unless syncing from TryGhost/Headline",
   "config": {
@@ -53,19 +54,9 @@
         "width": 2000
       }
     },
-    "card_assets": true,
-    "custom": {
-      "footer_publisher_logo": {
-        "type": "image",
-        "group": "post"
-      },
-      "funding_credit": {
-        "type": "text",
-        "default": "Lancaster County Local Journalism Fund"
-      }
-    }
+    "card_assets": true
   },
-  "_comment_scripts": "UPSTREAM scripts: dev, test, zip. FORK additions: validate:fork, ghost:*, lint*",
+  "_comment_scripts": "UPSTREAM scripts: dev, test, zip. FORK additions: validate:fork, ghost:{seed,logs,restart}, docker:clean, lint*, format*, check-env",
   "scripts": {
     "dev": "gulp",
     "test": "gscan .",
@@ -74,11 +65,13 @@
     "validate:fork": "bash scripts/validate-fork.sh",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "ghost:dev": "echo 'Ghost dev instance available at http://localhost:3001'",
-    "ghost:prod": "docker compose --profile production up -d ghost-prod db",
-    "ghost:stop": "docker compose down",
-    "ghost:logs": "docker compose logs -f ghost-dev",
-    "ghost:restart": "docker compose restart ghost-dev"
+    "format": "prettier --write \"**/*.{hbs,css,js,json,html}\"",
+    "format:check": "prettier --check \"**/*.{hbs,css,js,json,html}\"",
+    "check-env": "bash scripts/check-env.sh",
+    "ghost:seed": "node scripts/ghost-seed.js",
+    "ghost:logs": "docker compose -f .devcontainer/docker-compose.yml logs -f ghost-dev",
+    "ghost:restart": "docker compose -f .devcontainer/docker-compose.yml restart ghost-dev",
+    "docker:clean": "docker system prune -af --volumes"
   },
   "_comment_packageManager": "Pinned to match TryGhost/Headline upstream (easier sync)",
   "packageManager": "pnpm@11.9.0",
