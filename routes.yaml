@@ -3,6 +3,11 @@ routes:
     data: page.home
     template: page
 
+  # Proof of concept: explicit route with Page data
+  /jobs/lancaster-county/county-commissioner/:
+    template: job-agency-seat
+    data: page.job-agency-seat-lancaster-county-county-commissioner
+
   # Data-driven election/finance routes
   /lookup/:
     template: lookup
@@ -48,8 +53,8 @@ routes:
     template: official-agency
 
 collections:
-  /collections/:
-    permalink: /{slug}/
+  /articles/:
+    permalink: /articles/{slug}/
     template: index
 
 taxonomies:
