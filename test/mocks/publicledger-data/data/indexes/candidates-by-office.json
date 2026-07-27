@@ -1,0 +1,22 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "index": {
+    "office-county-commissioner": [
+      { "id": "alice-yoder-001", "name": "Alice Yoder", "year": 2023, "raised": 45000 },
+      { "id": "josh-parsons-001", "name": "Josh Parsons", "year": 2019, "raised": 62000 }
+    ],
+    "office-lancaster-city-council": [
+      { "id": "ahmed-ahmed-001", "name": "Ahmed Ahmed", "year": 2023, "raised": 15000 },
+      { "id": "andre-gilbert-001", "name": "Andre Gilbert", "year": 2023, "raised": 22000 }
+    ],
+    "office-prothonotary": [
+      { "id": "andrew-spade-001", "name": "Andrew E Spade", "year": 2023, "raised": 25000 }
+    ],
+    "office-warwick-school-director": [
+      { "id": "amanda-chap-001", "name": "Amanda Chap", "year": 2023, "raised": 18000 }
+    ],
+    "office-state-house-106": [
+      { "id": "janet-diaz-001", "name": "Janet Diaz", "year": 2020, "raised": 125000 }
+    ]
+  }
+}

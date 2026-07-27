@@ -1,0 +1,124 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "period": "2016-2023",
+  "summary": {
+    "totalRaised": 500000,
+    "totalSpent": 450000,
+    "candidateCount": 10,
+    "raceCount": 10,
+    "donorCount": 9,
+    "avgRaisedPerCandidate": 50000,
+    "medianRaisedPerCandidate": 23500
+  },
+  "topDonors": {
+    "individuals": [
+      {
+        "donorId": "donor-ind-757",
+        "name": "CAROL AASTAD",
+        "total": 10350,
+        "contributionCount": 5,
+        "recipientCount": 1
+      },
+      {
+        "donorId": "donor-ind-4340",
+        "name": "TIERNEY FOSTER ABEL",
+        "total": 2800,
+        "contributionCount": 1,
+        "recipientCount": 1
+      },
+      {
+        "donorId": "donor-ind-3394",
+        "name": "DAWUD ABDUR-RAHMAN",
+        "total": 500,
+        "contributionCount": 1,
+        "recipientCount": 1
+      }
+    ],
+    "organizations": [
+      {
+        "donorId": "donor-org-fairness-pa",
+        "name": "FAIRNESS PA",
+        "total": 26250,
+        "contributionCount": 2,
+        "recipientCount": 2
+      },
+      {
+        "donorId": "donor-org-afscme-council-13",
+        "name": "AFSCME COUNCIL 13",
+        "total": 5000,
+        "contributionCount": 1,
+        "recipientCount": 1
+      },
+      {
+        "donorId": "donor-org-emilys-list",
+        "name": "EMILY'S LIST",
+        "total": 8500,
+        "contributionCount": 1,
+        "recipientCount": 1
+      }
+    ]
+  },
+  "spendingByCategory": {
+    "MEDIA_ACTIVITIES": 22800,
+    "CAMPAIGNING_ACTIVITIES": 3700,
+    "GENERAL_OPERATING": 750,
+    "FUNDRAISING_ACTIVITIES": 0,
+    "POLITICAL_ACTIVITIES": 0
+  },
+  "spendingBySubcategory": {
+    "YARD_SIGNS": 2300,
+    "DIRECT_MAIL": 8500,
+    "GENERAL_PROD": 12000,
+    "FOOD_DRINK": 3700,
+    "BANKING": 500,
+    "SUPPLIES": 250
+  },
+  "trends": {
+    "byYear": [
+      {
+        "year": 2023,
+        "totalRaised": 85000,
+        "totalSpent": 72500,
+        "candidateCount": 3,
+        "avgRaised": 28333
+      },
+      {
+        "year": 2020,
+        "totalRaised": 125000,
+        "totalSpent": 118000,
+        "candidateCount": 1,
+        "avgRaised": 125000
+      },
+      {
+        "year": 2019,
+        "totalRaised": 62000,
+        "totalSpent": 55000,
+        "candidateCount": 1,
+        "avgRaised": 62000
+      }
+    ]
+  },
+  "topRaces": [
+    {
+      "raceId": "2020-general-state-house-106",
+      "office": "State House 106",
+      "year": 2020,
+      "totalRaised": 125000,
+      "candidateCount": 1
+    },
+    {
+      "raceId": "2019-primary-county-commissioner",
+      "office": "County Commissioner",
+      "year": 2019,
+      "totalRaised": 62000,
+      "candidateCount": 1
+    },
+    {
+      "raceId": "2023-primary-county-commissioner",
+      "office": "County Commissioner",
+      "year": 2023,
+      "totalRaised": 45000,
+      "candidateCount": 1
+    }
+  ]
+}

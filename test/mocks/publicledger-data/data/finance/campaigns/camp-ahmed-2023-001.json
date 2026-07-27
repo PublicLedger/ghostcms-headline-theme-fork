@@ -1,0 +1,125 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "campaign": {
+    "id": "camp-ahmed-2023-001",
+    "candidateId": "ahmed-ahmed-001",
+    "candidateName": "Ahmed Ahmed",
+    "election": "2023-primary-lancaster-city-council-2yr",
+    "electionDate": "2023-05-16",
+    "office": "COUNCIL",
+    "jurisdiction": "LANCASTER CITY",
+    "committee": "Friends of Ahmed Ahmed"
+  },
+  "summary": {
+    "totalRaised": 15000,
+    "totalSpent": 12500,
+    "cashOnHand": 2500,
+    "contributorCount": 8,
+    "avgContribution": 1875,
+    "largestContribution": 5000,
+    "dateRange": "2023-02-01 to 2023-05-16"
+  },
+  "contributions": [
+    {
+      "id": "contrib-001",
+      "date": "2023-02-15",
+      "amount": 5000,
+      "donor": {
+        "id": "donor-org-fairness-pa",
+        "name": "FAIRNESS PA",
+        "type": "organization"
+      },
+      "sourceFile": "mock_ahmed.pdf",
+      "sourcePage": 2,
+      "schedule": "1",
+      "part": "C"
+    },
+    {
+      "id": "contrib-002",
+      "date": "2023-03-01",
+      "amount": 2500,
+      "donor": {
+        "id": "donor-ind-mock-1",
+        "name": "JOHN DOE",
+        "type": "individual",
+        "address": "LANCASTER, PA"
+      },
+      "sourceFile": "mock_ahmed.pdf",
+      "sourcePage": 3,
+      "schedule": "1",
+      "part": "B"
+    },
+    {
+      "id": "contrib-003",
+      "date": "2023-04-10",
+      "amount": 7500,
+      "donor": {
+        "id": "donor-ind-mock-2",
+        "name": "JANE SMITH",
+        "type": "individual",
+        "address": "LANCASTER, PA"
+      },
+      "sourceFile": "mock_ahmed.pdf",
+      "sourcePage": 4,
+      "schedule": "1",
+      "part": "B"
+    }
+  ],
+  "expenditures": [
+    {
+      "id": "exp-001",
+      "date": "2023-03-20",
+      "amount": 800,
+      "category": "MEDIA_ACTIVITIES",
+      "subcategory": "YARD_SIGNS",
+      "description": "Yard signs",
+      "paidTo": "SIGN-A-RAMA",
+      "address": "1748 COLUMBIA AVENUE, LANCASTER, PA 17603",
+      "sourceFile": "mock_ahmed.pdf",
+      "sourcePage": 5,
+      "schedule": "3"
+    },
+    {
+      "id": "exp-002",
+      "date": "2023-04-15",
+      "amount": 3500,
+      "category": "MEDIA_ACTIVITIES",
+      "subcategory": "DIRECT_MAIL",
+      "description": "Campaign mailers",
+      "paidTo": "POSTAL CONNECTIONS",
+      "address": "1653 LITITZ PIKE, LANCASTER, PA 17601",
+      "sourceFile": "mock_ahmed.pdf",
+      "sourcePage": 6,
+      "schedule": "3"
+    },
+    {
+      "id": "exp-003",
+      "date": "2023-03-05",
+      "amount": 1200,
+      "category": "CAMPAIGNING_ACTIVITIES",
+      "subcategory": "FOOD_DRINK",
+      "description": "Community meeting refreshments",
+      "paidTo": "LOCAL CATERING",
+      "address": "LANCASTER, PA",
+      "sourceFile": "mock_ahmed.pdf",
+      "sourcePage": 7,
+      "schedule": "3"
+    },
+    {
+      "id": "exp-004",
+      "date": "2023-02-20",
+      "amount": 250,
+      "category": "GENERAL_OPERATING",
+      "subcategory": "SUPPLIES",
+      "description": "Office supplies",
+      "paidTo": "STAPLES",
+      "address": "1296 LITITZ PIKE, LANCASTER, PA 17601",
+      "sourceFile": "mock_ahmed.pdf",
+      "sourcePage": 7,
+      "schedule": "3"
+    }
+  ],
+  "receipts": [],
+  "inKind": [],
+  "debts": []
+}

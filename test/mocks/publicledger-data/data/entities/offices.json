@@ -1,0 +1,70 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "offices": [
+    {
+      "id": "office-county-commissioner",
+      "slug": "county-commissioner",
+      "name": "County Commissioner",
+      "jurisdiction": "LANCASTER",
+      "level": "county",
+      "seats": 3,
+      "termLength": 4,
+      "elections": ["2023-primary", "2019-primary"],
+      "incumbents": ["alice-yoder-001", "josh-parsons-001"],
+      "totalRaisedAllTime": 107000,
+      "avgRaisedPerRace": 53500
+    },
+    {
+      "id": "office-lancaster-city-council",
+      "slug": "lancaster-city-council",
+      "name": "Lancaster City Council",
+      "jurisdiction": "LANCASTER CITY",
+      "level": "city",
+      "seats": 7,
+      "termLength": 4,
+      "elections": ["2023-primary"],
+      "incumbents": ["andre-gilbert-001"],
+      "totalRaisedAllTime": 37000,
+      "avgRaisedPerRace": 18500
+    },
+    {
+      "id": "office-prothonotary",
+      "slug": "prothonotary",
+      "name": "Prothonotary",
+      "jurisdiction": "LANCASTER",
+      "level": "county",
+      "seats": 1,
+      "termLength": 4,
+      "elections": ["2023-primary"],
+      "incumbents": ["andrew-spade-001"],
+      "totalRaisedAllTime": 25000,
+      "avgRaisedPerRace": 25000
+    },
+    {
+      "id": "office-warwick-school-director",
+      "slug": "warwick-school-director",
+      "name": "Warwick School District Director",
+      "jurisdiction": "WARWICK SCHOOL DISTRICT",
+      "level": "school_district",
+      "seats": 5,
+      "termLength": 4,
+      "elections": ["2023-primary"],
+      "incumbents": ["amanda-chap-001"],
+      "totalRaisedAllTime": 18000,
+      "avgRaisedPerRace": 18000
+    },
+    {
+      "id": "office-state-house-106",
+      "slug": "state-house-106",
+      "name": "State Representative, District 106",
+      "jurisdiction": "PA HOUSE DISTRICT 106",
+      "level": "state",
+      "seats": 1,
+      "termLength": 2,
+      "elections": ["2020-general"],
+      "incumbents": ["janet-diaz-001"],
+      "totalRaisedAllTime": 125000,
+      "avgRaisedPerRace": 125000
+    }
+  ]
+}

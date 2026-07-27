@@ -1,0 +1,185 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "candidates": [
+    {
+      "id": "ahmed-ahmed-001",
+      "slug": "ahmed-ahmed",
+      "name": {
+        "full": "AHMED AHMED",
+        "first": "AHMED",
+        "middle": null,
+        "last": "AHMED",
+        "suffix": null
+      },
+      "races": ["2023-primary-lancaster-city-council-2yr"],
+      "campaigns": ["camp-ahmed-2023-001"],
+      "totalRaised": 15000,
+      "totalSpent": 12500,
+      "cashOnHand": 2500,
+      "party": "DEM",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "alice-yoder-001",
+      "slug": "alice-yoder",
+      "name": {
+        "full": "ALICE YODER",
+        "first": "ALICE",
+        "middle": null,
+        "last": "YODER",
+        "suffix": null
+      },
+      "races": ["2023-primary-county-commissioner"],
+      "campaigns": ["camp-yoder-2023-001"],
+      "totalRaised": 45000,
+      "totalSpent": 38000,
+      "cashOnHand": 7000,
+      "party": "DEM",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "andrew-spade-001",
+      "slug": "andrew-spade",
+      "name": {
+        "full": "ANDREW E SPADE",
+        "first": "ANDREW",
+        "middle": "E",
+        "last": "SPADE",
+        "suffix": null
+      },
+      "races": ["2023-primary-prothonotary"],
+      "campaigns": ["camp-spade-2023-001"],
+      "totalRaised": 25000,
+      "totalSpent": 22000,
+      "cashOnHand": 3000,
+      "party": "REP",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "amanda-chap-001",
+      "slug": "amanda-chap",
+      "name": {
+        "full": "AMANDA CHAP",
+        "first": "AMANDA",
+        "middle": null,
+        "last": "CHAP",
+        "suffix": null
+      },
+      "races": ["2023-primary-warwick-school-director"],
+      "campaigns": ["camp-chap-2023-001"],
+      "totalRaised": 18000,
+      "totalSpent": 16500,
+      "cashOnHand": 1500,
+      "party": "DEM/REP",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "arthur-mann-sr-001",
+      "slug": "arthur-mann-sr",
+      "name": {
+        "full": "ARTHUR MANN SR",
+        "first": "ARTHUR",
+        "middle": null,
+        "last": "MANN",
+        "suffix": "SR"
+      },
+      "races": ["2023-primary-lancaster-school-director"],
+      "campaigns": ["camp-mann-2023-001"],
+      "totalRaised": 8500,
+      "totalSpent": 7800,
+      "cashOnHand": 700,
+      "party": "REP",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "josh-parsons-001",
+      "slug": "josh-parsons",
+      "name": {
+        "full": "JOSH PARSONS",
+        "first": "JOSH",
+        "middle": null,
+        "last": "PARSONS",
+        "suffix": null
+      },
+      "races": ["2019-primary-county-commissioner"],
+      "campaigns": ["camp-parsons-2019-001"],
+      "totalRaised": 62000,
+      "totalSpent": 55000,
+      "cashOnHand": 7000,
+      "party": "REP",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "janet-diaz-001",
+      "slug": "janet-diaz",
+      "name": {
+        "full": "JANET DIAZ",
+        "first": "JANET",
+        "middle": null,
+        "last": "DIAZ",
+        "suffix": null
+      },
+      "races": ["2020-general-state-house-106"],
+      "campaigns": ["camp-diaz-2020-001"],
+      "totalRaised": 125000,
+      "totalSpent": 118000,
+      "cashOnHand": 7000,
+      "party": "DEM",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "andre-gilbert-001",
+      "slug": "andre-gilbert",
+      "name": {
+        "full": "ANDRE GILBERT",
+        "first": "ANDRE",
+        "middle": null,
+        "last": "GILBERT",
+        "suffix": null
+      },
+      "races": ["2023-primary-lancaster-city-council"],
+      "campaigns": ["camp-gilbert-2023-001"],
+      "totalRaised": 22000,
+      "totalSpent": 19500,
+      "cashOnHand": 2500,
+      "party": "DEM",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "bryan-cutler-001",
+      "slug": "bryan-cutler",
+      "name": {
+        "full": "BRYAN CUTLER",
+        "first": "BRYAN",
+        "middle": null,
+        "last": "CUTLER",
+        "suffix": null
+      },
+      "races": ["2018-primary-state-house-100"],
+      "campaigns": ["camp-cutler-2018-001"],
+      "totalRaised": 85000,
+      "totalSpent": 72000,
+      "cashOnHand": 13000,
+      "party": "REP",
+      "financeStatus": "records scanned"
+    },
+    {
+      "id": "craig-lehman-001",
+      "slug": "craig-lehman",
+      "name": {
+        "full": "CRAIG LEHMAN",
+        "first": "CRAIG",
+        "middle": null,
+        "last": "LEHMAN",
+        "suffix": null
+      },
+      "races": ["2020-primary-state-senate-13"],
+      "campaigns": ["camp-lehman-2020-001"],
+      "totalRaised": 95000,
+      "totalSpent": 88000,
+      "cashOnHand": 7000,
+      "party": "DEM",
+      "financeStatus": "records scanned"
+    }
+  ]
+}

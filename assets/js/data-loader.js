@@ -4,7 +4,7 @@
  */
 
 (function () {
-  "use strict";
+  ("use strict");
 
   // Cache for loaded data
   const dataCache = {};
@@ -30,7 +30,7 @@
   /**
    * Load JSON data from the data directory with cache busting
    * @param {string} path - Path relative to /assets/built/data/
-   * @returns {Promise<Object>}
+   * @returns {Promise<object>}
    */
   async function loadData(path) {
     // Check cache first
@@ -68,7 +68,7 @@
   /**
    * Get candidate by ID
    * @param {string} candidateId
-   * @returns {Promise<Object|null>}
+   * @returns {Promise<object | null>}
    */
   async function getCandidateById(candidateId) {
     const data = await loadData("entities/candidates.json");
@@ -78,7 +78,7 @@
   /**
    * Get candidate by slug
    * @param {string} slug
-   * @returns {Promise<Object|null>}
+   * @returns {Promise<object | null>}
    */
   async function getCandidateBySlug(slug) {
     const data = await loadData("entities/candidates.json");
@@ -88,7 +88,7 @@
   /**
    * Get office by ID or slug
    * @param {string} idOrSlug
-   * @returns {Promise<Object|null>}
+   * @returns {Promise<object | null>}
    */
   async function getOffice(idOrSlug) {
     const data = await loadData("entities/offices.json");
@@ -98,12 +98,13 @@
   /**
    * Get election by year
    * @param {number|string} year
-   * @returns {Promise<Object|null>}
+   * @returns {Promise<object | null>}
    */
   async function getElectionByYear(year) {
     try {
       return await loadData(`elections/by-year/${year}.json`);
     } catch (error) {
+      console.error(error);
       return null;
     }
   }
@@ -111,12 +112,13 @@
   /**
    * Get campaign finance data
    * @param {string} campaignId
-   * @returns {Promise<Object|null>}
+   * @returns {Promise<object | null>}
    */
   async function getCampaign(campaignId) {
     try {
       return await loadData(`finance/campaigns/${campaignId}.json`);
     } catch (error) {
+      console.error(error);
       return null;
     }
   }
@@ -124,12 +126,13 @@
   /**
    * Get donor by ID
    * @param {string} donorId
-   * @returns {Promise<Object|null>}
+   * @returns {Promise<object | null>}
    */
   async function getDonor(donorId) {
     try {
       return await loadData(`finance/donors/${donorId}.json`);
     } catch (error) {
+      console.error(error);
       // Fallback to searching in entities/donors.json
       const data = await loadData("entities/donors.json");
       const individual = data.donors.individuals.find(d => d.id === donorId);
@@ -142,15 +145,37 @@
 
   /**
    * Get all donors (summary list)
-   * @returns {Promise<Object>}
+   * @returns {Promise<object>}
    */
   async function getAllDonors() {
     return await loadData("entities/donors.json");
   }
 
   /**
+   * Get relationship by ID
+   * @param {string} relationshipId
+   * @returns {Promise<object | null>}
+   */
+  async function getRelationship(relationshipId) {
+    const data = await loadData("entities/donors.json");
+    return data.donors.relationships?.find(r => r.id === relationshipId) || null;
+  }
+
+  /**
+   * Get all relationships for a donor
+   * @param {string} donorId
+   * @returns {Promise<Array>}
+   */
+  async function getDonorRelationships(donorId) {
+    const data = await loadData("entities/donors.json");
+    if (!data.donors.relationships) return [];
+
+    return data.donors.relationships.filter(rel => rel.members.includes(donorId));
+  }
+
+  /**
    * Get finance aggregates
-   * @returns {Promise<Object>}
+   * @returns {Promise<object>}
    */
   async function getFinanceAggregates() {
     return await loadData("finance/aggregates.json");
@@ -179,6 +204,7 @@
       const index = await loadData("indexes/candidates-by-office.json");
       return index.index[officeId] || [];
     } catch (error) {
+      console.error(error);
       // Fallback: filter candidates manually
       const data = await loadData("entities/candidates.json");
       return data.candidates.filter(c => c.races.some(r => r.includes(officeId)));
@@ -223,6 +249,8 @@
     getCampaign,
     getDonor,
     getAllDonors,
+    getRelationship,
+    getDonorRelationships,
     getFinanceAggregates,
     searchCandidates,
     getCandidatesByOffice,

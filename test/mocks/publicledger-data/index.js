@@ -1,5 +1,5 @@
 /**
- * @publicledger/data - Mock Package
+ * `@publicledger/data` - Mock Package
  *
  * In production, this will be a real NPM package.
  * For development, this mock package provides the same structure.
