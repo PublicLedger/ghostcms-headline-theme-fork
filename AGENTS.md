@@ -70,7 +70,7 @@ In the standalone mirror repository, this tree is pushed from `TryGhost/Themes/p
 - Delete generic Pages (breaks all routes without specific overrides)
 - Edit `assets/built/*` files (edit `assets/css/`, `assets/js/` sources instead)
 
-See [docs-local/TEMPLATE_SPECIFICITY.md](docs-local/TEMPLATE_SPECIFICITY.md) for complete implementation guide.
+See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for complete implementation guide.
 
 ## Commands
 

@@ -4,7 +4,7 @@ This document outlines the AI agent guidelines for the Ghost Headline theme fork
 
 ## Overview
 
-This is a **forked Ghost theme** from TryGhost/Headline with active upstream synchronization. Core stack: Node.js 24 (Gulp build system), Ghost 6.0+, Handlebars templating. DevContainer runs multi-container environment (ghost-dev on SQLite:3001, optional ghost-prod on MySQL:2368). Theme auto-mounted with live reload. See [DEVCONTAINER.md](DEVCONTAINER.md) for environment setup, [sync/README.md](sync/README.md) for fork maintenance workflow.
+This is a **forked Ghost theme** from TryGhost/Headline with active upstream synchronization. Core stack: Node.js 24 (Gulp build system), Ghost 6.0+, Handlebars templating. DevContainer runs multi-container environment (ghost-dev on SQLite:3001). Theme auto-mounted with live reload. See [DEVCONTAINER.md](DEVCONTAINER.md) for environment setup, [sync/README.md](sync/README.md) for fork maintenance workflow.
 
 **Critical constraint:** Every code change must preserve fork identity and account for future upstream merges.
 
@@ -12,7 +12,7 @@ This is a **forked Ghost theme** from TryGhost/Headline with active upstream syn
 
 **Living Fork:** PublicLedger/ghostcms-headline-theme-fork tracks TryGhost/Headline  
 **Divergence:** 5 commits ahead, ~19 commits behind (as of 2026-06-28)  
-**Environment:** Docker devcontainer with Node.js 24, Ghost 6.0+, SQLite (dev) / MySQL (prod)  
+**Environment:** Docker devcontainer with Node.js 24, Ghost 6.0+, SQLite  
 **Theme Mount:** `/var/lib/ghost/content/themes/headline` with live reload
 
 **Stack:**
@@ -81,11 +81,14 @@ When proposing changes:
 
 ### Ghost Management (devcontainer)
 
-- `pnpm ghost:dev` — Show development Ghost URL (http://localhost:3001)
+- `pnpm ghost:seed` — Sync from production (requires `.env` configuration)
 - `pnpm ghost:logs` — View Ghost development logs
 - `pnpm ghost:restart` — Restart Ghost development instance
-- `pnpm ghost:prod` — Start production-like Ghost with MySQL (port 2368)
-- `pnpm ghost:stop` — Stop all Ghost containers
+
+**Access URLs:**
+- **Ghost Admin**: http://localhost:3001/ghost/ (from host browser)
+- **Public Site**: http://localhost:3001/
+- **Credentials**: `admin@example.com` / `RandomSecure123456789`
 
 ### Docker Management
 
@@ -235,12 +238,6 @@ When modifying package.json:
 ### "Can I change the theme name?"
 
 - No - breaks fork identity and deployment automation
-
-### "How do I test production mode?"
-
-- `pnpm ghost:prod` starts MySQL-backed Ghost on port 2368
-- More realistic caching/performance testing
-- `pnpm ghost:stop` to clean up
 
 ### "What if GScan validation fails?"
 

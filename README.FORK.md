@@ -23,24 +23,47 @@ This repository is a fork of [TryGhost/Headline](https://github.com/TryGhost/Hea
 
 # 🚀 Quick Start (Devcontainer)
 
-**For local development with full Ghost preview:**
+**Automatic setup - Ghost runs your theme immediately:**
 
-1. Open this folder in VS Code
-2. Click "Reopen in Container" when prompted (or use Command Palette: `Dev Containers: Reopen in Container`)
-3. Wait for containers to start (~1-2 minutes first time)
-4. Visit http://localhost:3001/ghost to set up your Ghost admin account
-5. Activate the "headline" theme in Settings → Design
-6. Run `pnpm dev` to start development with live reload
+1. **Open in VS Code**
+   - Open this folder in VS Code
+   - Click "Reopen in Container" when prompted (or Command Palette: `Dev Containers: Reopen in Container`)
 
-**📖 Full Documentation:** See [DEVCONTAINER.md](DEVCONTAINER.md) for complete setup guide and troubleshooting.
+2. **Wait for automatic setup** (~2-3 minutes first time):
+   - Dependencies install automatically
+   - Theme builds with data integration
+   - Ghost starts with your theme mounted at `/var/lib/ghost/content/themes/headline`
+   - Admin account auto-creates
+
+3. **Access Ghost**
+   - **Admin Panel**: http://localhost:3001/ghost/
+   - **Public Site**: http://localhost:3001
+   - **Auto-login credentials** (development only):
+     - Email: `admin@example.com`
+     - Password: `RandomSecure123456789`
+
+4. **Activate Theme**
+   - Login to Ghost Admin
+   - Navigate to Settings → Design
+   - Click "Activate" next to "headline" theme
+   - Your PublicLedger fork is now live!
+
+5. **Start Developing**
+   ```bash
+   pnpm dev    # Watch mode (auto-rebuild on changes)
+   ```
+   - Edit templates/CSS/JS in VS Code
+   - Ghost auto-detects and reloads changes
+
+**📖 Full Documentation:** [DEVCONTAINER.md](DEVCONTAINER.md) • [CONTRIBUTING.md](CONTRIBUTING.md)
 
 ## What You Get
 
 - ✅ **Full Ghost Instance** running locally in development mode (SQLite)
+- ✅ **Auto-login** - Admin account created automatically (admin@example.com / RandomSecure123456789)
 - ✅ **Live Reload** - Theme changes automatically update in browser
 - ✅ **Node.js 24** environment with all build tools pre-installed
-- ✅ **VS Code Integration** with recommended extensions
-- ✅ **Optional MySQL** for production-like testing (ghost-prod container)
+- ✅ **VS Code Integration** - ESLint, Prettier, Handlebars, Ghost, GitHub PR/Actions extensions
 - ✅ **GScan Validation** built-in for Ghost theme compatibility
 - ✅ **Code Quality Tools** - ESLint, Prettier, pre-commit hooks
 - ✅ **Zero Config** - just open in VS Code and start developing
@@ -59,14 +82,21 @@ pnpm lint         # Run ESLint on JavaScript files
 pnpm lint:fix     # Auto-fix ESLint issues
 ```
 
-## Ghost Management (Devcontainer Only)
+## Ghost Management
 
+**Access URLs:**
+- **Ghost Admin**: http://localhost:3001/ghost/
+- **Public Site**: http://localhost:3001/
+- **Credentials**: `admin@example.com` / `RandomSecure123456789`
+
+**Operational Commands:**
 ```bash
-pnpm ghost:logs     # View Ghost development logs
-pnpm ghost:restart  # Restart Ghost development instance
-pnpm ghost:stop     # Stop Ghost development instance
-pnpm ghost:start    # Start Ghost development instance
+pnpm ghost:seed     # Sync from production (requires .env)
+pnpm ghost:logs     # View Ghost logs
+pnpm ghost:restart  # Restart Ghost
 ```
+
+See [DEVCONTAINER.md](DEVCONTAINER.md) for complete setup guide.
 
 ## Code Quality
 
@@ -86,8 +116,6 @@ The devcontainer provides a complete Ghost development environment with:
 
 - **devcontainer**: Node.js 24 workspace with VS Code integration
 - **ghost-dev**: Ghost instance on SQLite (port 3001, auto-starts)
-- **ghost-prod**: Optional Ghost on MySQL (port 2368, manual start)
-- **db**: MySQL 8.0 for production testing
 
 **Requirements:**
 
@@ -175,9 +203,28 @@ General bug fixes and improvements that benefit the original theme can be contri
 
 # Fork-Specific Features
 
+## Template Specificity Pattern
+
+**Data-driven routes with Page-based content** - Generic templates with optional specific overrides:
+
+- **15 route templates** for elections, campaign finance, officials, etc.
+- **Specificity hierarchy:** Try specific slug (`job-agency-seat-lancaster-county-sheriff`), fall back to generic (`job-agency-seat`), then hardcoded fallback
+- **Why:** Editors customize high-traffic pages without code deployments, while generic templates handle all other routes
+
+**Example:** `/jobs/lancaster-county/sheriff/`
+
+1. Checks for Page: `job-agency-seat-lancaster-county-sheriff` (specific)
+2. Falls back to: `job-agency-seat` (generic)
+3. Shows hardcoded fallback if neither exists
+
+**Slug naming:** `{template}-{param1}-{param2}...` (lowercase, hyphens, match URL segments exactly)
+
+See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for complete implementation guide.
+
 ## Package Manager
 
-| **Package Manager** | pnpm 11.9.0             | pnpm 11.9.0             | Easier upstream sync      |
+| **Package Manager** | pnpm 11.9.0 | pnpm 11.9.0 | Easier upstream sync |
+
 - **Upstream uses:** pnpm with `pnpm-lock.yaml`
 - **Reason:** Simpler devcontainer setup, Node 24 compatibility
 

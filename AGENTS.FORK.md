@@ -33,7 +33,6 @@ pnpm lint:fix     # Auto-fix ESLint issues
 # Ghost management (devcontainer only)
 pnpm ghost:logs      # View Ghost logs
 pnpm ghost:restart   # Restart Ghost instance
-pnpm ghost:stop      # Stop Ghost instance
 ```
 
 ### Code Quality
@@ -103,7 +102,6 @@ Complete Ghost development environment with Docker:
 
 - Node.js 24 workspace
 - Ghost dev instance (SQLite, port 3001)
-- Optional Ghost prod instance (MySQL, port 2368)
 - Live reload, GScan validation, code quality tools
 
 See [DEVCONTAINER.md](DEVCONTAINER.md) for setup.

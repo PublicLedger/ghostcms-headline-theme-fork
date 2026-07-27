@@ -216,9 +216,9 @@ pnpm zip       # Build production package (also validates)
 ```bash
 # These are FIXED by container environment:
 # - Node 24+ (engines.node in package.json)
-# - Ghost ports (3001 dev, 2368 prod)
+# - Ghost port (3001 for ghost-dev)
 # - Theme mount path (/var/lib/ghost/content/themes/headline)
-# - Volume names (ghost-dev-data, ghost-prod-data)
+# - Volume names (ghost-dev-data, ghost-dev-images, etc.)
 
 # Check before changing:
 cat .devcontainer/docker-compose.yml
@@ -281,7 +281,7 @@ grep -A10 "{{#get" job-agency-seat.hbs
 # Should see: specific slug attempt → generic fallback → hardcoded
 
 # Read architecture doc
-cat docs-local/TEMPLATE_SPECIFICITY.md | head -50
+cat docs/TEMPLATE_FRAGMENTS.md | head -50
 cat AGENTS.md | grep -A20 "Template Specificity"
 ```
 
@@ -370,7 +370,7 @@ docker compose ps  # Verify Ghost running
 
 **Documentation references:**
 
-- Pattern explanation: `docs-local/TEMPLATE_SPECIFICITY.md`
+- Pattern explanation: `docs/TEMPLATE_FRAGMENTS.md`
 - Architecture decision: `AGENTS.md` → "Template Specificity Pattern"
 - Troubleshooting: `TROUBLESHOOTING.md` → "Template Specificity Issues"
 - Developer guide: `CONTRIBUTING.md` → "Template Specificity Pattern"
@@ -414,6 +414,117 @@ git ls-tree -r upstream/main --name-only | grep -i "agent\|contrib\|troubleshoot
 **The lesson**: Upstream is actively developed. Always check their file tree before creating repo-root files.
 
 **The meta-lesson**: AI agents work in isolation and forget this is a LIVING FORK that continuously integrates upstream changes. You must actively fight this by checking sync status, preserving identity, and planning for merge conflicts.
+
+### 14. Package Manager Inconsistency in Documentation
+
+**Pattern**: Documentation mixes `npm run <script>` and `pnpm <script>` commands → confuses developers → potential installation issues if wrong package manager used
+**Why**: AI treats npm and pnpm as interchangeable without checking project's explicit packageManager specification
+**Fix**: Always check package manager before documenting commands:
+
+```bash
+# Check project's package manager
+grep "packageManager" package.json
+# "packageManager": "pnpm@11.9.0"  <- This is explicit and pinned
+
+# All documentation should use: pnpm <script>
+# NOT: npm run <script>
+
+# ❌ WRONG - mixed commands
+npm run ghost:check
+pnpm dev
+npm run ghost:logs
+
+# ✅ RIGHT - consistent pnpm
+pnpm ghost:check
+pnpm dev
+pnpm ghost:logs
+```
+
+**Why this matters:**
+
+- **Package manager is pinned** in package.json (`"packageManager": "pnpm@11.9.0"`)
+- **npm and pnpm have different behaviors** (lockfiles, scripts execution, dependencies resolution)
+- **Inconsistent docs confuse developers** - which command is correct?
+- **CI/CD may enforce package manager** - GitHub Actions checks packageManager field
+- **pnpm shorthand works** - `pnpm dev` instead of `npm run dev`
+
+**How to audit documentation:**
+
+```bash
+# Find all npm run commands in docs
+grep -r "npm run\|npm dev\|npm test\|npm ghost" **/*.md
+
+# Should be zero matches (except references to npm registry or npm as concept)
+# Replace all with pnpm equivalents
+```
+
+**Package manager verification:**
+
+```bash
+# Correct package manager specified in package.json
+cat package.json | grep packageManager
+# "packageManager": "pnpm@11.9.0"
+
+# All scripts can be run with pnpm shorthand
+pnpm dev          # NOT npm run dev
+pnpm test         # NOT npm run test
+pnpm ghost:check  # NOT npm run ghost:check
+```
+
+**Real example from this fork:**
+
+- Documentation had 176 instances of `npm run` / `npm dev` / `npm test` / `npm ghost`
+- package.json explicitly specifies `"packageManager": "pnpm@11.9.0"`
+- All commands should use pnpm for consistency
+- Fixed: Standardized all documentation to use `pnpm <script>` format
+- Added missing scripts: `ghost:dev`, `ghost:logs`, `ghost:restart` to match documented commands
+
+**The lesson**: Check the project's specified package manager BEFORE writing any installation or command documentation. Consistency matters for developer experience and CI/CD reliability.
+
+### 15. Accepting Unnecessary Infrastructure Without Questioning
+
+**Pattern**: Documentation mentions "optional production Ghost with MySQL" → assume it's needed → don't question why → wastes Docker resources
+**Why**: AI assumes existing infrastructure has a purpose without validating the use case
+**Fix**: Question infrastructure that isn't actively used:
+
+```bash
+# Check if infrastructure is actually used
+grep -r "ghost-prod" scripts/ test/        # Any scripts use it?
+grep -r "ghost:prod" **/*.md               # Documented use cases?
+docker compose ps                          # Is it even running?
+
+# For Ghost theme development:
+# - SQLite vs MySQL makes ZERO difference to theme code
+# - Themes use Ghost API/helpers, not database directly
+# - Real "production testing" = deploy to actual production
+# - MySQL container = ~500MB image + runtime memory waste
+
+# Infrastructure checklist:
+# ✓ Does it solve a real problem?
+# ✓ Is it actively used by scripts/tests?
+# ✓ Does the benefit justify the complexity/resources?
+# ✗ Is it "nice to have" but never actually needed?
+```
+
+**Real example from this fork:**
+
+- docker-compose.yml had ghost-prod (MySQL) and db (MySQL 8.0) services
+- Marked as "optional" for "production-like testing"
+- No scripts used it, no tests depended on it
+- For Ghost themes: database backend is irrelevant (API is identical)
+- Removed: 2 containers, 6 volumes, ~500MB image, complexity
+- Benefit: Simpler architecture, less memory usage, clearer documentation
+
+**The lesson**: Don't assume existing infrastructure is justified. Question "optional" and "production-like" features. If there's no concrete use case and it's not actively used, it's technical debt masquerading as flexibility.
+
+**Red flags for unnecessary infrastructure:**
+
+- Marked as "optional" with no mandatory use case
+- Never starts by default (requires special flag/profile)
+- No scripts or tests depend on it
+- Documentation doesn't explain when/why to use it
+- "Production-like" without explaining what production difference matters
+- Adds complexity without solving a real problem
 
 ---
 
@@ -486,6 +597,107 @@ pnpm dev  # Watch mode - auto-compiles on save
 <div class="custom-login">{{t "Access site"}} {{! FORK CUSTOM: Not "Access code" }}</div>
 ```
 
+### 16. Making Changes Without Understanding Current State
+
+**Pattern**: User reports issue → AI immediately starts "fixing" → changes break working code → user frustrated because AI didn't investigate first
+**Why**: AI defaults to "action mode" without understanding what's already working vs what's actually broken
+**Fix**: ALWAYS investigate current state before making changes:
+
+```bash
+# ❌ WRONG - immediate action
+# User: "routes.yaml not working"
+# AI: *edits routes.yaml immediately*
+
+# ✅ RIGHT - understand first, act second
+# 1. What's the ACTUAL state?
+docker exec ghost-dev cat /var/lib/ghost/content/settings/routes.yaml
+git status routes.yaml
+git diff routes.yaml
+
+# 2. What's the REPORTED problem?
+# - User sees 404
+# - User sees wrong content
+# - User can't deploy routes
+# Ask: "What specifically isn't working?"
+
+# 3. Is it actually broken or just misunderstood?
+curl -s http://localhost:3001/donor/test/ | head -20
+# 404 from Ghost = routes ARE working (Ghost recognized /donor/{slug}/ pattern)
+# 404 from template = content issue, not routes issue
+
+# 4. What are the constraints?
+cat AGENTS.md | grep -A20 "routes.yaml"
+# Maybe there's architectural reasons for current state
+```
+
+**Real example from this session:**
+
+- User asked to verify `/donor/{slug}/` route works
+- AI saw 404 → assumed route broken → changed `/donors/{id}/` to `/donor/{slug}/`
+- Actual problem: Ghost WAS routing correctly, 404 was because no Page existed
+- AI overwrote user's intentional work without understanding current state
+- Correct approach: Check if route recognized → check if Page exists → test with correct slug
+
+**Critical distinction:**
+
+- **Ghost 404 (error.hbs)** = Route not recognized in routes.yaml
+- **Template 404 (custom message)** = Route works, but template can't find content
+- **These look similar** but have completely different solutions
+- One needs routes.yaml fix, other needs Page creation
+- AI must investigate to distinguish them
+
+**Investigation protocol before ANY edit:**
+
+```bash
+# 1. Current file state
+git diff path/to/file
+git log -1 --oneline path/to/file  # Last commit touching this file
+
+# 2. Running system state
+docker compose ps
+curl -sI http://localhost:3001  # Is Ghost responding?
+
+# 3. Expected vs actual behavior
+# User: "X should happen"
+# Verify: Does X actually not happen? Or is user misinterpreting output?
+
+# 4. Root cause analysis
+# Don't fix symptoms, find the actual problem
+# Template error vs routes error vs Ghost config error vs content error
+
+# 5. Check documentation/architecture
+grep -r "feature" AGENTS.md AI_DEVELOPMENT.md docs-local/
+# Is current behavior INTENTIONAL per architecture docs?
+```
+
+**When user says "not working":**
+
+1. Ask: "What specifically is not working? What do you see vs expect?"
+2. Investigate: Check actual state vs reported state
+3. Verify: Is it actually broken or expected behavior?
+4. Root cause: What's the underlying issue?
+5. Then (and only then): Propose solution
+
+**When user says "fix this":**
+
+1. Understand: What exactly needs fixing?
+2. Current state: What's the code doing now?
+3. Constraints: Are there architectural reasons for current state?
+4. Impact: What else might this change affect?
+5. Then: Make minimal targeted change
+
+**Red flags for "acting without understanding":**
+
+- Immediately editing files without investigating current state
+- Changing code that user just finished working on
+- "Fixing" something that might be intentionally designed that way
+- Making multiple speculative changes hoping one works
+- Not asking clarifying questions when problem is unclear
+- Assuming routes.yaml format without checking architecture docs
+- Editing Ghost config without verifying Ghost is actually broken
+
+**The lesson**: STOP. INVESTIGATE. UNDERSTAND. Then (and only then) act. Most "helpful fixes" that waste user's time come from skipping investigation and jumping straight to "solutions" for problems you haven't actually diagnosed.
+
 ---
 
 ## 🚨 This Codebase Specifics
@@ -514,7 +726,7 @@ pnpm dev  # Watch mode - auto-compiles on save
 
 ### Development Environment
 
-- **Devcontainer**: Multi-container Docker (ghost-dev:3001, ghost-prod:2368, db:3306)
+- **Devcontainer**: Multi-container Docker (devcontainer workspace, ghost-dev on port 3001 with SQLite)
 - **Node**: 24+ (container requirement, don't downgrade)
 - **Asset compilation**: `pnpm dev` watches source files → compiles to built/
 - **Live reload**: Theme mounted at `/var/lib/ghost/content/themes/headline`

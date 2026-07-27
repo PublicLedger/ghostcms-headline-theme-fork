@@ -129,8 +129,6 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Check for port conflicts:
   ```bash
   lsof -i :3001  # Ghost dev port
-  lsof -i :2368  # Ghost prod port
-  lsof -i :3306  # MySQL port
   ```
 - Review Docker logs for errors:
   ```bash
@@ -139,6 +137,10 @@ If you're seeing unexpected behavior, the browser console often reveals template
   ```
 - Check Docker Compose file syntax: `.devcontainer/docker-compose.yml`
 - Free up disk space if Docker storage is full
+- Clean up Docker cruft (can fix "transport endpoint not connected" errors):
+  ```bash
+  docker system prune -af --volumes  # ⚠️ Deletes all unused Docker data
+  ```
 
 ### Ghost Container Crashes on Startup
 
@@ -200,25 +202,6 @@ If you're seeing unexpected behavior, the browser console often reveals template
 - Update pnpm itself: `pnpm add -g pnpm@latest`
 - Check network connectivity from container: `ping github.com`
 
-### Production Ghost (MySQL) Won't Start
-
-**Symptoms:** `pnpm ghost:prod` fails, ghost-prod container exits, port 2368 not accessible
-
-**Solutions:**
-
-- Verify MySQL container is running: `docker compose ps db`
-- Check MySQL logs: `docker compose logs db`
-- Verify database credentials in docker-compose.yml match Ghost config
-- Wait for MySQL to finish initializing (first start takes ~30 seconds)
-- Check port 2368 is available: `lsof -i :2368`
-- View ghost-prod logs: `docker compose logs ghost-prod`
-- Reset production environment (⚠️ deletes production data):
-  ```bash
-  pnpm ghost:stop
-  docker compose down
-  pnpm ghost:prod
-  ```
-
 ## Theme Development Issues
 
 ### GScan Validation Failures
@@ -276,6 +259,187 @@ If you're seeing unexpected behavior, the browser console often reveals template
   ```
 - Check Ghost logs for specific context errors: `pnpm ghost:logs`
 
+### Template Specificity Issues (Page-Based Templates)
+
+**This fork uses Ghost Pages as template content with specificity hierarchy.** Common issues for developers new to this pattern:
+
+#### Symptom: Generic Page Shows When Specific Page Expected
+
+**You created Page `job-agency-seat-lancaster-sheriff` but `/jobs/lancaster-county/sheriff/` still shows generic content.**
+
+**Cause:** Slug doesn't match URL segments exactly.
+
+**Solutions:**
+
+- **Check exact slug in Ghost Admin** (Settings → Pages → find your Page → check slug)
+- **Match URL segments exactly:**
+  - URL: `/jobs/lancaster-county/sheriff/`
+  - Slug must be: `job-agency-seat-lancaster-county-sheriff`
+  - NOT: `job-agency-seat-lancaster-sheriff` (missing `-county`)
+  - NOT: `job-agency-seat-LancasterCounty-sheriff` (wrong casing)
+  - NOT: `job-agency-seat_lancaster_county_sheriff` (underscores)
+- **Slug rules:**
+  - Lowercase only
+  - Hyphens (not underscores or spaces)
+  - No trailing/leading hyphens
+  - Pattern: `{template}-{param1}-{param2}...`
+- **Test slug matching:**
+  ```bash
+  # View template to see expected slug
+  grep "filter=\"slug:" job-agency-seat.hbs
+  # Should show: slug:job-agency-seat-{{agency}}-{{seat}}
+
+  # In Ghost Admin, check actual slug (not title)
+  # Title: "Lancaster County Sheriff"
+  # Slug: "job-agency-seat-lancaster-county-sheriff" ✓
+  ```
+
+#### Symptom: "Page Not Found" on Data Route
+
+**Route `/jobs/lancaster-county/sheriff/` shows 404, but template exists.**
+
+**Solutions:**
+
+- Verify `routes.yaml` defines the route:
+  ```yaml
+  routes:
+    /jobs/{agency}/{seat}/:
+      template: job-agency-seat
+  ```
+- Check template file exists: `ls -la job-agency-seat.hbs`
+- Restart Ghost after routes.yaml changes: `pnpm ghost:restart`
+- Check Ghost logs for routing errors: `pnpm ghost:logs`
+- Test simpler route first: `/jobs/` (should work if routes.yaml configured)
+
+#### Symptom: Hardcoded Fallback Shows Even Though Page Exists
+
+**Created Page `job-agency-seat` but route shows "Configure by creating Page" message.**
+
+**Solutions:**
+
+- **Verify Page is published** (not draft): Ghost Admin → Pages → check status
+- **Check slug exactly matches generic template:**
+  - Template expects: `job-agency-seat`
+  - Page slug must be: `job-agency-seat`
+  - NOT: `job-agency-seats` (plural)
+  - NOT: `jobs-agency-seat` (wrong prefix)
+- **Clear Ghost cache:**
+  ```bash
+  pnpm ghost:restart
+  # Hard refresh browser: Ctrl+Shift+R
+  ```
+- **Check Page isn't date-restricted** (no publish date in future)
+- **Test query directly in browser console:**
+  ```javascript
+  // Visit the route, open console (F12)
+  fetch("/ghost/api/content/pages/?key=...&filter=slug:job-agency-seat")
+    .then(r => r.json())
+    .then(console.log);
+  // Should return your Page
+  ```
+
+#### Symptom: Can't Use Handlebars Variables in Page Content
+
+**Created Page with `{{agency}}` or `{{seat}}` variables, but they render literally.**
+
+**Cause:** Ghost Pages are static HTML/Markdown. Handlebars variables only work in `.hbs` template files.
+
+**Solutions:**
+
+- **Move dynamic content to template file:**
+  ```handlebars
+  {{!-- In job-agency-seat.hbs (template) --}}
+  <h1>{{seat}} - {{agency}}</h1>
+  {{!-- ✓ Works --}} {{!-- Page content is static HTML --}}
+  {{#get "pages" filter="slug:job-agency-seat" limit="1"}}
+    {{#foreach pages}}{{{content}}}{{/foreach}}
+  {{/get}}
+  ```
+- **Use Page for static content only:**
+  - ✓ Rich text descriptions
+  - ✓ Editorial notes
+  - ✓ Static HTML/CSS/images
+  - ✗ Dynamic variables
+  - ✗ Conditional logic
+  - ✗ Loops or data fetching
+- **For dynamic content:** Edit the `.hbs` template file, not the Page
+
+#### Symptom: Changed Page Content, But Route Still Shows Old Content
+
+**Updated Page in Ghost Admin, but `/jobs/lancaster-county/sheriff/` shows old text.**
+
+**Solutions:**
+
+- **Hard refresh browser:** Ctrl+Shift+R / Cmd+Shift+R (clear browser cache)
+- **Check you're editing the right Page:**
+  - Search by slug (not title) in Ghost Admin
+  - Multiple Pages with similar titles can be confusing
+- **Verify Page saved and published:**
+  - Draft changes don't appear on frontend
+  - Click "Publish" or "Update" after editing
+- **Clear Ghost cache:** `pnpm ghost:restart`
+- **Check CDN cache** (if using Ghost Pro): May need manual purge
+
+#### Symptom: Specific Page Works Locally, Fails in Production
+
+**Route loads specific Page in dev (localhost:3001), shows generic in production.**
+
+**Cause:** Page doesn't exist in production Ghost database.
+
+**Solutions:**
+
+- **Verify Page exists in production Ghost Admin** (not just local)
+- **Recreate Page in production** with exact same slug
+- **Or use content sync** if available:
+  ```bash
+  # Sync production Pages to local (read-only)
+  pnpm ghost:seed
+  ```
+- **Check production Ghost logs** for Page query errors
+- **Verify production routes.yaml deployed** (theme zip includes it)
+
+#### How to Debug Template Specificity
+
+1. **Check what template expects:**
+
+   ```bash
+   grep -A5 "filter=\"slug:" job-agency-seat.hbs
+   # Shows: slug:job-agency-seat-{{agency}}-{{seat}}
+   ```
+
+2. **Check what slug you created:**
+   - Ghost Admin → Pages → find your Page
+   - Look at slug field (not title)
+   - Click "View" button → check URL
+
+3. **Manually construct expected slug:**
+   - URL: `/jobs/lancaster-county/sheriff/`
+   - Template: `job-agency-seat.hbs`
+   - Variables: `agency=lancaster-county`, `seat=sheriff`
+   - Expected: `job-agency-seat-lancaster-county-sheriff`
+
+4. **Test in browser console:**
+
+   ```javascript
+   // On the route, open console (F12)
+   const url = window.location.pathname;
+   console.log("Current URL:", url);
+   // Expected slug construction
+   const parts = url.split("/").filter(p => p);
+   console.log("URL parts:", parts);
+   // Match to template pattern
+   ```
+
+5. **Check Ghost response:**
+   ```bash
+   # View Ghost logs during page load
+   pnpm ghost:logs
+   # Look for "GET /pages" queries
+   # Should see: filter=slug:job-agency-seat-lancaster-county-sheriff
+   ```
+
+**Still stuck?** See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for complete implementation guide and examples.
+
 ### Translation Strings Not Working
 
 **Symptoms:** `{{t "String"}}` shows raw key instead of translation, language switching doesn't work
@@ -317,7 +481,7 @@ If you're seeing unexpected behavior, the browser console often reveals template
   - `name`: "publicledger-headline-fork"
   - `author`: Gasworks Data
   - `engines.node`: ">=24.0.0"
-  - Ghost scripts: `ghost:dev`, `ghost:logs`, `ghost:restart`, etc.
+  - Ghost scripts: `ghost:seed`, `ghost:logs`, `ghost:restart`
 - Restore from git if accidentally changed:
   ```bash
   git checkout package.json

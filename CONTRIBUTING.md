@@ -47,11 +47,109 @@ pnpm dev         # Compile assets and watch for changes
 docker compose ps   # Verify Ghost containers running (devcontainer only)
 ```
 
+## Template Specificity Pattern
+
+**This fork uses Ghost Pages as template content with specificity hierarchy** - a hybrid approach for editorial control without code deployments.
+
+### Architecture Overview
+
+**15 route templates** cover data-driven routes (elections, campaign finance, officials, donors):
+
+- `lookup.hbs`, `lookup-agency.hbs`
+- `job.hbs`, `job-agency.hbs`, `job-agency-seat.hbs`
+- `officials.hbs`, `official.hbs`
+- `election.hbs`, `election-agency.hbs`, `election-agency-seat.hbs`, `election-agency-seat-year.hbs`
+- `finance-explorer.hbs`, `finance-agency-seat.hbs`
+- `donors.hbs`, `donor.hbs`
+
+**Each template implements specificity hierarchy:**
+
+1. Try **specific** Page: `job-agency-seat-lancaster-county-sheriff`
+2. Fall back to **generic** Page: `job-agency-seat`
+3. Show **hardcoded fallback** if neither exists
+
+### Why This Pattern?
+
+**PROS:**
+
+- Editors customize high-traffic pages (Lancaster County Sheriff) without code
+- Generic templates handle all other routes (every other county sheriff)
+- Fast content updates (1-5 sec Page republish, no theme rebuild)
+- Clear separation: theme = data logic, CMS = content
+
+**CONS:**
+
+- Brittle: relies on exact slug naming (`job-agency-seat-lancaster-county-sheriff`)
+- Testing: local dev needs production Pages seeded
+- Performance: 2 `{{#get}}` queries per route (cached after first hit)
+- Debugging: logic split between `.hbs` files and CMS Page HTML
+
+### Developer Workflow
+
+**Creating new templates:**
+
+```handlebars
+{{!-- job-agency-seat.hbs --}}
+<main class="gh-main">
+  <section class="gh-content gh-canvas">
+    {{!-- Try specific override first --}}
+    {{#get "pages" filter="slug:job-agency-seat-{{agency}}-{{seat}}" limit="1"}}
+      {{#foreach pages}}{{{content}}}{{/foreach}}
+    {{else}}
+      {{!-- Fall back to generic template --}}
+      {{#get "pages" filter="slug:job-agency-seat" limit="1"}}
+      
+        {{#foreach pages}}{{{content}}}{{/foreach}}
+
+    {{else}}
+      {{!-- Hardcoded fallback if no Pages configured --}}
+      <h1>{{seat}} - {{agency}}</h1>
+      <p>
+        <em>Configure by creating Page: <code>job-agency-seat</code></em>
+      </p>
+    {{/get}}
+    {{/get}}
+  </section>
+
+  {{!-- Data rendering (theme logic) below Page content --}}
+  <section class="job-data">
+    <script>
+      // Load data via PublicLedgerData API
+    </script>
+  </section>
+</main>
+```
+
+**Slug naming rules:**
+
+- Pattern: `{template}-{param1}-{param2}...`
+- Lowercase, hyphens (no underscores/spaces)
+- Match URL segments exactly
+- Example: `/jobs/lancaster-county/sheriff/` → `job-agency-seat-lancaster-county-sheriff`
+
+**Testing changes:**
+
+1. Start Ghost: `docker compose ps` (verify running)
+2. Create test Page in Ghost Admin with exact slug
+3. Visit route: http://localhost:3001/jobs/lancaster-county/sheriff/
+4. Verify specific Page loads (not generic fallback)
+5. Delete Page, verify falls back to generic
+6. Check hardcoded fallback renders if both missing
+
+**Common mistakes:**
+
+- Slug typos (`job-agency-seats` vs `job-agency-seat`) - see TROUBLESHOOTING.md
+- Editing hardcoded HTML thinking it's the Page content
+- Not testing in actual Ghost (template syntax != runtime correctness)
+- Using Handlebars variables in Page content (Pages are static HTML only)
+
+See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for complete implementation guide.
+
 ## Devcontainer
 
 ### What It Is
 
-The devcontainer provides a **complete Ghost CMS environment** for theme development with live preview. It's a multi-container Docker setup with Ghost, MySQL (optional), and Node.js pre-configured.
+The devcontainer provides a **complete Ghost CMS environment** for theme development with live preview. It's a multi-container Docker setup with Ghost and Node.js pre-configured.
 
 **Why use it:**
 
@@ -60,7 +158,6 @@ The devcontainer provides a **complete Ghost CMS environment** for theme develop
 - **Consistent environment**: Same Node.js 24, Ghost 6.0+, and build tools as production
 - **Isolation**: Ghost and dependencies don't conflict with your system
 - **Zero config**: Open in VS Code and start developing immediately
-- **Production testing**: Optional MySQL container for testing production-like scenarios
 
 ### How to Use It
 
@@ -103,22 +200,11 @@ pnpm dev          # Start asset compilation
 
 2. **ghost-dev** (development Ghost):
    - Ghost latest (6.0+ compatible)
-   - SQLite database (fast, ephemeral)
+   - SQLite database (fast, no external dependencies)
    - Port 3001 → http://localhost:3001
    - Auto-starts on container creation
    - Theme live-mounted at `/var/lib/ghost/content/themes/headline`
    - Volume: `ghost-dev-data` for persistent Ghost data
-
-3. **ghost-prod** (optional production testing):
-   - Ghost latest with MySQL backend
-   - Port 2368 → http://localhost:2368
-   - Manual start: `pnpm ghost:prod`
-   - Volume: `ghost-prod-data` for persistent Ghost data
-
-4. **db** (MySQL for production testing):
-   - MySQL 8.0
-   - Used by ghost-prod only
-   - Volume: `ghost-prod-db` for persistent database
 
 **Theme Mount**:
 
@@ -159,9 +245,9 @@ pnpm dev          # Start asset compilation
 
 **`.devcontainer/docker-compose.yml`**:
 
-- Multi-container environment (workspace, ghost-dev, ghost-prod, db)
+- Multi-container environment (workspace, ghost-dev)
 - Volume definitions for persistent Ghost data
-- Port mappings (3001 dev, 2368 prod)
+- Port mappings (3001 for Ghost)
 - Theme mount path configuration
 
 **`.devcontainer/QUICKREF.md`**:
@@ -346,6 +432,34 @@ pnpm zip           # Validates + compiles + packages
 - Theme metadata in package.json
 - Asset references and file paths
 
+## Package Scripts Reference
+
+### Theme Build & Validation
+
+| Command         | Purpose                                          |
+| --------------- | ------------------------------------------------ |
+| `pnpm dev`      | Watch mode - auto-rebuild CSS/JS on changes      |
+| `pnpm test`     | GScan validation for Ghost 6.0+ compatibility    |
+| `pnpm validate` | Verbose GScan report with warnings               |
+| `pnpm zip`      | Build production theme zip (`dist/headline.zip`) |
+| `pnpm lint`     | ESLint JavaScript validation                     |
+| `pnpm lint:fix` | Auto-fix ESLint issues                           |
+
+### Ghost Management (Devcontainer)
+
+| Command               | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `pnpm check-env`   | Validate full environment setup              |
+| `pnpm ghost:seed`  | Sync from production (requires `.env`)       |
+| `pnpm ghost:logs`  | View Ghost container logs (live tail)        |
+| `pnpm ghost:restart` | Restart Ghost container                    |
+| `pnpm docker:clean` | Remove all unused Docker data (⚠️ deletes volumes) |
+
+**Ghost URLs:**
+- **Admin Panel**: http://localhost:3001/ghost/ (from host browser)
+- **Public Site**: http://localhost:3001/
+- **Credentials**: `admin@example.com` / `RandomSecure123456789`
+
 ### Testing in Ghost
 
 **Development instance** (http://localhost:3001):
@@ -354,28 +468,31 @@ pnpm zip           # Validates + compiles + packages
 # Start asset watcher
 pnpm dev
 
-# View Ghost logs for template errors
-pnpm ghost:logs
+# Check Ghost status
+pnpm ghost:check
 
-# Restart Ghost after major changes
-pnpm ghost:restart
+# View Ghost connection info
+pnpm ghost:info
 
 # Access Ghost Admin
-open http://localhost:3001/ghost
+pnpm ghost:open
+# Or manually: open http://localhost:3001/ghost
 ```
 
-**Production-like testing** (http://localhost:2368):
+**View logs** (from host terminal or inside container with Docker CLI):
 
 ```bash
-# Start MySQL-backed Ghost
-pnpm ghost:prod
-
-# View production logs
-docker compose logs -f ghost-prod
-
-# Stop production instance
-pnpm ghost:stop
+pnpm ghost:logs                    # Inside container
+# OR from host terminal:
+cd .devcontainer
+docker compose logs -f ghost-dev
 ```
+
+**Restart Ghost** (when needed):
+
+- **Via VS Code**: Command Palette → "Dev Containers: Rebuild Container"
+- **From container**: `pnpm ghost:restart`
+- **From host terminal**: `cd .devcontainer && docker compose restart ghost-dev`
 
 **Manual testing checklist:**
 
@@ -387,6 +504,14 @@ pnpm ghost:stop
 - Mobile responsiveness
 - Custom templates (custom-\*.hbs)
 - Translations (locales/\*.json)
+
+**Common workflows:**
+
+1. **Template changes**: Edit `.hbs` files → Ghost auto-reloads → hard refresh browser
+2. **CSS changes**: Edit `assets/css/*.css` → `pnpm dev` compiles → hard refresh browser
+3. **JS changes**: Edit `assets/js/*.js` → `pnpm dev` compiles → hard refresh browser
+4. **Route changes**: Edit `routes.yaml` → rebuild theme → restart Ghost → hard refresh
+5. **Data changes**: Edit test mocks → `pnpm dev` → verify in data pages
 
 ## Ghost Theme Architecture
 
@@ -420,32 +545,12 @@ Ghost uses Handlebars templates with specific routing:
 **Common helpers:**
 
 ```handlebars
-{{! Content }}
-{{content}}
-{{! Post/page HTML content }}
-{{excerpt}}
-{{! Post excerpt }}
-{{title}}
-{{! Post/page title }}
-
-{{! Images }}
-{{img_url feature_image size="l"}}
-{{! Responsive image URL }}
-{{#if feature_image}}...{{/if}}
-{{! Conditional rendering }}
-
-{{! Loops }}
-{{#foreach posts}}
+{{! Content }} {{content}} {{! Post/page HTML content }} {{excerpt}} {{! Post excerpt }} {{title}}
+{{! Post/page title }} {{! Images }} {{img_url feature_image size="l"}} {{! Responsive image URL }}
+{{#if feature_image}}...{{/if}} {{! Conditional rendering }} {{! Loops }} {{#foreach posts}}
   {{title}}
-{{/foreach}}
-
-{{! Translations }}
-{{t "Subscribe"}}
-{{! From locales/*.json }}
-
-{{! Pagination }}
-{{pagination}}
-{{! Pagination links }}
+{{/foreach}} {{! Translations }} {{t "Subscribe"}} {{! From locales/*.json }} {{! Pagination }}
+{{pagination}} {{! Pagination links }}
 ```
 
 **Testing helpers:**
@@ -469,8 +574,7 @@ Ghost uses Handlebars templates with specific routing:
 **Usage in templates:**
 
 ```handlebars
-{{t "Subscribe"}}
-{{t "Custom string"}}
+{{t "Subscribe"}} {{t "Custom string"}}
 ```
 
 **Fork customizations** (never change):
@@ -497,9 +601,7 @@ Ghost uses Handlebars templates with specific routing:
   "scripts": {
     "ghost:dev": "...", // NEVER CHANGE (fork scripts)
     "ghost:logs": "...", // NEVER CHANGE
-    "ghost:restart": "...", // NEVER CHANGE
-    "ghost:prod": "...", // NEVER CHANGE
-    "ghost:stop": "..." // NEVER CHANGE
+    "ghost:restart": "..." // NEVER CHANGE
   }
 }
 ```
@@ -578,6 +680,7 @@ Deployment automation in `.github/workflows/deploy-theme.yaml`:
 - Deploys to PublicLedger Ghost instance
 
 **Example commit messages:**
+
 ```bash
 git commit -m "feat: Add newsletter subscription widget [minor]"
 git commit -m "fix: Mobile navigation alignment [patch]"
@@ -627,6 +730,7 @@ Configure in GitHub → Settings → Branches → Branch protection rules.
 **Protect matching branches:** `main`
 
 **Required settings:**
+
 - ✅ Require a pull request before merging (approvals: 0-1)
 - ✅ Require status checks to pass before merging
   - Required checks: `Test`, `all-tests-pass` (from test.yml)
@@ -641,6 +745,7 @@ Configure in GitHub → Settings → Branches → Branch protection rules.
 **Protect matching branches:** `staging`
 
 **Settings:**
+
 - ❌ Require a pull request (disabled - allow direct push)
 - ⚠️ Require status checks (optional)
 - ❌ Restrict who can push (disabled)
@@ -652,10 +757,12 @@ Configure in GitHub → Settings → Branches → Branch protection rules.
 Settings → Secrets and variables → Actions → Repository secrets:
 
 **`GHOST_ADMIN_API_URL`**
+
 - Production Ghost instance API URL (e.g., `https://yourdomain.com`)
 - Find: Ghost Admin → Settings → Integrations → Custom Integration
 
 **`GHOST_ADMIN_API_KEY`**
+
 - Format: `<id>:<secret>` (long hexadecimal string)
 - Find: Ghost Admin → Settings → Integrations → Custom Integration → Admin API Key
 
@@ -666,6 +773,7 @@ Settings → Secrets and variables → Actions → Repository secrets:
 The fork includes automated validation to prevent license violations and upstream drift:
 
 **`.github/workflows/validate-fork.yaml`** (runs on every PR, push, and weekly)
+
 - ✅ Validates LICENSE file unchanged from upstream
 - ✅ Validates `package.json` author is "Ghost Foundation"
 - ✅ Checks contributors field exists
@@ -674,6 +782,7 @@ The fork includes automated validation to prevent license violations and upstrea
 - ✅ Validates theme builds and GScan passes
 
 **`.git/hooks/pre-commit`** (runs on every local commit)
+
 - 🚫 Blocks LICENSE file modifications
 - 🚫 Blocks `package.json` author changes
 - ⚠️ Warns when theme files (.hbs, .css, .js) are modified
@@ -687,6 +796,7 @@ pnpm validate:fork
 ```
 
 This runs all the same checks as the GitHub workflow:
+
 - LICENSE compliance
 - package.json author field
 - Contributors field
@@ -714,20 +824,24 @@ cp scripts/hooks/pre-commit .git/hooks/pre-commit
 **Responding to Validation Failures**
 
 **LICENSE modified:**
+
 ```bash
 git restore --staged LICENSE
 git restore LICENSE
 ```
 
 **package.json author incorrect:**
+
 - Edit package.json to restore `"author": { "name": "Ghost Foundation", ... }`
 - Add your attribution to `contributors` array instead
 
 **Theme validation failed:**
+
 - Fix GScan errors: `pnpm validate --verbose`
 - Test build: `pnpm zip`
 
 **Fork behind upstream:**
+
 - Review: `git fetch upstream && git log HEAD..upstream/main`
 - Sync: `./sync/upstream-sync.sh`
 
