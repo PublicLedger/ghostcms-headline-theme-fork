@@ -1,6 +1,6 @@
 {{!-- Custom footer for The Public Ledger --}}
 {{!-- Hybrid approach: Structure from settings, rich content from pages --}}
-{{!-- Create pages in Ghost Admin with slugs: footer-about, footer-tagline --}}
+{{!-- Create Pages in Ghost Admin with slugs: footer-about, footer-tagline --}}
 
 <footer class="gh-foot-custom">
   <div class="gh-foot-custom-inner">
@@ -17,14 +17,10 @@
         {{/if}}
         {{!-- Fetch "footer-about" page for rich content --}}
         {{#get "pages" filter="slug:footer-about" limit="1"}}
-          
-          
           {{#foreach pages}}
             <h4 class="gh-foot-custom-heading">{{title}}</h4>
             <div class="gh-foot-custom-text">{{content}}</div>
           {{/foreach}}
-
-
         {{else}}
           {{!-- Fallback: Create page with slug "footer-about" in Ghost Admin --}}
           <h4 class="gh-foot-custom-heading">ABOUT THIS ARCHIVE</h4>
@@ -76,9 +72,7 @@
       <div class="gh-foot-custom-credit">
         <div class="gh-foot-custom-credit-label">REPORTED & PUBLISHED BY</div>
         <div class="gh-foot-custom-credit-value">
-          {{#if @custom.footer_publisher_logo}}
-            <img src="{{@custom.footer_publisher_logo}}" alt="Publisher logo" class="gh-foot-custom-publisher-logo" />
-          {{/if}}
+          {{!-- <img src="footer_publisher_logo" alt="Publisher logo" class="gh-foot-custom-publisher-logo" /> --}}
           <span>LancasterOnline</span>
         </div>
       </div>
@@ -86,11 +80,7 @@
       <div class="gh-foot-custom-credit">
         <div class="gh-foot-custom-credit-label">MADE POSSIBLE BY</div>
         <div class="gh-foot-custom-credit-value">
-          {{#if @custom.funding_credit}}
-            {{@custom.funding_credit}}
-          {{else}}
-            Lancaster County Local Journalism Fund
-          {{/if}}
+          Lancaster County Local Journalism Fund
         </div>
       </div>
     </div>
@@ -102,7 +92,13 @@
         
         
         
-        {{#foreach pages}}<div class="gh-foot-custom-quote">{{content}}</div>{{/foreach}}
+        
+        
+        {{#foreach pages}}
+          <div class="gh-foot-custom-quote">{{content}}</div>
+        {{/foreach}}
+
+
 
 
 
@@ -112,8 +108,6 @@
 
       <div class="gh-foot-custom-legal">
         <span>For educational use only</span>
-        <a href="/site-map">Site map</a>
-        <a href="/design-reference">Design reference →</a>
       </div>
     </div>
   </div>
