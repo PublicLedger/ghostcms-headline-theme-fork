@@ -10,6 +10,7 @@
     "ghcr.io/devcontainers/features/node:2.1.0": {
       "version": "24"
     },
+    "ghcr.io/devcontainers/features/common-utils:2": {},
     "ghcr.io/devcontainers/features/git:1.3.8": {},
     "ghcr.io/devcontainers/features/github-cli:1.1.0": {},
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
@@ -55,7 +56,7 @@
   },
 
   // Use 'postCreateCommand' to run commands after the container is created
-  "postCreateCommand": "pnpm install && pnpm gulp build && echo '✓ Theme built and ready'",
+  "postCreateCommand": "pnpm install && pnpm gulp build && sleep 10 && echo '✓ Theme built and ready' && until curl -s https://api.individual.githubcopilot.com > /dev/null; do sleep 1; done",
 
   // Wait for Ghost setup to complete before allowing user interaction
   "postStartCommand": "timeout 120 sh -c 'while [ ! -f /workspace/.ghost-setup-complete ]; do sleep 1; done' && echo '✓ Ghost is ready at http://localhost:3001/ghost/' || echo '⚠ Ghost setup timeout - check: pnpm ghost:logs'",
