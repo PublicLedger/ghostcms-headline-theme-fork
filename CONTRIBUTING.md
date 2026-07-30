@@ -462,9 +462,7 @@ pnpm zip           # Validates + compiles + packages
 | --------------------- | -------------------------------------------- |
 | `pnpm check-env` | Validate full environment setup |
 | `pnpm ghost:seed` | Sync from production (requires `.env`) |
-| `pnpm ghost:logs` | View Ghost container logs (live tail) |
 | `pnpm ghost:restart` | Restart Ghost container |
-| `pnpm docker:clean` | Remove all unused Docker data (⚠️ deletes volumes) |
 
 **Ghost URLs:**
 

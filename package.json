@@ -68,9 +68,8 @@
     "format": "prettier --write \"**/*.{hbs,css,js,json,html}\"",
     "format:check": "prettier --check \"**/*.{hbs,css,js,json,html}\"",
     "ghost:seed": "node scripts/ghost-seed.js",
-    "ghost:logs": "docker compose -f .devcontainer/docker-compose.yml logs -f ghost-dev",
-    "ghost:restart": "docker compose -f .devcontainer/docker-compose.yml restart ghost-dev",
-    "docker:clean": "docker system prune -af --volumes"
+    "ghost:refresh": "docker exec ghost-dev sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/refresh-routes.sh",
+    "ghost:restart": "echo '⚠️  WARNING: Ghost restart causes terminal hangs. Use \"pnpm ghost:refresh\" to reload routes instead. See /memories/repo/devcontainer-rules.md' && exit 1"
   },
   "_comment_packageManager": "Pinned to match TryGhost/Headline upstream (easier sync)",
   "packageManager": "pnpm@11.9.0",
@@ -78,6 +77,7 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@gitkumi/prettier-plugin-handlebars": "^1.5.0",
+    "@tryghost/admin-api": "^1.14.11",
     "@tryghost/shared-theme-assets": "2.7.1",
     "@tryghost/theme-translations": "^0.0.9",
     "@typescript-eslint/parser": "^8.62.0",
@@ -97,6 +97,7 @@
     "ordered-read-streams": "2.0.0",
     "postcss": "8.5.15",
     "postcss-easy-import": "4.0.0",
+    "postcss-nested": "^7.0.2",
     "prettier": "^3.4.2",
     "pump": "3.0.4"
   }
