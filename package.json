@@ -68,6 +68,8 @@
     "format": "prettier --write \"**/*.{hbs,css,js,json,html}\"",
     "format:check": "prettier --check \"**/*.{hbs,css,js,json,html}\"",
     "ghost:seed": "node scripts/ghost-seed.js",
+    "ghost:verify": "bash scripts/verify-routes.sh",
+    "ghost:records": "docker exec ghost-dev sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/seed-demo-records.sh",
     "ghost:refresh": "docker exec ghost-dev sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/refresh-routes.sh",
     "ghost:restart": "echo '⚠️  WARNING: Ghost restart causes terminal hangs. Use \"pnpm ghost:refresh\" to reload routes instead. See /memories/repo/devcontainer-rules.md' && exit 1"
   },

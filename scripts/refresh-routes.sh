@@ -5,7 +5,8 @@
 set -e
 
 GHOST_INTERNAL_URL="http://localhost:2368"
-ROUTES_SOURCE="/var/lib/ghost/content/themes/publicledger-headline-fork/routes.yaml"
+THEME_NAME="publicledger-headline-fork"
+ROUTES_SOURCE="/var/lib/ghost/content/themes/${THEME_NAME}/routes.yaml"
 ADMIN_EMAIL="${GHOST_ADMIN_EMAIL:-admin@example.com}"
 ADMIN_PASSWORD="${GHOST_ADMIN_PASSWORD:-RandomSecure123456789}"
 COOKIE_JAR="/tmp/ghost-routes-refresh-cookies.txt"
@@ -45,26 +46,41 @@ fi
 echo "✅ Authenticated"
 
 # Upload routes.yaml
+#
+# Must be a multipart file upload with field name "routes". Sending the YAML as a
+# raw body with Content-Type: text/x-yaml is rejected by Ghost 6 with
+# "Please select a YAML file." A successful upload returns "{}".
 echo "📤 Uploading routes.yaml..."
 UPLOAD_RESPONSE=$(curl -s -b "$COOKIE_JAR" -c "$COOKIE_JAR" -X POST \
-    -H "Content-Type: text/x-yaml" \
     -H "Origin: http://localhost:3001" \
     -H "Referer: http://localhost:3001/ghost/" \
     -H "Accept: application/json" \
-    --data-binary @"$ROUTES_SOURCE" \
+    -F "routes=@${ROUTES_SOURCE};type=application/x-yaml" \
     "${GHOST_INTERNAL_URL}/ghost/api/admin/settings/routes/yaml/")
 
-if echo "$UPLOAD_RESPONSE" | grep -q "routes"; then
-    echo "✅ Routes refreshed successfully"
-    echo ""
-    echo "📍 Your custom routes are now active:"
-    echo "   http://localhost:3001/lancaster-county-profile/"
-    echo "   http://localhost:3001/sheriff-election-2023/"
-    echo "   http://localhost:3001/municipal-turnout-2025/"
-    echo "   http://localhost:3001/commissioner-top-donors/"
-else
-    echo "⚠️  Routes upload may have failed"
+if echo "$UPLOAD_RESPONSE" | grep -q "errors"; then
+    echo "⚠️  Routes upload failed"
     echo "Response: $UPLOAD_RESPONSE"
+    rm -f "$COOKIE_JAR"
+    exit 1
+fi
+echo "✅ Routes uploaded"
+
+# Re-activate the theme so Ghost re-reads its template list.
+# Setting active_theme directly in SQLite (as ghost-setup.sh does on first run) does
+# NOT refresh Ghost's cache, and routes then fail with "Missing template X.hbs".
+echo "🎨 Re-reading theme templates..."
+ACTIVATE_RESPONSE=$(curl -s -b "$COOKIE_JAR" -c "$COOKIE_JAR" -X PUT \
+    -H "Origin: http://localhost:3001" \
+    -H "Referer: http://localhost:3001/ghost/" \
+    -H "Accept: application/json" \
+    "${GHOST_INTERNAL_URL}/ghost/api/admin/themes/${THEME_NAME}/activate/")
+
+if echo "$ACTIVATE_RESPONSE" | grep -q '"themes"'; then
+    echo "✅ Theme templates reloaded"
+else
+    echo "⚠️  Theme re-activation may have failed"
+    echo "Response: $ACTIVATE_RESPONSE"
 fi
 
 # Cleanup
