@@ -1,0 +1,100 @@
+<!--
+  CensusReporter Fragment - Lancaster County
+  Ghost Page slug: census-reporter-demo
+  
+  Census demographic profile with actual data from Lancaster County.
+  Template: data/fragments/census-reporter.hbs
+-->
+
+<div class="census-reporter-card custom-card" data-agency="lancaster-county">
+  <div class="census-reporter-header">
+    <h3 class="census-reporter-title">Lancaster County — Census Profile</h3>
+    <a
+      href="https://censusreporter.org/profiles/05000US42071-lancaster-county-pa/"
+      class="census-reporter-link"
+      target="_blank"
+      rel="noopener"
+    >
+      Full data via Census Reporter ↗
+    </a>
+  </div>
+
+  <div class="census-reporter-grid">
+    <!-- Residents 18+ -->
+    <div class="census-metric">
+      <div class="census-metric-label">Residents 18+</div>
+      <div class="census-metric-value">435,075</div>
+      <div class="census-metric-sublabel">eligible voters</div>
+    </div>
+
+    <!-- Race & Ethnicity -->
+    <div class="census-metric">
+      <div class="census-metric-label">Race &amp; Ethnicity</div>
+      <div class="census-stats">
+        <div class="census-stat-row">
+          <div class="census-stat-label">White (non-Hispanic)</div>
+          <div class="census-stat-bar" data-category="white" style="width: 78.4%"></div>
+          <span class="census-stat-value">78.4%</span>
+        </div>
+        <div class="census-stat-row">
+          <div class="census-stat-label">Hispanic / Latino</div>
+          <div class="census-stat-bar" data-category="hispanic" style="width: 12.1%"></div>
+          <span class="census-stat-value">12.1%</span>
+        </div>
+        <div class="census-stat-row">
+          <div class="census-stat-label">Two or more races</div>
+          <div class="census-stat-bar" data-category="two-or-more" style="width: 3.4%"></div>
+          <span class="census-stat-value">3.4%</span>
+        </div>
+        <div class="census-stat-row">
+          <div class="census-stat-label">Other</div>
+          <div class="census-stat-bar" data-category="other" style="width: 6.2%"></div>
+          <span class="census-stat-value">6.2%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Median Income -->
+    <div class="census-metric">
+      <div class="census-metric-label">Median Household Income</div>
+      <div class="census-metric-value">$85,802</div>
+      <div class="census-metric-sublabel">per household / year</div>
+    </div>
+
+    <!-- Education -->
+    <div class="census-metric">
+      <div class="census-metric-label">Education (25+)</div>
+      <div class="census-stats">
+        <div class="census-stat-row">
+          <div class="census-stat-label">Less than high school</div>
+          <div class="census-stat-bar" data-category="less-than-hs" style="width: 11.8%"></div>
+          <span class="census-stat-value">11.8%</span>
+        </div>
+        <div class="census-stat-row">
+          <div class="census-stat-label">High school / GED</div>
+          <div class="census-stat-bar" data-category="hs-ged" style="width: 32%"></div>
+          <span class="census-stat-value">32.0%</span>
+        </div>
+        <div class="census-stat-row">
+          <div class="census-stat-label">Some college / Assoc.</div>
+          <div class="census-stat-bar" data-category="some-college" style="width: 21.2%"></div>
+          <span class="census-stat-value">21.2%</span>
+        </div>
+        <div class="census-stat-row">
+          <div class="census-stat-label">Bachelor's degree</div>
+          <div class="census-stat-bar" data-category="bachelors" style="width: 22.3%"></div>
+          <span class="census-stat-value">22.3%</span>
+        </div>
+        <div class="census-stat-row">
+          <div class="census-stat-label">Graduate / Professional</div>
+          <div class="census-stat-bar" data-category="graduate" style="width: 12.7%"></div>
+          <span class="census-stat-value">12.7%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="census-reporter-footer">
+    Source: U.S. Census Bureau, ACS 2024 1-year · Population estimates for the jurisdiction this official serves
+  </div>
+</div>

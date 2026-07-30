@@ -17,10 +17,12 @@
         {{/if}}
         {{!-- Fetch "footer-about" page for rich content --}}
         {{#get "pages" filter="slug:footer-about" limit="1"}}
+          
           {{#foreach pages}}
             <h4 class="gh-foot-custom-heading">{{title}}</h4>
             <div class="gh-foot-custom-text">{{content}}</div>
           {{/foreach}}
+
         {{else}}
           {{!-- Fallback: Create page with slug "footer-about" in Ghost Admin --}}
           <h4 class="gh-foot-custom-heading">ABOUT THIS ARCHIVE</h4>
@@ -79,9 +81,7 @@
 
       <div class="gh-foot-custom-credit">
         <div class="gh-foot-custom-credit-label">MADE POSSIBLE BY</div>
-        <div class="gh-foot-custom-credit-value">
-          Lancaster County Local Journalism Fund
-        </div>
+        <div class="gh-foot-custom-credit-value">Lancaster County Local Journalism Fund</div>
       </div>
     </div>
 
@@ -94,9 +94,11 @@
         
         
         
+        
         {{#foreach pages}}
           <div class="gh-foot-custom-quote">{{content}}</div>
         {{/foreach}}
+
 
 
 

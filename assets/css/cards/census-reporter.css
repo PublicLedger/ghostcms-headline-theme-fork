@@ -1,0 +1,256 @@
+/**
+ * CensusReporter Card Styles
+ * Colors controlled via CSS variables for theme integration
+ * Using PostCSS nested syntax
+ */
+
+:root {
+  /* Base colors */
+  --census-border-color: #e5e7eb;
+  --census-bg: white;
+  --census-header-bg: #f3f4f6;
+  --census-footer-bg: #f9fafb;
+
+  /* Text colors */
+  --census-title-color: #6b7280;
+  --census-label-color: #6b7280;
+  --census-value-color: #111827;
+  --census-sublabel-color: #9ca3af;
+  --census-stat-label-color: #374151;
+  --census-stat-value-color: #111827;
+  --census-footer-color: #6b7280;
+
+  /* Link colors */
+  --census-link-color: #3b82f6;
+  --census-link-hover-color: #2563eb;
+
+  /* Race/ethnicity colors */
+  --census-race-white: #475569;
+  --census-race-hispanic: #f97316;
+  --census-race-mixed: #06b6d4;
+  --census-race-other: #64748b;
+
+  /* Education colors */
+  --census-edu-less-hs: #f87171;
+  --census-edu-hs: #fbbf24;
+  --census-edu-some-college: #34d399;
+  --census-edu-bachelors: #60a5fa;
+  --census-edu-graduate: #a78bfa;
+}
+
+.census-reporter-card {
+  border: 1px solid var(--census-border-color);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--census-bg);
+  margin: 32px 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.census-reporter-header {
+  background: var(--census-header-bg);
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--census-border-color);
+}
+
+.census-reporter-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--census-title-color);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.census-reporter-link {
+  font-size: 13px;
+  color: var(--census-link-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--census-link-hover-color);
+    text-decoration: underline;
+  }
+}
+
+.census-reporter-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--census-border-color);
+
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.census-metric {
+  padding: 24px;
+  border-right: 1px solid var(--census-border-color);
+
+  &:last-child {
+    border-right: none;
+  }
+
+  @media (max-width: 1024px) {
+    &:nth-child(2n) {
+      border-right: none;
+    }
+  }
+
+  @media (max-width: 640px) {
+    border-right: none;
+    border-bottom: 1px solid var(--census-border-color);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+}
+
+.census-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--census-label-color);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.census-metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--census-value-color);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.census-metric-sublabel {
+  font-size: 12px;
+  color: var(--census-sublabel-color);
+  line-height: 1.4;
+}
+
+.census-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.census-stat-row {
+  display: grid;
+  grid-template-columns: 100px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.census-stat-bar {
+  height: 20px;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+
+  &[data-category="white"] {
+    background-color: var(--census-race-white);
+  }
+
+  &[data-category="hispanic"] {
+    background-color: var(--census-race-hispanic);
+  }
+
+  &[data-category="two-or-more"] {
+    background-color: var(--census-race-mixed);
+  }
+
+  &[data-category="other"] {
+    background-color: var(--census-race-other);
+  }
+
+  &[data-category="less-than-hs"] {
+    background-color: var(--census-edu-less-hs);
+  }
+
+  &[data-category="hs-ged"] {
+    background-color: var(--census-edu-hs);
+  }
+
+  &[data-category="some-college"] {
+    background-color: var(--census-edu-some-college);
+  }
+
+  &[data-category="bachelors"] {
+    background-color: var(--census-edu-bachelors);
+  }
+
+  &[data-category="graduate"] {
+    background-color: var(--census-edu-graduate);
+  }
+}
+
+.census-stat-label {
+  color: var(--census-stat-label-color);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.census-stat-value {
+  font-weight: 600;
+  color: var(--census-stat-value-color);
+  text-align: right;
+  min-width: 48px;
+}
+
+.census-reporter-footer {
+  padding: 12px 24px;
+  background: var(--census-footer-bg);
+  font-size: 11px;
+  color: var(--census-footer-color);
+  line-height: 1.5;
+}
+
+.kg-census-reporter-card {
+  max-width: 100%;
+}
+
+.census-reporter-error {
+  padding: 24px;
+  text-align: center;
+  color: var(--census-footer-color);
+  font-style: italic;
+}
+
+@media print {
+  .census-reporter-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .census-reporter-link {
+    color: var(--census-value-color);
+    text-decoration: underline;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --census-bg: #1f2937;
+    --census-border-color: #374151;
+    --census-header-bg: #111827;
+    --census-footer-bg: #111827;
+    --census-title-color: #9ca3af;
+    --census-value-color: #f9fafb;
+    --census-stat-label-color: #d1d5db;
+    --census-stat-value-color: #f9fafb;
+    --census-footer-color: #9ca3af;
+  }
+}

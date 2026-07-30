@@ -3,13 +3,17 @@
 <main class="gh-main">
   <section class="gh-content gh-canvas" id="page-content">
     {{#get "pages" filter="slug:official-agency" limit="1"}}
+      
       {{#foreach pages}}
         {{{content}}}
       {{/foreach}}
+
     {{else}}
       <h1 id="page-title">Agency Officials</h1>
       <p>Elected officials serving in this agency.</p>
-      <p><em>Configure by creating a Page with slug: <code>official-agency</code></em></p>
+      <p>
+        <em>Configure by creating a Page with slug: <code>official-agency</code></em>
+      </p>
     {{/get}}
   </section>
 
@@ -23,23 +27,25 @@
 </main>
 
 <script>
-  (function() {
+  (function () {
     const pathParts = window.location.pathname.split("/").filter(p => p);
     const agency = pathParts[1];
     if (!agency) return;
-    
+
     const specificSlug = `official-agency-${agency}`;
-    fetch(`/ghost/api/content/pages/slug/${specificSlug}/?key=${window.ghostContentApiKey || ''}`)
-      .then(res => res.ok ? res.json() : null)
+    fetch(`/ghost/api/content/pages/slug/${specificSlug}/?key=${window.ghostContentApiKey || ""}`)
+      .then(res => (res.ok ? res.json() : null))
       .then(data => {
         if (data && data.pages && data.pages[0]) {
-          document.getElementById('page-content').innerHTML = data.pages[0].html;
+          document.getElementById("page-content").innerHTML = data.pages[0].html;
         } else {
-          document.getElementById('page-title').textContent = `Officials - ${agency}`;
+          document.getElementById("page-title").textContent = `Officials - ${agency}`;
         }
       })
-      .catch(() => { document.getElementById('page-title').textContent = `Officials - ${agency}`; });
-    
-    document.getElementById('officials-agency-app').dataset.agency = agency;
+      .catch(() => {
+        document.getElementById("page-title").textContent = `Officials - ${agency}`;
+      });
+
+    document.getElementById("officials-agency-app").dataset.agency = agency;
   })();
 </script>

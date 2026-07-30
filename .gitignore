@@ -7,16 +7,15 @@ assets/built/
 dist/
 *.zip
 
-# Data directory (will be populated from @publicledger/data NPM package)
-# Mock data for development is in test/mocks/publicledger-data/
-/data/
-
 # Package manager lockfiles (fork uses pnpm/pnpm-lock.yaml only)
 yarn.lock
 package-lock.json
 
 # Environment variables (secrets)
+# Glob covers .env.local, .env.bak, etc. — a bare `.env` rule misses backups
 .env
+.env.*
+!.env.example
 
 # Devcontainer setup marker (transient)
 .ghost-setup-complete

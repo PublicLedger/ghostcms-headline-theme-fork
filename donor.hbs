@@ -3,9 +3,11 @@
 <main class="gh-main">
   <section class="gh-content gh-canvas">
     {{#get "pages" filter="slug:donor" limit="1"}}
+      
       {{#foreach pages}}
         {{{content}}}
       {{/foreach}}
+
     {{else}}
       <h1>Donor Profile</h1>
       <p>Contribution history and relationships.</p>
@@ -72,7 +74,7 @@
     // Parse URL: /donors/donor-slug/
     const pathParts = window.location.pathname.split("/").filter(p => p);
     const donorSlug = pathParts[1]; // donors is pathParts[0]
-    
+
     if (!donorSlug) {
       // No slug provided, show directory (handled by donors.hbs)
       return;

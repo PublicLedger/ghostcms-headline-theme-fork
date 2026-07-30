@@ -1,0 +1,32 @@
+<!--
+  Top Donors Fragment Template
+  
+  Ghost Page slug: top-donors-{{seat}}
+  Usage in templates: {{#get "pages" slug="top-donors"}}{{content}}{{/get}}
+  
+  Template with {{placeholder}} variables for quarterly data updates.
+  Current working example: commissioner-top-donors (hardcoded data).
+-->
+
+<div class="top-donors-card custom-card" data-card-type="top-donors">
+  <div class="custom-card-header">
+    <h3 class="custom-card-title">{{title}}</h3>
+    <a href="{{url}}" class="custom-card-link" target="_blank" rel="noopener"> View details ↗ </a>
+  </div>
+
+  <div class="custom-card-grid">
+    <div class="custom-card-metric">
+      <div class="custom-card-metric-label">Chart Data</div>
+      <div class="custom-card-stats">
+        {{#each dataPoints}}
+          <div class="custom-card-stat-row">
+            <div class="custom-card-stat-label">{{label}}</div>
+            <div class="custom-card-stat-bar" style="width: {{percentage}}%; background: {{color}};"></div>
+            <span class="custom-card-stat-value">{{value}}</span>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  <div class="custom-card-footer">Source: {{source}} · Last updated {{updated-date}}</div>
+</div>

@@ -767,25 +767,39 @@ grep -r "feature" AGENTS.md AI_DEVELOPMENT.md docs-local/
 
 ### 18. Ghost Restart Commands Cause Terminal Hangs
 
-**Pattern**: Need routes to register → run `pnpm ghost:restart` or similar → terminal hangs indefinitely → user's machine fans spin up → user forced to rebuild container
-**Why**: `docker compose restart ghost-dev` waits for graceful shutdown that may not complete, blocking the terminal
-**Fix**: NEVER restart Ghost via terminal commands. Use alternative approaches:
+**Pattern**: Need routes to register → run `pnpm ghost:restart` or `docker restart ghost-dev` → terminal hangs indefinitely (hours) → AI agent freezes and stops responding → user's machine fans spin up → forced to rebuild container
+**Why**: The devcontainer uses `network_mode: service:ghost-dev`, which means it shares the ghost-dev container's network namespace. When you try to restart ghost-dev from inside the devcontainer:
+
+1. The restart command tells ghost-dev to stop
+2. The network namespace shared by devcontainer is destroyed
+3. The devcontainer loses network connectivity mid-command
+4. The command never receives the completion signal
+5. The terminal hangs indefinitely (hours)
+6. **AI agent execution freezes** - cannot complete the tool call, cannot proceed with work
+
+**Fix**: NEVER restart Ghost via terminal commands from within the devcontainer. Use alternative approaches:
 
 ```bash
-# ❌ WRONG - causes terminal hang
+# ❌ WRONG - causes terminal hang and AI freeze
 pnpm ghost:restart
 docker compose -f .devcontainer/docker-compose.yml restart ghost-dev
 docker restart ghost-dev
+docker compose restart ghost-dev
 
-# ✅ RIGHT - for route registration issues
-# Option 1: Edit slug in Ghost Admin UI (temp change + revert)
-# Option 2: Tell user to manually restart Ghost if absolutely needed
-# Option 3: Container rebuild handles route registration automatically
+# ✅ RIGHT - for route registration
+pnpm ghost:refresh  # Re-uploads routes.yaml via Admin API, no restart needed
 
 # ✅ RIGHT - for theme changes
 # Theme changes are auto-detected by Ghost via volume mount
 # No restart needed - just refresh browser
 pnpm dev  # Compile assets, Ghost picks up changes automatically
+
+# ✅ RIGHT - when restart truly needed
+# Tell user: "Container rebuild required from host terminal (outside VS Code)"
+# User must close VS Code, run from host:
+cd ~/path/to/repo
+docker compose -f .devcontainer/docker-compose.yml down
+docker compose -f .devcontainer/docker-compose.yml up -d
 ```
 
 **Why Ghost restart is rarely needed:**
@@ -793,52 +807,181 @@ pnpm dev  # Compile assets, Ghost picks up changes automatically
 - **Theme file changes**: Auto-detected via mounted volume (`/var/lib/ghost/content/themes/headline`)
 - **Asset compilation**: `pnpm dev` compiles CSS/JS, Ghost serves updated files on next request
 - **Database changes**: Direct SQLite INSERT/UPDATE are instant, no restart needed
-- **Route registration**: Container rebuild or Admin UI interaction required, not restart
+- **Route registration**: Use `pnpm ghost:refresh` (scripts/refresh-routes.sh) which safely re-uploads routes.yaml via Admin API
 
-**When routes don't register (404 errors):**
+**When routes don't register after database changes:**
 
 ```bash
-# ❌ WRONG - restart Ghost (terminal hangs)
+# ❌ WRONG - restart Ghost (terminal hangs, AI freezes)
 pnpm ghost:restart
 
-# ✅ RIGHT - use Admin UI slug edit
+# ✅ RIGHT - use safe refresh command
+pnpm ghost:refresh  # Re-uploads routes.yaml via API, triggers route reload
+
+# ✅ ALSO RIGHT - use Admin UI slug edit (if refresh doesn't work)
 # 1. Open page in Ghost Admin
 # 2. Settings panel → slug field
 # 3. Change slug to temp value → Update
 # 4. Change slug back to original → Update
 # 5. Route now registered
 
-# ✅ ALSO RIGHT - tell user to rebuild container
+# ✅ LAST RESORT - tell user to rebuild container from host
 # "Route registration requires container rebuild. Please:"
-# 1. Stop the dev container
-# 2. Rebuild and restart
-# Container startup triggers Ghost route registration
+# 1. Close VS Code
+# 2. Run from host terminal:
+#    cd ~/path/to/repo
+#    docker compose -f .devcontainer/docker-compose.yml down
+#    docker compose -f .devcontainer/docker-compose.yml up -d
+# 3. Reopen VS Code
 ```
 
 **Real example from this session:**
 
 - Migrated 4 pages from `-demo` slugs to production names via SQL
 - Routes showed 404 (not registered)
-- AI attempted `pnpm ghost:restart` → terminal hung completely
-- User's machine fans spun up from blocked process
-- User forced to rebuild entire container to continue
-- Container rebuild registered routes successfully
-- Correct approach: Skip restart, let user rebuild container OR use Admin UI method
+- AI attempted `pnpm ghost:restart` → terminal hung completely for hours
+- AI agent execution froze mid-task, could not respond to user
+- User's machine fans spun up from blocked process waiting indefinitely
+- User extremely frustrated: "FUCK YOU. YOU ARE WASTING SO MUCH OF MY TIME."
+- User forced to stop container rebuild to recover
+- Root cause: `network_mode: service:ghost-dev` causes network namespace loss during restart
+- Correct approach: Use `pnpm ghost:refresh` OR tell user container rebuild needed from host
+
+**Technical explanation of the hang:**
+
+```yaml
+# From .devcontainer/docker-compose.yml:
+devcontainer:
+  network_mode: service:ghost-dev  # ← SHARES ghost-dev's network namespace
+  
+# What happens during restart:
+# 1. devcontainer runs: docker restart ghost-dev
+# 2. ghost-dev stops → network namespace destroyed
+# 3. devcontainer loses network connection MID-COMMAND
+# 4. Command never gets completion signal from Docker daemon
+# 5. Terminal waits forever for response that can never arrive
+# 6. AI agent frozen waiting for tool call to complete
+```
+
+**Detection and prevention:**
+
+- **NEVER** run any command containing `restart ghost` or `docker.*restart.*ghost`
+- **NEVER** run `pnpm ghost:restart` (it's intentionally disabled with error message)
+- **ALWAYS** check `/memories/repo/devcontainer-rules.md` for safe alternatives
+- **ALWAYS** use `pnpm ghost:refresh` for route registration
+- If you're thinking "Ghost needs restart" → CHECK: Is there a safe alternative?
+
+**When AI agent freezes:**
+
+- User will see: Terminal command running for minutes/hours with no output
+- AI cannot respond to messages
+- AI cannot proceed with work
+- Only solution: User must cancel the command or rebuild container
+- Prevention: Never run restart commands in first place
 
 **Critical rule:**
 
-- **NEVER** run any command containing `restart ghost` or `docker compose restart`
-- **NEVER** suggest these commands to user
-- **ALWAYS** use Admin UI method or tell user container rebuild needed
-- Terminal hang is not recoverable - requires container rebuild anyway
+**NEVER RESTART GHOST FROM WITHIN THE DEVCONTAINER.** Use `pnpm ghost:refresh` for routes, or tell user to rebuild container from host terminal. Terminal hangs are not recoverable and waste hours of user time.
 
-**Detection:**
+See `/memories/repo/devcontainer-rules.md` for complete guidelines and safe alternatives.
 
-- If you're about to run a command with `restart` and `ghost` → STOP
-- If you're thinking "routes need to register" → use Admin UI method
-- If user reports terminal hang → confirm they didn't restart Ghost
+### 19. Blocking Devcontainer Setup on External API Availability
 
-**The lesson**: Ghost restart via terminal causes unrecoverable hangs. Route registration requires Admin UI interaction OR container rebuild, not restart commands. Avoid restart commands entirely.
+**Pattern**: Add network health check for external API → devcontainer setup hangs indefinitely → user can't start container → deployment blocked
+**Why**: AI assumes external APIs (GitHub, Copilot, etc.) are always available and doesn't add timeouts or failure handling
+**Fix**: NEVER block container startup/setup on external API availability:
+
+```bash
+# ❌ WRONG - infinite blocking loop in postCreateCommand
+"postCreateCommand": "pnpm install && until curl -s https://api.individual.githubcopilot.com > /dev/null; do sleep 1; done"
+# If API unreachable: loops forever, container never finishes setup
+# If network down: infinite hang
+# If firewall blocks: infinite hang
+# User can't proceed, can't debug, can't work
+
+# ✅ RIGHT - no external dependencies for container setup
+"postCreateCommand": "pnpm install && pnpm gulp build && echo '✓ Theme built and ready'"
+# Container setup completes regardless of network state
+# Extensions handle their own connectivity (Copilot, GitHub, etc.)
+# User can start working immediately
+```
+
+**Real example from this commit:**
+
+```bash
+# Commit 6ef5084 added:
+"postCreateCommand": "pnpm install && pnpm gulp build && sleep 10 && echo '✓ Theme built and ready' && until curl -s https://api.individual.githubcopilot.com > /dev/null; do sleep 1; done"
+
+# Result: Container hung indefinitely on:
+# - Network issues
+# - Firewall blocking api.individual.githubcopilot.com
+# - API maintenance/downtime
+# - Offline development
+
+# No timeout, no error handling, no escape hatch
+# Complete showstopper for devcontainer usage
+```
+
+**Why this is catastrophic:**
+
+- **Breaks offline development**: Can't work without internet
+- **No timeout**: Infinite loop, never fails, never progresses
+- **Silent failure**: No error message, just hangs forever
+- **Breaks deployment**: CI/CD can't build containers
+- **User frustration**: "Congratulations! You broke the entire devcontainer"
+- **Not fixable without source edit**: Can't override from environment
+
+**Critical rules for devcontainer setup:**
+
+1. **NEVER** check external API availability in `postCreateCommand` or `postStartCommand`
+2. **NEVER** use infinite loops (`until...; do...; done`) without timeout
+3. **ALWAYS** assume network may be unavailable
+4. **ALWAYS** let extensions handle their own connectivity
+5. **Container setup = local operations only** (install, build, configure)
+
+**Acceptable devcontainer setup operations:**
+
+```bash
+# ✓ Install local dependencies
+pnpm install
+
+# ✓ Build assets from source
+pnpm gulp build
+
+# ✓ Wait for LOCAL services with timeout
+timeout 120 sh -c 'while [ ! -f /workspace/.ghost-setup-complete ]; do sleep 1; done'
+
+# ✓ Create files/directories
+mkdir -p logs && touch .setup-complete
+
+# ✗ NEVER check external APIs
+curl https://api.github.com
+curl https://api.individual.githubcopilot.com
+wget https://registry.npmjs.org
+```
+
+**If you need to verify external connectivity:**
+
+```bash
+# ❌ WRONG - block setup
+"postCreateCommand": "pnpm install && until curl -s https://api.example.com; do sleep 1; done"
+
+# ✅ RIGHT - optional check with timeout and failure tolerance
+"postCreateCommand": "pnpm install && pnpm build && echo '✓ Ready' || echo '⚠ Build had warnings but container is ready'"
+
+# ✅ ALSO RIGHT - background check that doesn't block
+"postCreateCommand": "pnpm install && pnpm build && (curl -s https://api.example.com >/dev/null 2>&1 && echo '✓ Network OK' || echo '⚠ Network may be limited') &"
+```
+
+**Detection signals:**
+
+- You're about to add `curl` or `wget` in `postCreateCommand`
+- You're checking connectivity to GitHub, Copilot, NPM registry, etc.
+- You're using `until...do...done` without timeout
+- You're assuming network is always available
+- Setup depends on external service being reachable
+
+**The lesson**: Devcontainer setup must complete successfully regardless of external network availability. Extensions handle their own connectivity. NEVER block container startup on external APIs. Always prioritize: install local deps → build from source → mark ready. Everything else is optional and must not block.
 
 ---
 
