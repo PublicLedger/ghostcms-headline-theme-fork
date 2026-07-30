@@ -4,7 +4,13 @@
  * Seeds local development environment with production content
  * Usage: npm run ghost:seed
  *
- * Reads from production Ghost Admin API, writes directly to local SQLite database
+ * Reads from production Ghost Content API, writes directly to local SQLite database
+ *
+ * Uses the read-only Content API (GHOST_PRD_KEY) rather than the Admin API on
+ * purpose: an Admin API key grants full read/write access to members' PII, staff
+ * accounts, and settings, and Ghost offers no read-only variant. That key must not
+ * be present inside the devcontainer. Tradeoff: the Content API only returns
+ * PUBLISHED pages, so production drafts are not seeded.
  */
 
 const https = require("https");
@@ -12,52 +18,17 @@ const http = require("http");
 const { URL } = require("url");
 const { execSync } = require("child_process");
 const fs = require("fs");
-const crypto = require("crypto");
 
 // Configuration
 const DB_PATH = process.env.GHOST_DB_PATH || "/var/lib/ghost/content/data/ghost-dev.db";
 const PROD_URL = process.env.GHOST_PRD_URL || "https://publicledger.ghost.io";
-const PROD_KEY = process.env.GHOST_PRD_SECRET || "PROD_KEY_REQUIRED";
+const PROD_KEY = process.env.GHOST_PRD_KEY || "PROD_KEY_REQUIRED";
 
-// Generate Ghost Admin API JWT token
-function generateJWT(key) {
-  const [id, secret] = key.split(":");
-  if (!id || !secret) {
-    throw new Error('Invalid API key format. Expected "id:secret"');
-  }
-
-  // JWT Header
-  const header = {
-    alg: "HS256",
-    typ: "JWT",
-    kid: id,
-  };
-
-  // JWT Payload
-  const payload = {
-    iat: Math.floor(Date.now() / 1000),
-    exp: Math.floor(Date.now() / 1000) + 5 * 60, // 5 minutes
-    aud: "/admin/",
-  };
-
-  // Encode header and payload
-  const encodedHeader = Buffer.from(JSON.stringify(header)).toString("base64url");
-  const encodedPayload = Buffer.from(JSON.stringify(payload)).toString("base64url");
-
-  // Create signature
-  const signatureInput = `${encodedHeader}.${encodedPayload}`;
-  const signature = crypto
-    .createHmac("sha256", Buffer.from(secret, "hex"))
-    .update(signatureInput)
-    .digest("base64url");
-
-  return `${encodedHeader}.${encodedPayload}.${signature}`;
-}
-
-// Make HTTP request to Ghost API
+// Make HTTP request to Ghost Content API (key is passed as a query param, no JWT)
 function ghostRequest(baseUrl, apiKey, endpoint, method = "GET") {
   return new Promise((resolve, reject) => {
     const url = new URL(endpoint, baseUrl);
+    url.searchParams.set("key", apiKey);
     const isHttps = url.protocol === "https:";
     const client = isHttps ? https : http;
 
@@ -69,7 +40,6 @@ function ghostRequest(baseUrl, apiKey, endpoint, method = "GET") {
       headers: {
         "Content-Type": "application/json",
         "User-Agent": "PublicLedger-Ghost-Seed/1.0",
-        Authorization: `Ghost ${generateJWT(apiKey)}`,
       },
     };
 
@@ -116,7 +86,7 @@ function sqlEscape(str) {
 // Fetch all pages from production
 async function fetchAllFromProduction() {
   try {
-    const response = await ghostRequest(PROD_URL, PROD_KEY, "/ghost/api/admin/pages/?limit=all");
+    const response = await ghostRequest(PROD_URL, PROD_KEY, "/ghost/api/content/pages/?limit=all");
     return response.pages || [];
   } catch (err) {
     console.error("Failed to fetch production pages:", err.message);
@@ -135,10 +105,10 @@ function copyRoutesToGhost() {
   }
 
   // Copy from theme directory to settings directory using docker exec
-  // Since /workspace is mounted at /var/lib/ghost/content/themes/headline in ghost-dev
+  // Since /workspace is mounted at /var/lib/ghost/content/themes/publicledger-headline-fork in ghost-dev
   try {
     execSync(
-      `docker exec $(docker ps -q -f name=ghost-dev) sh -c 'mkdir -p /var/lib/ghost/content/settings && cp /var/lib/ghost/content/themes/headline/routes.yaml ${ghostRoutesPath}'`,
+      `docker exec $(docker ps -q -f name=ghost-dev) sh -c 'mkdir -p /var/lib/ghost/content/settings && cp /var/lib/ghost/content/themes/publicledger-headline-fork/routes.yaml ${ghostRoutesPath}'`,
       { stdio: "pipe" }
     );
     return true;
@@ -235,10 +205,11 @@ async function seedLocal() {
     console.error("");
     console.error("Edit .env:");
     console.error("  GHOST_PRD_URL=https://publicledger.ghost.io");
-    console.error("  GHOST_PRD_SECRET=id:secret");
+    console.error("  GHOST_PRD_KEY=<content-api-key>");
     console.error("");
-    console.error("Get Admin API key from:");
-    console.error("  Ghost Admin → Settings → Integrations → Add custom integration");
+    console.error("Get the CONTENT API key from:");
+    console.error("  Ghost Admin → Settings → Integrations → your custom integration");
+    console.error("  Use the 'Content API Key', NOT the Admin API Key.");
     console.error("");
     process.exit(1);
   }
@@ -256,7 +227,8 @@ async function seedLocal() {
   // Fetch pages from production
   console.log("Fetching pages from production...");
   const prodPages = await fetchAllFromProduction();
-  console.log(`✓ Found ${prodPages.length} pages in production`);
+  console.log(`✓ Found ${prodPages.length} published pages in production`);
+  console.log("  (Content API returns published pages only — drafts are not seeded)");
 
   if (prodPages.length === 0) {
     console.log("\nNo pages to sync.");

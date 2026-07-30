@@ -13,7 +13,7 @@ routes:
     template: lookup
   /lookup/{agency}/:
     template: lookup-agency
-    # next link /officials/{slug}/
+    # next link /official/{slug}/  (singular — /officials/{x}/ is the agency route below)
   
   /jobs/:
     template: job
@@ -42,8 +42,9 @@ routes:
     template: finance-agency-seat
   /finance/{seat}/:
     template: finance-seat
-  /finance/{seat}/{donor}/:
-    template: finance-seat-donor
+  # NOTE: no /finance/{seat}/{donor}/ route. It would be the same shape as
+  # /finance/{agency}/{seat}/ above, and Ghost matches in declaration order, so it
+  # was never reachable. Per-donor detail lives at /donors/{slug}/ below.
 
   /officials/:
     template: officials

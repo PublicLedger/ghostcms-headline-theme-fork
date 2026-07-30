@@ -34,17 +34,27 @@ To sync content from production Ghost, add credentials to `.env` in the reposito
 ```bash
 GHOST_PRD_URL="https://publicledger.ghost.io"
 GHOST_PRD_KEY="<content-api-key>"
-GHOST_PRD_SECRET="<id:secret>"
 ```
 
-Get credentials from production Ghost Admin → Settings → Integrations → Create custom integration.
+Get the credential from production Ghost Admin → Settings → Integrations → Create custom
+integration, and copy the **Content API Key**.
+
+> **Do not put the Admin API Key in `.env`.** It is injected into the devcontainer via
+> `env_file` and would be readable by every process there. Ghost Admin API keys cannot be
+> scoped: one grants full read/write access to members' PII, staff accounts, and settings.
+> The seeder only reads published pages, which the Content API covers.
+
+Note: the Content API returns **published pages only**. Production drafts are not seeded;
+`ghost-seed.js` creates its own local test fragment pages for routing work.
 
 Then run:
 ```bash
 pnpm ghost:seed
 ```
 
-⚠️ **Warning:** Seeding overwrites local content. See [docs-local/GHOST_SEED_SAFETY.md](../docs-local/GHOST_SEED_SAFETY.md) for safety guidelines.
+⚠️ **Warning:** `ghost:seed` deletes every page before inserting, with no confirmation
+prompt. Run it *before* `./scripts/seed-all-cards.sh`, never after. See
+[Content Seeding](../CONTRIBUTING.md#content-seeding) for the full sequence.
 
 ## Commands Reference
 

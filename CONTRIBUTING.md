@@ -895,6 +895,75 @@ Developers: `git checkout staging`
 1. Settings (gear icon) → Template
 1. Select custom template (e.g., "Full feature image")
 
+### Content Seeding
+
+Local Ghost content comes from two sources, seeded once at container creation by
+`.devcontainer/post-create.sh`.
+
+**1. Published pages from production** (`pnpm ghost:seed`)
+
+Sync is **one-way, production → local**. Production is the source of truth for editorial
+content; local Ghost is disposable. Configure in `.env`:
+
+```bash
+GHOST_PRD_URL=https://your-production-ghost.com
+GHOST_PRD_KEY=your-content-api-key
+```
+
+Use the **Content API key**, never the Admin API key. Ghost Admin API keys cannot be
+scoped — one grants full read/write access to members' PII, staff accounts, and settings,
+and `.env` is injected into the devcontainer where every process can read it. The seeder
+only needs to read published pages. Because the Content API returns published pages only,
+production **drafts are not synced**.
+
+**2. Local card pages** (`./scripts/seed-all-cards.sh`)
+
+Reads the HTML in `data/fragments/` and writes it into Ghost pages, then
+`pnpm ghost:refresh` re-uploads `routes.yaml` so the new pages resolve. Pages created
+directly in SQLite are invisible to Ghost's router until routes are re-registered.
+
+#### ⚠️ ghost:seed deletes every page, with no prompt
+
+`ghost-seed.js` runs `DELETE FROM posts WHERE type='page'` before inserting. There is no
+confirmation and no local-change detection. Two consequences:
+
+- **Order is load-bearing:** `ghost:seed` → `seed-all-cards.sh` → `ghost:refresh`. Running
+  `ghost:seed` after seeding cards deletes them.
+- Seeding runs from `postCreateCommand`, not `postStartCommand`, so an ordinary container
+  restart cannot wipe local work. Re-run by hand with
+  `bash .devcontainer/post-create.sh`.
+
+Never create permanent fragment pages in local Ghost — they are destroyed on the next
+seed. Create them in production, then re-sync. To keep an experiment, export it first via
+Ghost Admin → Settings → Labs → Export.
+
+#### Fragment naming
+
+Pattern: `{template}-{param1}-{param2}-…`, lowercase with hyphens, matching URL segments
+exactly. A page's slug is what binds it to a route's `data:` property.
+
+```text
+job-agency-seat-lancaster-county-sheriff
+election-agency-seat-year-lancaster-county-sheriff-2024
+```
+
+Fragments hold editorial HTML only — copy, formatting, SEO text. They must not contain
+Handlebars variables (they will not render) or dynamic data; templates handle that in a
+separate section. See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for the
+full `routes.yaml` + page-fragment architecture.
+
+#### Verifying a seed
+
+```bash
+docker exec ghost-dev sqlite3 /var/lib/ghost/content/data/ghost-dev.db \
+  "SELECT slug, title FROM posts WHERE type='page';"
+
+curl -I http://localhost:3001/jobs/lancaster-county/county-commissioner/
+```
+
+If pages exist in SQLite but 404 in the browser, routes were not re-registered — run
+`pnpm ghost:refresh`.
+
 ### Theme Settings
 
 Ghost Admin → Settings → Design → Configure theme:
