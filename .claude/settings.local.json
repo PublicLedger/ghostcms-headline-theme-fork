@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(getent group *)",
+      "Read(//run/**)",
+      "Bash(docker run *)",
+      "Bash(rm -f /tmp/claude-1000/-home-tiff-dev-ghostcms-headline-theme-fork/1456b728-bd7c-4401-b15d-49034ee8050e/scratchpad/seedtest.db /tmp/claude-1000/-home-tiff-dev-ghostcms-headline-theme-fork/1456b728-bd7c-4401-b15d-49034ee8050e/scratchpad/content.json)",
+      "Bash(npx gscan *)",
+      "Bash(docker compose *)"
+    ]
+  }
+}
