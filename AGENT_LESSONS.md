@@ -481,7 +481,74 @@ pnpm ghost:check  # NOT npm run ghost:check
 
 **The lesson**: Check the project's specified package manager BEFORE writing any installation or command documentation. Consistency matters for developer experience and CI/CD reliability.
 
-### 15. Accepting Unnecessary Infrastructure Without Questioning
+### 15. Bubblewrap Sandbox Blocking Terminal Commands
+
+**Pattern**: Try to run docker/database commands → "Bubblewrap repair failed" → retry with different command variations → waste user's time asking them to run commands → don't tell user about sandbox setting
+**Why**: AI doesn't check VS Code terminal execution settings and keeps retrying failed commands instead of informing user about the sandbox permission issue
+**Fix**: When Bubblewrap errors occur, IMMEDIATELY tell user to check terminal settings:
+
+```text
+❌ WRONG - keep retrying commands
+> run_in_terminal: docker exec ghost-dev ...
+Error: Bubblewrap repair failed (exit code 1)
+> run_in_terminal: sudo docker exec ghost-dev ...
+Error: Bubblewrap sandbox repair was cancelled
+> run_in_terminal: sh -c "docker exec ..."
+Error: Bubblewrap repair failed
+[User wastes time clicking through permission prompts]
+
+✅ RIGHT - inform user immediately on first Bubblewrap error
+> run_in_terminal: docker exec ghost-dev ...
+Error: Bubblewrap repair failed (exit code 1)
+
+"Bubblewrap sandbox is blocking terminal commands. To fix:
+1. Open VS Code Command Palette (Ctrl+Shift+P)
+2. Search: 'Preferences: Open User Settings (JSON)'
+3. Find 'Default approvals (sandboxed)' setting
+4. Uncheck the box to allow unsandboxed execution
+5. Or run the command manually in your terminal"
+```
+
+**What triggers this:**
+
+- Docker commands: `docker exec`, `docker compose`, `docker ps`
+- Database commands: `sqlite3 /var/lib/ghost/...`
+- File system operations in mounted volumes
+- Any command that requires container/volume access
+
+**Signals that Bubblewrap is the problem:**
+
+- Error message contains "Bubblewrap"
+- User sees "Default approvals (sandboxed)" prompt
+- Same command works when user runs it manually
+- `exit code 1` with no other error details
+
+**What NOT to do:**
+
+- Don't retry the same command 5 times hoping it will work
+- Don't try different command variations (sudo, sh -c, etc.)
+- Don't ask user to "just run this in terminal" without explaining WHY
+- Don't waste user's time with permission prompts they have to keep clicking
+
+**What TO do:**
+
+1. On FIRST Bubblewrap error, explain the sandbox setting
+2. Provide the specific VS Code setting path
+3. Create the fix script for user to run manually
+4. Stop trying to execute commands via run_in_terminal
+5. Document the fix in TROUBLESHOOTING.md if not already there
+
+**Real example from this session:**
+
+- Tried 10+ docker/sqlite3 commands, all blocked by Bubblewrap
+- User got frustrated: "More fucking bubblewrap"
+- User had to manually run fix scripts
+- Finally user said: "You did something then wasted my time by not telling me to un-check that box"
+- Should have told user about sandbox setting after FIRST failure
+
+**The lesson**: Bubblewrap errors are a USER SETTINGS issue, not a COMMAND SYNTAX issue. Don't waste time retrying - inform user about the setting immediately.
+
+### 16. Accepting Unnecessary Infrastructure Without Questioning
 
 **Pattern**: Documentation mentions "optional production Ghost with MySQL" → assume it's needed → don't question why → wastes Docker resources
 **Why**: AI assumes existing infrastructure has a purpose without validating the use case
@@ -597,7 +664,7 @@ pnpm dev  # Watch mode - auto-compiles on save
 <div class="custom-login">{{t "Access site"}} {{! FORK CUSTOM: Not "Access code" }}</div>
 ```
 
-### 16. Making Changes Without Understanding Current State
+### 17. Making Changes Without Understanding Current State
 
 **Pattern**: User reports issue → AI immediately starts "fixing" → changes break working code → user frustrated because AI didn't investigate first
 **Why**: AI defaults to "action mode" without understanding what's already working vs what's actually broken
@@ -697,6 +764,81 @@ grep -r "feature" AGENTS.md AI_DEVELOPMENT.md docs-local/
 - Editing Ghost config without verifying Ghost is actually broken
 
 **The lesson**: STOP. INVESTIGATE. UNDERSTAND. Then (and only then) act. Most "helpful fixes" that waste user's time come from skipping investigation and jumping straight to "solutions" for problems you haven't actually diagnosed.
+
+### 18. Ghost Restart Commands Cause Terminal Hangs
+
+**Pattern**: Need routes to register → run `pnpm ghost:restart` or similar → terminal hangs indefinitely → user's machine fans spin up → user forced to rebuild container
+**Why**: `docker compose restart ghost-dev` waits for graceful shutdown that may not complete, blocking the terminal
+**Fix**: NEVER restart Ghost via terminal commands. Use alternative approaches:
+
+```bash
+# ❌ WRONG - causes terminal hang
+pnpm ghost:restart
+docker compose -f .devcontainer/docker-compose.yml restart ghost-dev
+docker restart ghost-dev
+
+# ✅ RIGHT - for route registration issues
+# Option 1: Edit slug in Ghost Admin UI (temp change + revert)
+# Option 2: Tell user to manually restart Ghost if absolutely needed
+# Option 3: Container rebuild handles route registration automatically
+
+# ✅ RIGHT - for theme changes
+# Theme changes are auto-detected by Ghost via volume mount
+# No restart needed - just refresh browser
+pnpm dev  # Compile assets, Ghost picks up changes automatically
+```
+
+**Why Ghost restart is rarely needed:**
+
+- **Theme file changes**: Auto-detected via mounted volume (`/var/lib/ghost/content/themes/headline`)
+- **Asset compilation**: `pnpm dev` compiles CSS/JS, Ghost serves updated files on next request
+- **Database changes**: Direct SQLite INSERT/UPDATE are instant, no restart needed
+- **Route registration**: Container rebuild or Admin UI interaction required, not restart
+
+**When routes don't register (404 errors):**
+
+```bash
+# ❌ WRONG - restart Ghost (terminal hangs)
+pnpm ghost:restart
+
+# ✅ RIGHT - use Admin UI slug edit
+# 1. Open page in Ghost Admin
+# 2. Settings panel → slug field
+# 3. Change slug to temp value → Update
+# 4. Change slug back to original → Update
+# 5. Route now registered
+
+# ✅ ALSO RIGHT - tell user to rebuild container
+# "Route registration requires container rebuild. Please:"
+# 1. Stop the dev container
+# 2. Rebuild and restart
+# Container startup triggers Ghost route registration
+```
+
+**Real example from this session:**
+
+- Migrated 4 pages from `-demo` slugs to production names via SQL
+- Routes showed 404 (not registered)
+- AI attempted `pnpm ghost:restart` → terminal hung completely
+- User's machine fans spun up from blocked process
+- User forced to rebuild entire container to continue
+- Container rebuild registered routes successfully
+- Correct approach: Skip restart, let user rebuild container OR use Admin UI method
+
+**Critical rule:**
+
+- **NEVER** run any command containing `restart ghost` or `docker compose restart`
+- **NEVER** suggest these commands to user
+- **ALWAYS** use Admin UI method or tell user container rebuild needed
+- Terminal hang is not recoverable - requires container rebuild anyway
+
+**Detection:**
+
+- If you're about to run a command with `restart` and `ghost` → STOP
+- If you're thinking "routes need to register" → use Admin UI method
+- If user reports terminal hang → confirm they didn't restart Ghost
+
+**The lesson**: Ghost restart via terminal causes unrecoverable hangs. Route registration requires Admin UI interaction OR container rebuild, not restart commands. Avoid restart commands entirely.
 
 ---
 
