@@ -104,11 +104,13 @@ function copyRoutesToGhost() {
     return false;
   }
 
-  // Copy from theme directory to settings directory using docker exec
-  // Since /workspace is mounted at /var/lib/ghost/content/themes/publicledger-headline-fork in ghost-dev
+  // Copy from theme directory to settings directory inside ghost-dev.
+  // Since /workspace is mounted at /var/lib/ghost/content/themes/publicledger-headline-fork in ghost-dev.
+  // ghost-exec.sh resolves the container by Compose service label — it has no fixed
+  // name, see the header of .devcontainer/docker-compose.yml.
   try {
     execSync(
-      `docker exec $(docker ps -q -f name=ghost-dev) sh -c 'mkdir -p /var/lib/ghost/content/settings && cp /var/lib/ghost/content/themes/publicledger-headline-fork/routes.yaml ${ghostRoutesPath}'`,
+      `bash /workspace/scripts/ghost-exec.sh sh -c 'mkdir -p /var/lib/ghost/content/settings && cp /var/lib/ghost/content/themes/publicledger-headline-fork/routes.yaml ${ghostRoutesPath}'`,
       { stdio: "pipe" }
     );
     return true;

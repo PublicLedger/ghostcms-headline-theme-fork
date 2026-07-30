@@ -69,8 +69,8 @@
     "format:check": "prettier --check \"**/*.{hbs,css,js,json,html}\"",
     "ghost:seed": "node scripts/ghost-seed.js",
     "ghost:verify": "bash scripts/verify-routes.sh",
-    "ghost:records": "docker exec ghost-dev sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/seed-demo-records.sh",
-    "ghost:refresh": "docker exec ghost-dev sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/refresh-routes.sh",
+    "ghost:records": "bash scripts/ghost-exec.sh sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/seed-demo-records.sh",
+    "ghost:refresh": "bash scripts/ghost-exec.sh sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/refresh-routes.sh",
     "ghost:restart": "echo '⚠️  WARNING: Ghost restart causes terminal hangs. Use \"pnpm ghost:refresh\" to reload routes instead. See /memories/repo/devcontainer-rules.md' && exit 1"
   },
   "_comment_packageManager": "Pinned to match TryGhost/Headline upstream (easier sync)",
