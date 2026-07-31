@@ -192,6 +192,12 @@ function zipper(done) {
             "!tmp",
             "!tmp/**",
 
+            // routes.yaml stays in the package on purpose. Ghost ignores it in
+            // a theme, but nothing can deliver it to production automatically:
+            // an integration's API key gets 403 on the routes endpoint, which
+            // only accepts a logged-in staff user. Routes are applied by hand,
+            // so shipping the file keeps the artifact self-describing.
+
             // Fork tooling and documentation. scripts/ is seed and card
             // tooling run against a local Ghost; the devcontainer bind-mounts
             // the repo itself, so excluding it here does not affect local dev.

@@ -32,22 +32,9 @@ jobs:
           # which does not reliably express dev vs runtime scope, so dev-tree 
           # packages are evaluated anyway.
           fail-on-scopes: runtime
-          # FORK CUSTOM: Ignore two known security issues in "brace-expansion" v1.1.15
-          # 
-          # Why we're allowing these vulnerabilities:
-          # - They only affect development build tools (gscan, postcss-easy-import)
-          # - The final theme contains only HTML, CSS, and JS files—no npm packages
-          # - These vulnerabilities cannot impact users because the code isn't shipped
-          # 
-          # Why we can't just update the package:
-          # - Our build tools lock to an older minimatch version
-          # - That minimatch version requires this vulnerable brace-expansion
-          # - Updating either would break the build process
-          # 
-          # Two vulnerabilities being ignored:
-          #   GHSA-3jxr-9vmj-r5cp - DoS attack (fixable in v1.1.16, but we can't upgrade)
-          #   GHSA-mh99-v99m-4gvg - DoS attack (no fix available for v1.x)
-          # 
-          # TODO: Remove this allowlist when gscan and postcss-easy-import
-          # support newer minimatch versions.
-          allow-ghsas: GHSA-3jxr-9vmj-r5cp, GHSA-mh99-v99m-4gvg
+          # FORK CUSTOM: no allow-ghsas allowlist. The brace-expansion
+          # advisories (GHSA-3jxr-9vmj-r5cp, GHSA-mh99-v99m-4gvg) that used to
+          # be listed here were assumed unfixable because build tools pin an
+          # older minimatch. That was wrong -- the consumers all declare caret
+          # ranges, so `pnpm update brace-expansion -r` resolved both. Fix the
+          # lockfile rather than re-adding an allowlist.
