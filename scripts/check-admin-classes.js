@@ -51,7 +51,11 @@ const ADMIN_CLASSES = [
   "hidden",
 ];
 
-/** Build a regex matching `.class` used as a selector. */
+/**
+ * Build a regex matching `.class` used as a selector.
+ * @param {string} name bare class name, e.g. "text-grey-600"
+ * @returns {RegExp} matcher for that class in a selector position
+ */
 function selector(name) {
   const escaped = name.replace(/[-[\]().]/g, c => "\\" + c);
   return new RegExp("\\." + escaped + "(?=[,{:>\\s])");
