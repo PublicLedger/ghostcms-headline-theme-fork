@@ -5,7 +5,7 @@ Automated Ghost development environment with theme live-mounted as **headline**.
 ## Quick Start
 
 1. **Open in devcontainer** → Ghost auto-starts
-2. **Login**: http://localhost:3001/ghost/ with `admin@example.com` / `RandomSecure123456789`
+2. **Login**: <http://localhost:3001/ghost/> with `admin@example.com` / `RandomSecure123456789`
 3. **Theme is pre-activated** → start coding
 4. **Watch mode**: `pnpm dev` to rebuild on changes
 
@@ -22,8 +22,9 @@ pnpm zip          # Package theme for upload
 Ghost runs automatically when the devcontainer starts. All data persists across container restarts.
 
 **Access URLs:**
-- **Ghost Admin**: http://localhost:3001/ghost/ (from host browser)
-- **Public site**: http://localhost:3001/
+
+- **Ghost Admin**: <http://localhost:3001/ghost/> (from host browser)
+- **Public site**: <http://localhost:3001/>
 - **Credentials**: `admin@example.com` / `RandomSecure123456789`
 - **Inside container**: Ghost API at `localhost:2368` (scripts use this port)
 
@@ -48,6 +49,7 @@ Note: the Content API returns **published pages only**. Production drafts are no
 `ghost-seed.js` creates its own local test fragment pages for routing work.
 
 Then run:
+
 ```bash
 pnpm ghost:seed
 ```
@@ -59,26 +61,28 @@ prompt. Run it *before* `./scripts/seed-all-cards.sh`, never after. See
 ## Commands Reference
 
 ### Theme Development
-| Command | Purpose |
-|---------|---------|
-| `pnpm dev` | Watch mode - rebuild assets on changes |
-| `pnpm test` | Validate theme compatibility (GScan) |
-| `pnpm validate` | Verbose GScan validation |
-| `pnpm zip` | Build distributable theme package |
-| `pnpm lint` | Check JavaScript code quality |
-| `pnpm lint:fix` | Auto-fix ESLint issues |
+
+| Command         | Purpose                                |
+|-----------------|----------------------------------------|
+| `pnpm dev`      | Watch mode - rebuild assets on changes |
+| `pnpm test`     | Validate theme compatibility (GScan)   |
+| `pnpm validate` | Verbose GScan validation               |
+| `pnpm zip`      | Build distributable theme package      |
+| `pnpm lint`     | Check JavaScript code quality          |
+| `pnpm lint:fix` | Auto-fix ESLint issues                 |
 
 ### Ghost Operations
-| Command | Purpose |
-|---------|---------|
 
-| `pnpm ghost:seed` | Sync Pages from production (requires `.env`) |
-| `pnpm ghost:logs` | View Ghost container logs (live tail) |
-| `pnpm ghost:restart` | Restart Ghost container |
+| Command              | Purpose                                          |
+|----------------------|--------------------------------------------------|
+| `pnpm ghost:seed`    | Sync Pages from production (requires `.env`)     |
+| `pnpm ghost:logs`    | View Ghost container logs (live tail)            |
+| `pnpm ghost:restart` | Restart Ghost container                          |
 
 ### Environment
-| Command | Purpose |
-|---------|---------|
+
+| Command          | Purpose                         |
+|------------------|---------------------------------|
 | `pnpm check-env` | Validate full environment setup |
 
 ## Architecture
@@ -152,6 +156,7 @@ docker system prune -af --volumes
 ```
 
 ⚠️ **WARNING**: Deletes all:
+
 - Stopped containers
 - Unused images
 - Unused volumes (including Ghost data)
@@ -163,15 +168,17 @@ After cleanup, rebuild devcontainer to recreate environment.
 
 ### Can't access Ghost Admin
 
-**Symptom:** http://localhost:3001/ghost/ not loading
+**Symptom:** <http://localhost:3001/ghost/> not loading
 
 **Solutions:**
+
 - Wait 30-60 seconds after container starts (Ghost initialization)
 - Check VS Code port forwarding is active (Ports tab)
 - Use host browser (not inside container terminal)
 - Ensure URL includes `/ghost/` path and port 3001 (not 2368)
 
 If Ghost isn't responding:
+
 ```bash
 pnpm ghost:logs     # Check for errors
 pnpm ghost:restart  # Restart Ghost
@@ -182,6 +189,7 @@ pnpm ghost:restart  # Restart Ghost
 **Symptom:** "headline" theme missing in Settings → Design
 
 **Solutions:**
+
 - Verify theme is built: `pnpm install && pnpm zip`
 - Check mount: `ls -la /var/lib/ghost/content/themes/headline/package.json`
 - Restart Ghost: rebuild devcontainer
@@ -191,6 +199,7 @@ pnpm ghost:restart  # Restart Ghost
 **Symptom:** Updated templates/CSS/JS not showing
 
 **Solutions:**
+
 - Hard refresh browser: `Ctrl+Shift+R` (Windows/Linux) or `Cmd+Shift+R` (Mac)
 - Restart watch mode: `pnpm dev`
 - Clear Ghost cache: rebuild devcontainer
@@ -213,23 +222,28 @@ pnpm ghost:setup    # Retry admin account creation if needed
 **Symptom:** "Port 3001 already in use"
 
 **Solutions:**
+
 1. Find conflicting process: `lsof -i :3001`
 2. Stop conflicting service
 3. Or change port in `.devcontainer/docker-compose.yml`:
+
    ```yaml
    ports:
      - "3002:2368"  # Change 3001 to 3002
    ```
+
 4. Rebuild container
 
 ### View Ghost logs
 
 **From terminal:**
+
 ```bash
 pnpm ghost:logs    # Live tail of Ghost container logs
 ```
 
 **From VS Code Docker extension:**
+
 1. Open Docker extension (left sidebar)
 2. Find `ghost-dev` container
 3. Right-click → "View Logs"
@@ -237,6 +251,7 @@ pnpm ghost:logs    # Live tail of Ghost container logs
 ### Extensions reinstalling on rebuild
 
 **This is normal.** Extensions install inside the container (not on host). On rebuild:
+
 1. Container recreates from scratch
 2. Extensions reinstall (~30-60 seconds)
 3. VS Code caches to speed this up

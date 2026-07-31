@@ -5,8 +5,9 @@
 DB_PATH="/var/lib/ghost/content/data/ghost-dev.db"
 GHOST_URL="http://localhost:3001"  # Use external URL matching Ghost's url config
 GHOST_INTERNAL_URL="http://localhost:2368"  # Internal port for API checks
-THEME_NAME="headline"
-SETUP_MARKER="/var/lib/ghost/content/themes/headline/.ghost-setup-complete"
+THEME_NAME="publicledger-headline-fork"
+THEME_DIR="/var/lib/ghost/content/themes/${THEME_NAME}"
+SETUP_MARKER="${THEME_DIR}/.ghost-setup-complete"
 LOG_FILE="/var/lib/ghost/content/logs/ghost-setup.log"
 
 ADMIN_EMAIL="${GHOST_ADMIN_EMAIL:-admin@example.com}"
@@ -115,14 +116,15 @@ while [ $WAITED -lt $MAX_WAIT ]; do
     WAITED=$((WAITED + 2))
 done
 
+MAX_INIT_WAIT=30
+INIT_WAITED=0
+
 if [ "$DB_READY" = false ]; then
     log "[ghost-setup] ⚠ Warning: Database not ready after ${MAX_WAIT}s"
     log "[ghost-setup] Skipping remaining setup steps"
 else
     # Wait for Ghost to finish initializing (settings table populated)
     log "[ghost-setup] Waiting for Ghost initialization..."
-    MAX_INIT_WAIT=30
-    INIT_WAITED=0
     while [ $INIT_WAITED -lt $MAX_INIT_WAIT ]; do
         SETTING_COUNT=$(sqlite3 "$DB_PATH" "SELECT COUNT(*) FROM settings;" 2>/dev/null)
         if [ "$SETTING_COUNT" -gt 0 ]; then
@@ -134,7 +136,7 @@ else
     done
 fi
 
-if [ $INIT_WAITED -ge $MAX_INIT_WAIT ]; then
+if [ "$DB_READY" = true ] && [ $INIT_WAITED -ge $MAX_INIT_WAIT ]; then
     log "[ghost-setup] ✗ Timeout waiting for Ghost initialization"
     exit 1
 fi
@@ -145,7 +147,7 @@ fi
 
 if [ "$GHOST_READY" = true ] && [ "$DB_READY" = true ]; then
     # Upload routes.yaml if theme has one
-    ROUTES_SOURCE="/var/lib/ghost/content/themes/headline/routes.yaml"
+    ROUTES_SOURCE="${THEME_DIR}/routes.yaml"
 
     if [ -f "$ROUTES_SOURCE" ]; then
         log "[ghost-setup] Uploading routes.yaml from theme..."
@@ -165,29 +167,47 @@ EOF
         
         LOGIN_RESPONSE=$(curl -s -c "$COOKIE_JAR" -X POST \
             -H "Content-Type: application/json" \
-            -H "Origin: ${GHOST_INTERNAL_URL}" \
+            -H "Origin: ${GHOST_URL}" \
             -d "${LOGIN_DATA}" \
             "${GHOST_INTERNAL_URL}/ghost/api/admin/session/")
         
         if [ -f "$COOKIE_JAR" ] && grep -q "ghost-admin-api-session" "$COOKIE_JAR" 2>/dev/null; then
             log "[ghost-setup] ✓ Authenticated as admin"
             
-            # Upload routes.yaml using session cookie with consistent origin
+            # Upload routes.yaml as a MULTIPART FILE (field name "routes").
+            # A raw body with Content-Type: text/x-yaml is rejected by Ghost 6 with
+            # "Please select a YAML file." A successful upload returns "{}".
             UPLOAD_RESPONSE=$(curl -s -b "$COOKIE_JAR" -c "$COOKIE_JAR" -X POST \
-                -H "Content-Type: text/x-yaml" \
-                -H "Origin: ${GHOST_INTERNAL_URL}" \
-                -H "Referer: ${GHOST_INTERNAL_URL}/ghost/" \
+                -H "Origin: ${GHOST_URL}" \
+                -H "Referer: ${GHOST_URL}/ghost/" \
                 -H "Accept: application/json" \
-                --data-binary @"$ROUTES_SOURCE" \
+                -F "routes=@${ROUTES_SOURCE};type=application/x-yaml" \
                 "${GHOST_INTERNAL_URL}/ghost/api/admin/settings/routes/yaml/")
-            
-            if echo "$UPLOAD_RESPONSE" | grep -q "routes"; then
-                log "[ghost-setup] ✓ Theme routing configuration uploaded"
-            else
+
+            if echo "$UPLOAD_RESPONSE" | grep -q "errors"; then
                 log "[ghost-setup] ⚠ Failed to upload routes.yaml"
                 log "[ghost-setup]   Response: $UPLOAD_RESPONSE"
+            else
+                log "[ghost-setup] ✓ Theme routing configuration uploaded"
             fi
-            
+
+            # Activate the theme through the API so Ghost re-reads its template list.
+            # STEP 5 below also writes active_theme straight into SQLite, which sets the
+            # value but leaves Ghost's template cache stale — routes then fail with
+            # "Missing template <name>.hbs for route ...".
+            ACTIVATE_RESPONSE=$(curl -s -b "$COOKIE_JAR" -c "$COOKIE_JAR" -X PUT \
+                -H "Origin: ${GHOST_URL}" \
+                -H "Referer: ${GHOST_URL}/ghost/" \
+                -H "Accept: application/json" \
+                "${GHOST_INTERNAL_URL}/ghost/api/admin/themes/${THEME_NAME}/activate/")
+
+            if echo "$ACTIVATE_RESPONSE" | grep -q '"themes"'; then
+                log "[ghost-setup] ✓ Theme activated and templates loaded"
+            else
+                log "[ghost-setup] ⚠ Theme activation via API failed"
+                log "[ghost-setup]   Response: $ACTIVATE_RESPONSE"
+            fi
+
             rm -f "$COOKIE_JAR"
         else
             log "[ghost-setup] ⚠ Failed to authenticate for routes upload"
@@ -238,11 +258,11 @@ log "[ghost-setup]   Ghost Admin: http://localhost:3001/ghost/"
 log "[ghost-setup]   Login: ${ADMIN_EMAIL}"
 
 # Show production seeding hint only if .env doesn't exist in the theme directory
-if [ ! -f "/var/lib/ghost/content/themes/headline/.env" ]; then
-    if [ -z "$GHOST_PRD_URL" ] && [ -z "$GHOST_PRD_SECRET" ]; then
+if [ ! -f "${THEME_DIR}/.env" ]; then
+    if [ -z "$GHOST_PRD_URL" ] && [ -z "$GHOST_PRD_KEY" ]; then
         log "[ghost-setup]"
         log "[ghost-setup] To seed from production:"
-        log "[ghost-setup]   1. Create .env with GHOST_PRD_URL and GHOST_PRD_SECRET"
+        log "[ghost-setup]   1. Create .env with GHOST_PRD_URL and GHOST_PRD_KEY (Content API key)"
         log "[ghost-setup]   2. Run: pnpm ghost:seed"
     fi
 fi
