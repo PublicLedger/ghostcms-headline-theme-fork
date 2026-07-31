@@ -1,43 +1,47 @@
 # @publicledger/data (Mock Package)
 
-**Status:** This is a mock development package. The real package will be published separately.
+**Status:** This is a mock development package. The real package will be
+published separately.
 
 ## Purpose
 
-This mock package simulates the structure and data that will be provided by the production `@publicledger/data` NPM package. It contains normalized JSON data for Lancaster County elections and campaign finance records (2016-2023).
+This mock package simulates the structure and data that will be provided by the
+production `@publicledger/data` NPM package. It contains normalized JSON data for
+Lancaster County elections and campaign finance records (2016-2023).
 
 ## Structure
 
-```
+```text
 data/
-  meta.json                        # Version metadata, cache key, counts
+  meta.json                         # Version metadata, cache key, counts
   entities/
     candidates.json                 # All candidates
     offices.json                    # All elected positions
-    donors.json                     # All donors (individuals + orgs)
+    donors.json                     # Individuals, organizations, relationships
   elections/
     by-year/
       2023.json                     # All 2023 races
-    by-office/
-      *.json                        # Historical races per office
+    by-office/                      # Historical races per office (empty in mock)
   finance/
     aggregates.json                 # Summary stats, top donors, trends
     campaigns/
       camp-*.json                   # Individual campaign finance files
-    donors/
-      donor-*.json                  # Individual donor profiles
+    donors/                         # Individual donor profiles (empty in mock)
   indexes/
     candidates-by-name.json         # A-Z index
-    candidates-by-office.json       # Office → candidates map
 ```
 
 ## Development Usage
 
-This mock package is automatically linked during theme development via the build scripts.
+The theme reads this package straight from the working tree - there is no
+install or link step. Two consumers resolve the `data/` directory by path:
+
+- `gulpfile.js` copies it into the build and watches it for changes
+- `scripts/cards/data.js` reads it when seeding card HTML into Ghost posts
 
 ```bash
-# Build theme (automatically uses mock data)
-pnpm gulp build
+# Build theme and watch mock data for changes
+pnpm dev
 
 # Package theme for production
 pnpm zip
@@ -48,29 +52,37 @@ pnpm zip
 When the real `@publicledger/data` package is published:
 
 1. Add dependency to theme's `package.json`:
+
    ```json
    "dependencies": {
      "@publicledger/data": "^1.0.0"
    }
    ```
 
-2. Remove mock package setup from build scripts
+2. Remove the hardcoded mock paths in `gulpfile.js` and `scripts/cards/data.js`
 
-3. Update `gulpfile.js` to use installed package:
+3. Resolve the installed package instead:
+
    ```javascript
-   const plData = require('@publicledger/data');
+   const plData = require("@publicledger/data");
    const dataSource = plData.dataPath;
    ```
 
 ## Data Schema
 
-See `/workspace/docs-local/DATA_SCHEMA.md` for complete schema documentation.
+The shape of each file is documented by the loaders in `index.js`. There is no
+separate schema document in this repository.
 
 ## Mock Data Contents
 
-- **10 candidates** across various offices and parties
+- **10 candidates** across four office levels and parties (DEM, REP, DEM/REP)
 - **5 offices** (county, city, school district, state)
-- **2 election years** (2023, 2020, 2019, 2018)
-- **9 donors** (5 individuals, 4 organizations)
+- **1 election year** (2023) with 3 races
+- **11 donors** (7 individuals, 4 organizations) plus 1 donor relationship
 - **2 complete campaigns** with contributions and expenditures
 - Realistic finance totals, categories, and relationships
+
+> **Known gap:** `index.js` exports `getCandidatesByOffice()`, but
+> `data/indexes/candidates-by-office.json` does not exist in the mock. Calling it
+> throws. The `by-office/` and `finance/donors/` directories are likewise empty
+> placeholders.

@@ -18,10 +18,12 @@ repos:
         stages: [pre-commit]
         verbose: true
 
-      # JSON validation for locales and package.json
+      # JSON validation for locales and package.json.
+      # Uses node, not jq: the devcontainer is node:24-alpine and has no jq, so
+      # the old `jq empty` blocked every commit here with "command not found".
       - id: check-json
         name: Check JSON syntax
-        entry: bash -c 'for file in "$@"; do jq empty "$file" || exit 1; done' --
+        entry: node -e 'for (const f of process.argv.slice(1)) JSON.parse(require("fs").readFileSync(f, "utf8"))'
         language: system
         files: \.(json)$
         pass_filenames: true

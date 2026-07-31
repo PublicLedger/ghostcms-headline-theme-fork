@@ -1,10 +1,11 @@
 # Upstream Sync
 
-This directory contains tools and documentation for syncing the PublicLedger fork with the upstream TryGhost/Headline repository.
+This directory contains tools and documentation for syncing the PublicLedger fork
+with the upstream TryGhost/Headline repository.
 
 **Upstream:** <https://github.com/TryGhost/Headline>  
 **Fork:** <https://github.com/PublicLedger/ghostcms-headline-theme-fork>  
-**Last Sync:** 2026-06-29 (commit 73ee6a5)
+**Last sync:** 2026-07-19 (upstream commit `cabad11`)
 
 ---
 
@@ -77,8 +78,9 @@ pnpm test
 # Build production zip
 pnpm zip
 
-# Test in devcontainer
-pnpm ghost:restart
+# Reload routes in the devcontainer, then check the site
+pnpm ghost:refresh
+pnpm ghost:verify
 # Visit http://localhost:3001
 ```
 
@@ -102,18 +104,23 @@ These customizations **must be preserved** during sync:
 
 - `name`: "publicledger-headline-fork"
 - `description`: Custom description
-- `author`: Gasworks Data info
+- `author`: Ghost Foundation (required by the MIT license)
+- `contributors`: Gasworks Data info
 - `engines.node`: ">=24.0.0"
 - `engines.ghost`: ">=6.0.0"
-- Custom `scripts`: ghost:seed, ghost:logs, ghost:restart
+- Custom `scripts`: `validate:fork`, `lint*`, `format*`, `ghost:*`
 
 **Take from upstream:**
 
 - `packageManager`: "pnpm@11.9.0"
-- All `devDependencies` versions
+- All `devDependencies` versions except the fork-only tools listed in
+  `_comment_devDependencies`
 - Standard `scripts`: dev, test, zip, validate
 
-**Remove after upstream sync (fork has hardcoded these):**
+**Keep removed (fork has hardcoded these):**
+
+The fork deleted the whole `config.custom` block. If a sync reintroduces any of
+these, remove them again:
 
 - `config.custom.title_font` - Fork uses Cardo (fonts-custom.css)
 - `config.custom.body_font` - Fork uses Manrope (fonts-custom.css)
@@ -121,25 +128,22 @@ These customizations **must be preserved** during sync:
 - `config.custom.header_style` - Fork hardcoded "Light"
 - `config.custom.white_publication_logo_for_transparent_header` - Not used
 - `config.custom.enter_tag_slugs_for_primary_sections` - Custom homepage sections
-- `config.custom.enter_tag_slugs_for_secondary_sections` - Custom homepage sections
-
-**Keep fork-only settings:**
-
-- `config.custom.footer_publisher_logo` - Publisher logo upload
-- `config.custom.funding_credit` - Site-wide funding credit text
+- `config.custom.enter_tag_slugs_for_secondary_sections` - Custom homepage
+  sections
 
 ### default.hbs
 
 **Fork modifications:**
 
 - Body class: Hardcoded `is-head-left-logo` (removed navigation_layout logic)
-- Header style: Hardcoded to "Light" (removed header_style logic)  
-- Logo: Single logo only (removed white_publication_logo_for_transparent_header)
+- Header style: Hardcoded to "Light" (removed header_style logic)
+- Logo: Single logo only (removed
+  white_publication_logo_for_transparent_header)
 - Search button: Hardcoded placement (removed navigation_layout conditionals)
 
 ### routes.yaml
 
-**Fork-specific routing** - Forces static homepage
+**Fork-specific routing** - Static homepage plus six data collections
 
 ```yaml
 routes:
@@ -148,14 +152,21 @@ routes:
     template: page    # Uses page.hbs with Ghost page slug "home"
 ```
 
-**Strategy during sync**: Keep fork routes.yaml, accept upstream only if intentionally switching to posts homepage
+The file also defines the `/jobs/`, `/election/`, `/official/`, `/donor/`,
+`/lookup/` and `/finance/` collections, and an `/articles/` catch-all that must
+exclude all six. See [README.FORK.md](../README.FORK.md#collection-backed-data-routes).
+
+**Strategy during sync**: Keep fork routes.yaml wholesale. Upstream ships a
+posts homepage and no collections, so accepting it would break every data route.
 
 ### home.hbs
 
 **Fork modifications:**
 
-- Removed `@custom.enter_tag_slugs_for_primary_sections` conditionals (setting deleted)
-- Removed `@custom.enter_tag_slugs_for_secondary_sections` conditionals (setting deleted)
+- Removed `@custom.enter_tag_slugs_for_primary_sections` conditionals (setting
+  deleted)
+- Removed `@custom.enter_tag_slugs_for_secondary_sections` conditionals (setting
+  deleted)
 - Shows default behavior: top 3 tags (grid) + tags 4-6 (list)
 
 **Note:** Not actually used - routes.yaml forces static page homepage
@@ -174,13 +185,21 @@ routes:
 
 **Fork-specific custom fonts** - Does not exist upstream
 
-Import custom fonts here to avoid conflicts with upstream `fonts.css`. Already imported in `screen.css`.
+Import custom fonts here to avoid conflicts with upstream `fonts.css`. Already
+imported in `screen.css`.
 
 ### assets/css/footer-custom.css
 
 **Fork-specific custom footer styles** - Does not exist upstream
 
 Styles for the custom footer design. Already imported in `screen.css`.
+
+### assets/css/cards/
+
+**Fork-specific card styles** - Does not exist upstream
+
+Per-card stylesheets for the server-rendered data cards, plus the shared
+`_framework.css`. Already imported in `screen.css`.
 
 ### partials/footer-custom.hbs
 
@@ -195,7 +214,16 @@ Custom footer with page-content hybrid approach:
 - Hardcoded CTA links: `/about`, `/tools`
 - Hardcoded legal links: `/site-map`, `/design-reference`
 
-**Strategy during sync**: Keep fork footer partial, restore if accidentally overwritten
+**Strategy during sync**: Keep fork footer partial, restore if accidentally
+overwritten
+
+### partials/pl-record.hbs and partials/generated/
+
+**Fork-specific data-route partials** - Do not exist upstream
+
+`pl-record.hbs` is the shared body for every collection detail template.
+`generated/picker-*.hbs` are build artifacts produced by `gulpfile.js` from the
+mock data package.
 
 ### assets/css/screen.css
 
@@ -203,6 +231,7 @@ Custom footer with page-content hybrid approach:
 
 - Imports `fonts-custom.css` (Cardo + Manrope)
 - Imports `footer-custom.css` (custom footer styles)
+- Imports the `cards/` stylesheets
 
 **Strategy during sync**: Keep fork imports, add any new upstream imports
 
@@ -211,7 +240,7 @@ Custom footer with page-content hybrid approach:
 - `.devcontainer/` - Fork-specific setup (no upstream equivalent)
 - `.github/workflows/` - Fork deployment automation
 - `README.FORK.md` - Fork documentation
-- `AGENTS.FORK.md` - Fork agent docs
+- `AGENTS.md` - Fork agent docs
 - `.gitignore` - Fork patterns
 - `AI_DEVELOPMENT.md` - Fork docs (was AGENTS.md, upstream conflict resolved)
 
@@ -238,29 +267,35 @@ Then rebuild after merge: `pnpm dev`
 ```json
 {
   "name": "publicledger-headline-fork",
-  "description": "A custom Ghost theme for The Public Ledger project",
+  "description": "Fork of Ghost Foundation's Headline theme for The Public Ledger project",
   "version": "1.0.0",
   "engines": {
     "node": ">=24.0.0",
     "ghost": ">=6.0.0"
   },
   "author": {
-    "name": "Gasworks Data",
-    "email": "info@gasworksdata.com",
-    "url": "https://gasworksdata.com"
+    "name": "Ghost Foundation",
+    "email": "hello@ghost.org",
+    "url": "https://ghost.org"
   },
+  "contributors": [
+    {
+      "name": "Gasworks Data",
+      "email": "info@gasworksdata.com",
+      "url": "https://gasworksdata.com"
+    }
+  ],
   "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "gulp",
     "test": "gscan .",
     "zip": "gulp zip",
     "validate": "gscan . --verbose",
-    "ghost:seed": "...",
-    "ghost:logs": "docker compose logs -f ghost-dev",
-    "ghost:restart": "docker compose restart ghost-dev"
+    "ghost:seed": "node scripts/ghost-seed.js",
+    "ghost:refresh": "bash scripts/ghost-exec.sh sh .../refresh-routes.sh"
   },
   "devDependencies": {
-    // Take ALL from upstream (latest versions)
+    "//": "Take upstream versions, keep the fork-only tools"
   }
 }
 ```
@@ -270,9 +305,8 @@ Then rebuild after merge: `pnpm dev`
 **Check for leftover markers:**
 
 ```bash
-grep -r "<<<<<<< " .
-grep -r "=======" .
-grep -r ">>>>>>> " .
+git grep -n "^<<<<<<< "
+git grep -n "^>>>>>>> "
 ```
 
 ---
@@ -302,8 +336,12 @@ pnpm test
 # Verbose output
 pnpm validate
 
-# Production build
+# Fork identity check
+pnpm validate:fork
+
+# Production package
 pnpm zip
+```
 
 ### Visual Regression
 
@@ -311,8 +349,9 @@ pnpm zip
 2. Test post single view
 3. Verify author page
 4. Test tag archives
-5. Check mobile responsiveness
-6. Verify no console errors (F12)
+5. Verify every data collection resolves (`pnpm ghost:verify`)
+6. Check mobile responsiveness
+7. Verify no console errors (F12)
 
 ---
 
@@ -358,11 +397,13 @@ pnpm install
 Sync is complete when **all** of these pass:
 
 - ✅ `pnpm test` passes (GScan validation)
+- ✅ `pnpm validate:fork` passes (fork identity preserved)
 - ✅ `pnpm zip` creates valid theme
 - ✅ Theme activates in Ghost without errors
 - ✅ Devcontainer starts and runs Ghost
 - ✅ Live reload works for templates
 - ✅ Asset compilation works (`pnpm dev`)
+- ✅ Data collections resolve (`pnpm ghost:verify`)
 - ✅ No visual regressions on test content
 - ✅ GitHub Actions workflow succeeds
 - ✅ All fork customizations preserved
@@ -375,6 +416,7 @@ Sync is complete when **all** of these pass:
 ### High Risk ⚠️
 
 - **package.json**: Complex manual merge required
+- **routes.yaml**: Upstream version drops every data collection
 - **Dependency updates**: May introduce breaking changes
 - **GScan version changes**: Stricter validation rules
 
@@ -388,7 +430,7 @@ Sync is complete when **all** of these pass:
 
 - **Devcontainer files**: No upstream equivalent
 - **GitHub workflows**: Fork-specific
-- **Documentation files**: Fork-specific (.FORK.md pattern)
+- **Documentation files**: Fork-specific (`.FORK.md` pattern)
 
 ### Mitigation
 
@@ -432,5 +474,3 @@ git rev-list --count staging..upstream/main
 
 - **upstream-sync.sh** - Interactive sync script with validation
 - **README.md** - This file (sync documentation)
-
-For complete upstream sync history, see `/memories/repo/startup.md`

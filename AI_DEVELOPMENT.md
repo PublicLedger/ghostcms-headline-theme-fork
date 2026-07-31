@@ -1,36 +1,86 @@
 # Agents
 
-This document outlines the AI agent guidelines for the Ghost Headline theme fork. It is the single source of truth for shared conventions. Tool-specific files (CLAUDE.md, etc.) reference this file.
+This document outlines the AI agent guidelines for the Ghost Headline theme fork.
+It is the single source of truth for shared conventions. Tool-specific files
+(CLAUDE.md, etc.) reference this file.
 
 ## Overview
 
-This is a **forked Ghost theme** from TryGhost/Headline with active upstream synchronization. Core stack: Node.js 24 (Gulp build system), Ghost 6.0+, Handlebars templating. DevContainer runs multi-container environment (ghost-dev on SQLite:3001). Theme auto-mounted with live reload. See [DEVCONTAINER.md](DEVCONTAINER.md) for environment setup, [sync/README.md](sync/README.md) for fork maintenance workflow.
+This is a **forked Ghost theme** from TryGhost/Headline with active upstream
+synchronization. Core stack: Node.js 24 (Gulp build system), Ghost 6.0+,
+Handlebars templating. DevContainer runs a multi-container environment (ghost-dev
+on SQLite). Theme auto-mounted with live reload. See
+[DEVCONTAINER.md](DEVCONTAINER.md) for environment setup and
+[sync/README.md](sync/README.md) for fork maintenance workflow.
 
-**Critical constraint:** Every code change must preserve fork identity and account for future upstream merges.
+**Critical constraint:** Every code change must preserve fork identity and
+account for future upstream merges.
 
 ## Fork Architecture
 
-**Living Fork:** PublicLedger/ghostcms-headline-theme-fork tracks TryGhost/Headline  
-**Divergence:** 5 commits ahead, ~19 commits behind (as of 2026-06-28)  
+**Living Fork:** PublicLedger/ghostcms-headline-theme-fork tracks
+TryGhost/Headline  
+**Last upstream sync:** 2026-07-19 (upstream commit `cabad11`)  
 **Environment:** Docker devcontainer with Node.js 24, Ghost 6.0+, SQLite  
-**Theme Mount:** `/var/lib/ghost/content/themes/headline` with live reload
+**Theme Mount:** `/var/lib/ghost/content/themes/publicledger-headline-fork` with
+live reload
+
+Check the current divergence rather than trusting a number in a document:
+
+```bash
+git fetch upstream
+git rev-list --left-right --count upstream/main...staging   # behind  ahead
+```
 
 **Stack:**
 
-- **Templates:** Handlebars (.hbs) - server-rendered by Ghost, context-based routing
+- **Templates:** Handlebars (.hbs) - server-rendered by Ghost, context-based
+  routing
 - **Assets:** PostCSS (CSS) + Gulp (JS) → compiled to `assets/built/`
-- **Config:** `package.json` (Ghost settings, theme options), `routes.yaml` (custom URLs)
+- **Config:** `package.json` (Ghost settings, theme options), `routes.yaml`
+  (custom URLs)
+- **Data:** `@publicledger/data`, read in Node at seed time by `scripts/cards/*`
 - **i18n:** `locales/*.json` translation files
+
+### Data Routes
+
+Ghost's `routes:` block does not support path parameters - a key like
+`/jobs/{agency}/{seat}/` is a literal path and never matches. Placeholders are
+only valid in a collection `permalink:`. So every multi-segment data URL is a
+**collection**, and a record is a **Post** whose slug is the entity and whose
+primary tag is the parent agency or jurisdiction. An internal `#hash-*` tag
+selects the collection and stays hidden from readers.
+
+`routes.yaml` defines six: `/jobs/`, `/election/`, `/official/`, `/donor/`,
+`/lookup/` and `/finance/`, plus an `/articles/` catch-all that must exclude all
+six.
+
+Each collection has an **index** template (`job.hbs`, `election.hbs`, …) and a
+**detail** template (`custom-job-agency-seat.hbs`, `custom-election.hbs`, …)
+chosen per post in Ghost Admin. Detail templates delegate to
+`partials/pl-record.hbs`.
+
+### Data Cards
+
+Ghost themes are sandboxed: a template **cannot** read `@publicledger/data` at
+render time. Cards are rendered in Node **at seed time** by `scripts/cards/*` and
+stored as Lexical `html` nodes in the post body via the Ghost Admin API
+(`scripts/seed-record.js`). Re-running the seed is what refreshes a card.
 
 ## Agent Guidelines
 
 All AI agents working on this theme must:
 
-1. **Preserve fork identity** - Never change `package.json` name, author, Node 24 requirement, or `ghost:*` scripts
-2. **Check upstream conflicts** - Review [sync/README.md](sync/README.md) before editing files
-3. **Test in devcontainer** - Verify changes at http://localhost:3001 before committing
-4. **Document fork changes** - Mark custom code with `{{!-- FORK CUSTOM: ... --}}` comments
-5. **Follow sync protocol** - See [sync/README.md](sync/README.md) for merge procedures
+1. **Preserve fork identity** - Never change `package.json` name, author, Node 24
+   requirement, or `ghost:*` scripts
+2. **Check upstream conflicts** - Review [sync/README.md](sync/README.md) before
+   editing files
+3. **Test in devcontainer** - Verify changes at <http://localhost:3001> before
+   committing
+4. **Document fork changes** - Mark custom code with
+   `{{!-- FORK CUSTOM: ... --}}` comments
+5. **Follow sync protocol** - See [sync/README.md](sync/README.md) for merge
+   procedures
 
 **Never change:**
 
@@ -38,6 +88,8 @@ All AI agents working on this theme must:
 - `locales/en.json`: Custom strings ("Access site", "Password")
 - `.devcontainer/`: Entire directory (fork-only)
 - `.github/workflows/deploy-theme.yaml`: Deployment automation
+- `README.md`, `AGENTS.md`, `CLAUDE.md`: the three Markdown files that also exist
+  upstream. Only the fork note at the top of README.md is ours.
 
 ## File Safety Guide
 
@@ -45,6 +97,7 @@ All AI agents working on this theme must:
 
 - `.hbs` template files, `partials/*.hbs` components
 - `assets/css/*.css` source files (not built/)
+- `scripts/*` (fork-only seed and card tooling)
 - `.devcontainer/*`, `.github/workflows/*` (fork-only)
 
 **⚠️ Edit with caution (moderate risk):**
@@ -56,15 +109,19 @@ All AI agents working on this theme must:
 **❌ Avoid editing (high conflict risk):**
 
 - `assets/built/*` - Auto-generated, rebuilt on upstream sync
+- `partials/generated/*` - Auto-generated by Gulp from the mock data package
+- `README.md`, `AGENTS.md`, `CLAUDE.md` - Also exist upstream
 - Core Ghost helpers - Upstream may change API
 
 ## Agent Development
 
 When proposing changes:
 
-1. Read [DEVCONTAINER.md](DEVCONTAINER.md) - Environment architecture and workflow
-2. Check [sync/README.md](sync/README.md) - Known divergences and conflict resolution
-3. Review [.devcontainer/FORK_STATUS.md](.devcontainer/FORK_STATUS.md) - Current fork state
+1. Read [DEVCONTAINER.md](DEVCONTAINER.md) - Environment architecture and
+   workflow
+2. Check [sync/README.md](sync/README.md) - Protected files and conflict
+   resolution
+3. Read [AGENT_LESSONS.md](AGENT_LESSONS.md) - Mistakes already made here
 4. Consider: "Will this conflict with upstream merges? Is documentation needed?"
 
 ## Key Commands
@@ -78,19 +135,30 @@ When proposing changes:
 
 - `pnpm test` — Validate theme with GScan
 - `pnpm validate` — Verbose GScan validation with compatibility report
+- `pnpm validate:fork` — Fork identity, LICENSE, build and GScan checks
+- `pnpm lint` / `pnpm lint:md` — ESLint and markdownlint
 
 ### Ghost Management (devcontainer)
 
-- `pnpm ghost:seed` — Sync from production (requires `.env` configuration)
-- `pnpm ghost:logs` — View Ghost development logs
-- `pnpm ghost:restart` — Restart Ghost development instance
+- `pnpm ghost:seed` — Sync pages from production (requires `.env` configuration)
+- `pnpm ghost:records` — Seed one demo record per collection
+- `pnpm ghost:refresh` — Reload `routes.yaml` without restarting Ghost
+- `pnpm ghost:verify` — Check that every collection permalink resolves
+
+`pnpm ghost:restart` exits with an error on purpose: restarting Ghost from inside
+the devcontainer hangs the terminal. Restart from the host instead.
 
 **Access URLs:**
-- **Ghost Admin**: http://localhost:3001/ghost/ (from host browser)
-- **Public Site**: http://localhost:3001/
+
+- **Ghost Admin**: <http://localhost:3001/ghost/> (from host browser)
+- **Public Site**: <http://localhost:3001/>
+- **Inside the devcontainer**: <http://localhost:2368/> — it shares ghost-dev's
+  network namespace, so port 3001 is *not* reachable from there
 - **Credentials**: `admin@example.com` / `RandomSecure123456789`
 
 ### Docker Management
+
+Run these from the **host**, not the devcontainer:
 
 - `docker compose ps` — View running containers
 - `docker compose logs -f ghost-dev` — Follow development logs
@@ -101,20 +169,28 @@ When proposing changes:
 ## Development Workflow
 
 1. **Start devcontainer** - VS Code "Reopen in Container"
-2. **Access Ghost Admin** - http://localhost:3001/ghost (create account if first run)
-3. **Activate theme** - Settings → Design → Change theme → headline
+2. **Access Ghost Admin** - <http://localhost:3001/ghost> (create account if
+   first run)
+3. **Activate theme** - Settings → Design → Change theme →
+   publicledger-headline-fork
 4. **Start asset watcher** - `pnpm dev` in terminal
 5. **Edit files** - Templates (.hbs) auto-reload, assets rebuild on save
-6. **Validate before commit** - `pnpm test && pnpm zip`
+6. **Validate before commit** - `pnpm test && pnpm lint:md && pnpm zip`
 
 ## Upstream Sync Protocol
 
-1. **Check if upstream modified the same file** - Review UPSTREAM_SYNC_PLAN.md for known divergences
-2. **Preserve fork identity** - Never change package.json name, author, or ghost:\* scripts
-3. **Test in devcontainer** - Always verify changes work in the Ghost development instance
-4. **Document breaking changes** - Note any changes that might conflict with future syncs
+1. **Check if upstream modified the same file** -
+   `git ls-tree -r upstream/main --name-only | grep FILENAME`, then review the
+   protected-file list in [sync/README.md](sync/README.md)
+2. **Preserve fork identity** - Never change package.json name, author, or
+   `ghost:*` scripts
+3. **Test in devcontainer** - Always verify changes work in the Ghost development
+   instance
+4. **Document breaking changes** - Note any changes that might conflict with
+   future syncs
 
-**Full sync workflow:** See [sync/README.md](sync/README.md) for detailed sync procedures and step-by-step guide.
+**Full sync workflow:** See [sync/README.md](sync/README.md) for detailed sync
+procedures and step-by-step guide.
 
 ## Editing Rules
 
@@ -122,7 +198,7 @@ When proposing changes:
 
 - `.hbs` template files, `partials/*.hbs` components
 - `assets/css/*.css` source files (not built/)
-- `.devcontainer/*`, `.github/workflows/*` (fork-only)
+- `scripts/*`, `.devcontainer/*`, `.github/workflows/*` (fork-only)
 
 ### Edit with Caution (Moderate Risk)
 
@@ -133,6 +209,8 @@ When proposing changes:
 ### Avoid Editing (High Conflict Risk)
 
 - `assets/built/*` - Auto-generated, rebuilt on upstream sync
+- `partials/generated/*` - Auto-generated by Gulp
+- `README.md`, `AGENTS.md`, `CLAUDE.md` - Also exist upstream
 - Core Ghost helpers - Upstream may change API
 
 ## Package.json Editing Protocol
@@ -141,23 +219,31 @@ When modifying package.json:
 
 ```json
 {
-  "name": "publicledger-headline-fork", // NEVER CHANGE
-  "description": "...", // NEVER CHANGE
-  "author": {/* Gasworks Data */}, // NEVER CHANGE
+  "name": "publicledger-headline-fork",
+  "description": "...",
+  "author": { "name": "Ghost Foundation" },
+  "contributors": [{ "name": "Gasworks Data" }],
   "engines": {
-    "node": ">=24.0.0", // NEVER CHANGE (fork requirement)
-    "ghost": ">=6.0.0" // Update if needed
+    "node": ">=24.0.0",
+    "ghost": ">=6.0.0"
   },
   "scripts": {
-    "dev": "gulp", // Standard scripts (safe to update)
-    "ghost:dev": "...", // Fork scripts (preserve)
-    "ghost:*": "..." // Fork scripts (preserve)
+    "dev": "gulp",
+    "ghost:seed": "...",
+    "ghost:refresh": "..."
   },
-  "devDependencies": {
-    // Safe to update versions, but check upstream first
-  }
+  "devDependencies": {}
 }
 ```
+
+- `name`, `description`, `engines.node` — **never change**
+- `author` — **never change.** The MIT license requires Ghost Foundation to stay
+  as author; fork attribution lives in `contributors`
+- `engines.ghost` — update if needed
+- `dev`, `test`, `zip`, `validate` — upstream scripts, safe to update
+- `ghost:*`, `validate:fork`, `lint*`, `format*` — fork scripts, preserve
+- `devDependencies` — take upstream versions, but keep the fork-only tools listed
+  in `_comment_devDependencies`
 
 ## Theme Development Guidelines
 
@@ -170,8 +256,10 @@ When modifying package.json:
 
 ### Modifying Existing Templates
 
-1. Check if template is in upstream UPSTREAM_SYNC_PLAN.md conflict list
-2. Add code comments marking fork-specific changes: `{{!-- FORK CUSTOM: ... --}}`
+1. Check whether the template exists upstream:
+   `git ls-tree -r upstream/main --name-only | grep FILENAME`
+2. Add code comments marking fork-specific changes:
+   `{{!-- FORK CUSTOM: ... --}}`
 3. Keep changes minimal to reduce merge conflicts
 4. Consider using partials for reusable custom components
 
@@ -186,29 +274,36 @@ When modifying package.json:
 ### Template Context
 
 ```handlebars
-{{! Context automatically available based on route }} {{#post}}
-  {{! Current post object }}
+{{! Context automatically available based on route }}
+{{#post}}
   {{title}}
   {{content}}
-  {{! Renders post HTML }}
   {{excerpt}}
-{{/post}} {{#foreach posts}}
-  {{! Loop collection }}
+{{/post}}
+
+{{#foreach posts}}
   {{title}}
 {{/foreach}}
 ```
 
+A **custom** post template (`custom-*.hbs`) gets no ambient post context. The
+`{{#post}}` block is required, or `{{title}}` renders empty and `{{content}}`
+renders the literal `undefined`.
+
 ### Responsive Images
 
 ```handlebars
-{{! Ghost generates responsive srcset }} {{img_url feature_image size="l"}}
+{{! Ghost generates responsive srcset }}
+{{img_url feature_image size="l"}}
 {{img_url feature_image size="m"}}
 ```
 
 ### Translations
 
 ```handlebars
-{{! Use locales/*.json }} {{t "Subscribe"}} {{t "Email"}}
+{{! Use locales/*.json }}
+{{t "Subscribe"}}
+{{t "Email"}}
 ```
 
 ## Devcontainer Workflow
@@ -221,17 +316,19 @@ When modifying package.json:
 
 ### Testing Theme Changes
 
-1. Ensure Ghost is running: `docker compose ps`
-2. Access Ghost Admin: http://localhost:3001/ghost
-3. Activate theme if not active: Settings → Design → headline
-4. View frontend: http://localhost:3001
-5. Watch logs: `pnpm ghost:logs`
+1. Ensure Ghost is running (from the host): `docker compose ps`
+2. Access Ghost Admin: <http://localhost:3001/ghost>
+3. Activate theme if not active: Settings → Design →
+   publicledger-headline-fork
+4. View frontend: <http://localhost:3001>
+5. Watch logs (from the host): `docker compose logs -f ghost-dev`
 
 ## Common Questions
 
 ### "Should I update a dependency?"
 
-- Check if upstream already updated it in UPSTREAM_SYNC_PLAN.md
+- Check whether upstream already updated it:
+  `git log upstream/main -- package.json`
 - If yes, wait for upstream sync to get it
 - If urgent, update but document in commit message
 
@@ -251,7 +348,7 @@ When modifying package.json:
 
 ```bash
 docker compose exec ghost-dev ls /var/lib/ghost/content/themes/
-pnpm ghost:restart
+docker compose restart ghost-dev
 ```
 
 ### "CSS/JS changes not compiling"
@@ -260,6 +357,13 @@ pnpm ghost:restart
 # Ensure dev watcher is running
 pnpm dev
 # Check for syntax errors in terminal
+```
+
+### "Routes changed but the URL 404s"
+
+```bash
+pnpm ghost:refresh
+pnpm ghost:verify
 ```
 
 ### "Port 3001 already in use"
@@ -282,16 +386,18 @@ docker compose up -d
 
 When helping users, point to:
 
-- Setup guide: DEVCONTAINER.md
-- Quick reference: .devcontainer/QUICKREF.md
-- Upstream sync: UPSTREAM_SYNC_PLAN.md
-- Fork status: .devcontainer/FORK_STATUS.md
-- Ghost docs: https://ghost.org/docs/themes/
+- Setup guide: [DEVCONTAINER.md](DEVCONTAINER.md)
+- Devcontainer operations: [.devcontainer/README.md](.devcontainer/README.md)
+- Fork overview: [README.FORK.md](README.FORK.md)
+- Upstream sync: [sync/README.md](sync/README.md)
+- Known agent mistakes: [AGENT_LESSONS.md](AGENT_LESSONS.md)
+- Ghost docs: <https://ghost.org/docs/themes/>
 
 ## Code Style
 
 - **Handlebars:** 2-space indent, lowercase helpers
 - **CSS:** Follow existing PostCSS patterns
 - **JavaScript:** ES6+, no jQuery (Ghost provides vanilla utilities)
+- **Markdown:** 80-column prose, enforced by `pnpm lint:md`
 - **Comments:** Explain "why" not "what"
 - **Git commits:** Conventional commits (feat:, fix:, chore:)

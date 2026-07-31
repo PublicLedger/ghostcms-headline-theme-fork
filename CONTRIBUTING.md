@@ -1,23 +1,23 @@
 # Contributing to Headline Theme Fork
 
-This guide covers the development workflow, code quality standards, and testing practices for the Headline theme fork.
+This guide covers the development workflow, code quality standards, and testing
+practices for the Headline theme fork.
 
-| Badge            | Status                                                                                                                                                                                                                          |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Theme Deployment | [![Deploy Theme](https://github.com/PublicLedger/ghostcms-headline-theme-fork/actions/workflows/deploy-theme.yaml/badge.svg)](https://github.com/PublicLedger/ghostcms-headline-theme-fork/actions/workflows/deploy-theme.yaml) |
+[![Deploy Theme](https://github.com/PublicLedger/ghostcms-headline-theme-fork/actions/workflows/deploy-theme.yaml/badge.svg)](https://github.com/PublicLedger/ghostcms-headline-theme-fork/actions/workflows/deploy-theme.yaml)
 
 ## Quick Start
 
 ### Development Environment Setup
 
-**Branch workflow**: We use `staging` for development and `main` for production. Open PRs from `staging` to `main` for deployment.
+**Branch workflow**: We use `staging` for development and `main` for production.
+Open PRs from `staging` to `main` for deployment.
 
-**Recommended**: Use the VS Code devcontainer for a consistent, fully-configured Ghost development environment.
+**Recommended**: Use the VS Code devcontainer for a consistent, fully-configured
+Ghost development environment.
 
 ```bash
-# Container automatically starts Ghost in development mode
-# After container starts, install dependencies:
-pnpm install
+# The container installs deps, builds, seeds and verifies routes on create.
+# Nothing to do by hand — see .devcontainer/post-create.sh.
 
 # Start asset compilation with live reload
 pnpm dev
@@ -30,9 +30,9 @@ open http://localhost:3001/ghost
 
 ```bash
 # Install Node.js 24+ first
-pnpm install                    # Theme dependencies
-pnpm dev                    # Watch and compile assets
-pnpm test                   # Validate with GScan
+pnpm install                   # Theme dependencies
+pnpm dev                       # Watch and compile assets
+pnpm test                      # Validate with GScan
 
 # Optional: Install pre-commit hooks (recommended)
 pip install pre-commit         # or: brew install pre-commit
@@ -42,120 +42,127 @@ pre-commit install
 ### Verify Setup
 
 ```bash
-pnpm test        # GScan validation (Ghost 6.0+ compatibility)
-pnpm dev         # Compile assets and watch for changes
-docker compose ps   # Verify Ghost containers running (devcontainer only)
+pnpm test           # GScan validation (Ghost 6.0+ compatibility)
+pnpm dev            # Compile assets and watch for changes
+docker compose ps   # Verify Ghost containers running (from the host)
 ```
 
-## Template Specificity Pattern
+## Data Route Architecture
 
-**This fork uses Ghost Pages as template content with specificity hierarchy** - a hybrid approach for editorial control without code deployments.
+**Every data URL is served by a Ghost collection.** Ghost's `routes:` block does
+not support path parameters - a key like `/jobs/{agency}/{seat}/` is a literal
+path and never matches, verified against Ghost 6.53. Curly-brace placeholders are
+only valid in a collection `permalink:`.
 
 ### Architecture Overview
 
-**15 route templates** cover data-driven routes (elections, campaign finance, officials, donors):
+A record is a **Post** whose
 
-- `lookup.hbs`, `lookup-agency.hbs`
-- `job.hbs`, `job-agency.hbs`, `job-agency-seat.hbs`
-- `officials.hbs`, `official.hbs`
-- `election.hbs`, `election-agency.hbs`, `election-agency-seat.hbs`, `election-agency-seat-year.hbs`
-- `finance-explorer.hbs`, `finance-agency-seat.hbs`
-- `donors.hbs`, `donor.hbs`
+- `slug` is the entity → fills `{slug}`
+- primary tag is the parent agency or jurisdiction → fills `{primary_tag}`
+- internal `#hash-*` tag selects the collection and stays hidden from readers
 
-**Each template implements specificity hierarchy:**
+`routes.yaml` defines six collections:
 
-1. Try **specific** Page: `job-agency-seat-lancaster-county-sheriff`
-1. Fall back to **generic** Page: `job-agency-seat`
-1. Show **hardcoded fallback** if neither exists
+| Collection   | Permalink                         | Internal tag |
+| ------------ | --------------------------------- | ------------ |
+| `/jobs/`     | `/jobs/{primary_tag}/{slug}/`     | `#job`       |
+| `/election/` | `/election/{primary_tag}/{slug}/` | `#election`  |
+| `/official/` | `/official/{slug}/`               | `#official`  |
+| `/donor/`    | `/donor/{slug}/`                  | `#donor`     |
+| `/lookup/`   | `/lookup/{slug}/`                 | `#lookup`    |
+| `/finance/`  | `/finance/{slug}/`                | `#finance`   |
 
-### Why This Pattern?
+Ghost requires every post to belong to **exactly one** collection, so the
+`/articles/` catch-all must exclude all six. Forget that and Ghost rejects the
+entire routes file.
 
-**PROS:**
+**Two templates per collection:**
 
-- Editors customize high-traffic pages (Lancaster County Sheriff) without code
-- Generic templates handle all other routes (every other county sheriff)
-- Fast content updates (1-5 sec Page republish, no theme rebuild)
-- Clear separation: theme = data logic, CMS = content
+| Kind   | Files                                                                                                                                     | Role                                                            |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| Index  | `job.hbs`, `election.hbs`, `official.hbs`, `donor.hbs`, `lookup.hbs`, `finance.hbs`                                                       | Section landing page with entity picker                         |
+| Detail | `custom-job-agency-seat.hbs`, `custom-election.hbs`, `custom-official.hbs`, `custom-donor.hbs`, `custom-lookup.hbs`, `custom-finance.hbs` | Chosen per post in Admin; delegates to `partials/pl-record.hbs` |
 
-**CONS:**
+### Server-Rendered Cards
 
-- Brittle: relies on exact slug naming (`job-agency-seat-lancaster-county-sheriff`)
-- Testing: local dev needs production Pages seeded
-- Performance: 2 `{{#get}}` queries per route (cached after first hit)
-- Debugging: logic split between `.hbs` files and CMS Page HTML
+Ghost themes are sandboxed, so a template **cannot** read `@publicledger/data` at
+render time. Cards are rendered in Node **at seed time** by `scripts/cards/*` and
+stored as Lexical `html` nodes in the post body through the Ghost Admin API
+(`scripts/seed-record.js`).
+
+The consequences are worth internalising:
+
+- A card is a snapshot. Refreshing it means re-running `pnpm ghost:records`, not
+  clearing a cache.
+- Hand-editing card HTML in Ghost Admin is pointless - the next seed overwrites
+  it.
+- Everything else inside `{{content}}` is editor-owned: headline, prose,
+  subheads, embeds, and the arrangement of the cards.
+
+`assets/js/cards/picker-nav.js` is progressive enhancement only; with JS off the
+picker form still submits and a `<noscript>` link list is available.
 
 ### Developer Workflow
 
-**Creating new templates:**
+**Detail templates** delegate to the shared partial:
 
 ```handlebars
-{{!-- job-agency-seat.hbs --}}
-<main class="gh-main">
-  <section class="gh-content gh-canvas">
-    {{!-- Try specific override first --}}
-    {{#get "pages" filter="slug:job-agency-seat-{{agency}}-{{seat}}" limit="1"}}
-      {{#foreach pages}}{{{content}}}{{/foreach}}
-    {{else}}
-      {{!-- Fall back to generic template --}}
-      {{#get "pages" filter="slug:job-agency-seat" limit="1"}}
-      
-        {{#foreach pages}}{{{content}}}{{/foreach}}
-
-    {{else}}
-      {{!-- Hardcoded fallback if no Pages configured --}}
-      <h1>{{seat}} - {{agency}}</h1>
-      <p>
-        <em>Configure by creating Page: <code>job-agency-seat</code></em>
-      </p>
-    {{/get}}
-    {{/get}}
-  </section>
-
-  {{!-- Data rendering (theme logic) below Page content --}}
-  <section class="job-data">
-    <script>
-      // Load data via PublicLedgerData API
-    </script>
-  </section>
-</main>
+{{!< default}}
+{{!-- FORK CUSTOM: detail template for the /jobs/ collection. --}}
+{{> "pl-record" recordType="job-seat"}}
 ```
 
-**Slug naming rules:**
+Two rules that bite in `partials/pl-record.hbs`:
 
-- Pattern: `{template}-{param1}-{param2}...`
-- Lowercase, hyphens (no underscores/spaces)
-- Match URL segments exactly
-- Example: `/jobs/lancaster-county/sheriff/` → `job-agency-seat-lancaster-county-sheriff`
+- `{{#post}}` is **required**. A custom post template gets no ambient post
+  context; without it `{{title}}` is empty and `{{content}}` renders the literal
+  `undefined`.
+- Inside `{{#post}}` the scope has shifted, so a partial argument must be read as
+  `{{../recordType}}`. A bare `{{recordType}}` resolves against the post object
+  and comes out empty.
+
+**Adding a card type:**
+
+1. Write the renderer in `scripts/cards/<type>.js`
+2. Register it in the `RENDERERS` map in `scripts/cards/index.js`
+3. Add it to the relevant entry's `cards` array in `scripts/seed-record.js`
+4. Add its stylesheet under `assets/css/cards/` and import it in `screen.css`
+5. Re-seed: `pnpm ghost:records`
 
 **Testing changes:**
 
-1. Start Ghost: `docker compose ps` (verify running)
-1. Create test Page in Ghost Admin with exact slug
-1. Visit route: <http://localhost:3001/jobs/lancaster-county/sheriff/>
-1. Verify specific Page loads (not generic fallback)
-1. Delete Page, verify falls back to generic
-1. Check hardcoded fallback renders if both missing
+1. Start Ghost: `docker compose ps` (verify running, from the host)
+2. Seed records: `pnpm ghost:records`
+3. Reload routing: `pnpm ghost:refresh`
+4. Verify every permalink resolves: `pnpm ghost:verify`
+5. Visit a route:
+   <http://localhost:3001/jobs/lancaster-county/county-commissioner/>
 
 **Common mistakes:**
 
-- Slug typos (`job-agency-seats` vs `job-agency-seat`) - see TROUBLESHOOTING.md
-- Editing hardcoded HTML thinking it's the Page content
-- Not testing in actual Ghost (template syntax != runtime correctness)
-- Using Handlebars variables in Page content (Pages are static HTML only)
+- Expecting a template to read the data package at render time (it cannot)
+- Omitting `{{#post}}` in a `custom-*.hbs` template
+- Adding a collection without updating the `/articles/` exclusion filter
+- Editing `partials/generated/*` by hand (Gulp regenerates them)
+- Judging a card's appearance from Ghost Admin rather than the public URL
 
-See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for complete implementation guide.
+See [TROUBLESHOOTING.md](TROUBLESHOOTING.md) for symptom-by-symptom fixes.
 
 ## Devcontainer
 
 ### What It Is
 
-The devcontainer provides a **complete Ghost CMS environment** for theme development with live preview. It's a multi-container Docker setup with Ghost and Node.js pre-configured.
+The devcontainer provides a **complete Ghost CMS environment** for theme
+development with live preview. It's a multi-container Docker setup with Ghost and
+Node.js pre-configured.
 
 **Why use it:**
 
 - **Real Ghost instance**: Test templates with actual Ghost data and routing
 - **Live reload**: Theme changes automatically refresh in browser
-- **Consistent environment**: Same Node.js 24, Ghost 6.0+, and build tools as production
+- **Consistent environment**: Same Node.js 24, Ghost 6.0+, and build tools as
+  production
 - **Isolation**: Ghost and dependencies don't conflict with your system
 - **Zero config**: Open in VS Code and start developing immediately
 
@@ -163,12 +170,15 @@ The devcontainer provides a **complete Ghost CMS environment** for theme develop
 
 **VS Code:**
 
-1. Install [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
+1. Install
+   [Dev Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 1. Open this repository in VS Code
-1. Click "Reopen in Container" when prompted (or use Command Palette → "Dev Containers: Reopen in Container")
-1. Container builds and Ghost starts automatically (~2 minutes first time)
-1. Visit <http://localhost:3001/ghost> to create admin account
-1. Activate "headline" theme in Settings → Design
+1. Click "Reopen in Container" when prompted (or use Command Palette → "Dev
+   Containers: Reopen in Container")
+1. Container builds, Ghost starts, and `post-create.sh` seeds everything
+   (~2 minutes first time)
+1. Visit <http://localhost:3001/ghost> to log in
+1. Confirm "publicledger-headline-fork" is active in Settings → Design
 
 **GitHub Codespaces:**
 
@@ -176,63 +186,62 @@ The devcontainer provides a **complete Ghost CMS environment** for theme develop
 - Same devcontainer configuration runs in the cloud
 - Access Ghost at forwarded port 3001
 
-**First-time setup after container starts:**
+**After the container is up:**
 
 ```bash
-pnpm install          # Install theme dependencies
 pnpm dev          # Start asset compilation
 ```
 
 ### What's Inside
 
-**Base image**: `node:24-bookworm`
+**Base image**: `node:24-alpine`
 
-- Debian GNU/Linux 12 (bookworm)
-- Node.js 24 LTS with pnpm
-- Git, curl, wget, standard Unix tools
+- Node.js 24 with pnpm
+- Git, curl, ripgrep and standard Unix tools (musl runtime deps added in the
+  Dockerfile)
 
 **Docker Compose Services** (via `.devcontainer/docker-compose.yml`):
 
 1. **devcontainer** (workspace):
    - Node.js 24 environment
-   - Theme mounted at `/workspace`
+   - Repository mounted at `/workspace`
    - VS Code runs here
 
 2. **ghost-dev** (development Ghost):
-   - Ghost latest (6.0+ compatible)
+   - Ghost 6-alpine
    - SQLite database (fast, no external dependencies)
-   - Port 3001 → <http://localhost:3001>
+   - Published on the host at <http://localhost:3001>, listening on 2368
    - Auto-starts on container creation
-   - Theme live-mounted at `/var/lib/ghost/content/themes/headline`
+   - Theme live-mounted at
+     `/var/lib/ghost/content/themes/publicledger-headline-fork`
    - Volume: `ghost-dev-data` for persistent Ghost data
+
+Neither service sets `container_name:`. A fixed name is global to the Docker
+daemon, so a stack started from the CLI collided with one started by VS Code.
+`scripts/ghost-exec.sh` finds ghost-dev by its Compose service label instead.
 
 **Theme Mount**:
 
-- `/workspace` (your code) → `/var/lib/ghost/content/themes/headline` (Ghost's theme directory)
+- `/workspace` (your code) →
+  `/var/lib/ghost/content/themes/publicledger-headline-fork`
 - Changes to `.hbs`, `.css`, `.js` files trigger live reload
 - Compiled assets (`assets/built/*`) automatically refresh in browser
 
 **VS Code Extensions** (auto-installed via `devcontainer.json`):
 
-**Handlebars & Templates:**
-
-- `vscode.handlebars` - Handlebars syntax highlighting
-- `esbenp.prettier-vscode` - Prettier formatter for templates
-
-**JavaScript/CSS:**
-
+- `anthropic.claude-code` - Claude Code UI (the feature installs only the CLI)
 - `dbaeumer.vscode-eslint` - ESLint linter
-- `stylelint.vscode-stylelint` - CSS linting
+- `esbenp.prettier-vscode` - Prettier formatter
+- `andrejunges.Handlebars` - Handlebars syntax highlighting
+- `TryGhost.ghost` - Ghost theme support
 
-**Infrastructure:**
+`.vscode/extensions.json` lists a few more as workspace recommendations, incuding
+`redhat.vscode-yaml` for `routes.yaml` and
+`github.vscode-pull-request-github`.
 
-- `redhat.vscode-yaml` - YAML language support (for routes.yaml)
-- `github.vscode-pull-request-github` - GitHub PR integration
-
-**Environment variables**:
-
-- `$BROWSER` - Command to open URLs in host's default browser
-- `NODE_ENV=development` - Development mode for Ghost
+**Networking**: the devcontainer uses `network_mode: service:ghost-dev`, so there
+are no `forwardPorts`. Inside the container Ghost is at `localhost:2368`; port
+3001 is the host publish and is **not** reachable from inside.
 
 ### Configuration Files
 
@@ -240,43 +249,51 @@ pnpm dev          # Start asset compilation
 
 - Defines workspace container (Node.js 24)
 - Lists VS Code extensions to install
-- Mounts Docker socket for container management
-- Configures post-start command (`pnpm install`)
+- Persists Claude Code auth across rebuilds via a named volume
+- Runs `postCreateCommand` (`bash .devcontainer/post-create.sh`)
 
 **`.devcontainer/docker-compose.yml`**:
 
-- Multi-container environment (workspace, ghost-dev)
+- Multi-container environment (devcontainer, ghost-dev)
 - Volume definitions for persistent Ghost data
-- Port mappings (3001 for Ghost)
+- Port mapping (`3001:2368`)
 - Theme mount path configuration
 
-**`.devcontainer/QUICKREF.md`**:
+**`.devcontainer/post-create.sh`**:
 
-- Quick reference for Ghost commands
-- Devcontainer workflow tips
-- Troubleshooting common issues
+- Installs dependencies and builds assets
+- Waits for Ghost, then seeds in a load-bearing order
+- Uploads routes and verifies every collection permalink
+
+**`.devcontainer/README.md`**:
+
+- Operations reference: commands, architecture, seeding, troubleshooting
 
 ### Customization
 
-**Personal extensions**: Use VS Code's extension sync or install manually. They persist across container rebuilds.
+**Personal extensions**: Use VS Code's extension sync or install manually. They
+persist across container rebuilds.
 
-**Local modifications**: Edit `.devcontainer/devcontainer.json` locally (add to `.git/info/exclude` to avoid committing).
+**Local modifications**: Edit `.devcontainer/devcontainer.json` locally (add to
+`.git/info/exclude` to avoid committing).
 
-**Rebuild container**: Command Palette → "Dev Containers: Rebuild Container" after changing configuration.
+**Rebuild container**: Command Palette → "Dev Containers: Rebuild Container"
+after changing configuration.
 
 ### Troubleshooting
 
 **Ghost not accessible at localhost:3001:**
 
 - Check containers running: `docker compose ps`
-- View Ghost logs: `pnpm ghost:logs`
-- Restart Ghost: `pnpm ghost:restart`
+- View Ghost logs: `docker compose logs -f ghost-dev`
+- Restart Ghost from the host: `docker compose restart ghost-dev`
 
 **Theme not appearing in Ghost Admin:**
 
-- Verify theme mounted: `docker compose exec ghost-dev ls /var/lib/ghost/content/themes/`
-- Check for template errors: `pnpm ghost:logs`
-- Restart Ghost after major changes: `pnpm ghost:restart`
+- Verify theme mounted:
+  `docker compose exec ghost-dev ls /var/lib/ghost/content/themes/`
+- Check for template errors: `docker compose logs ghost-dev`
+- Restart Ghost after major changes: `docker compose restart ghost-dev`
 
 **Container won't start:**
 
@@ -290,6 +307,11 @@ pnpm dev          # Start asset compilation
 - Check for syntax errors in CSS/JS source files
 - Verify source files are in `assets/css/` and `assets/js/`, not `assets/built/`
 
+**Setup only half ran:**
+
+`postCreateCommand` fires only on container *create*, so a partial run never
+retries. Re-run by hand: `bash .devcontainer/post-create.sh`
+
 ### Manual Setup Alternative
 
 If not using devcontainer, you'll need:
@@ -298,20 +320,25 @@ If not using devcontainer, you'll need:
 - **Ghost CLI** (optional, for local Ghost instance)
 - **Ghost instance** (cloud or local) to test theme
 
-The devcontainer ensures exact version matches and provides complete Ghost environment.
+The devcontainer ensures exact version matches and provides complete Ghost
+environment.
 
 ## Code Quality Configuration
 
 ### Editor Configuration
 
-| File/Tool       | Purpose                  | Key Configuration                                        |
-| --------------- | ------------------------ | -------------------------------------------------------- |
-| `.editorconfig` | Cross-editor consistency | 2 spaces, LF line endings, UTF-8                         |
-| `package.json`  | Theme metadata           | Ghost version requirement (6.0+), Node requirement (24+) |
-| `gulpfile.js`   | Build system             | PostCSS compilation, JS minification, asset watching     |
-| GScan           | Ghost theme validator    | Validates templates, helpers, Ghost API compatibility    |
+| File/Tool                  | Purpose                  | Key Configuration                                        |
+| -------------------------- | ------------------------ | -------------------------------------------------------- |
+| `.editorconfig`            | Cross-editor consistency | 2 spaces, LF line endings, UTF-8, 80-col Markdown        |
+| `.prettierrc`              | Formatting               | 100 cols, double quotes, semicolons, Handlebars plugin   |
+| `eslint.config.js`         | JavaScript linting       | Flat config, ES2022, JSDoc rules                         |
+| `.markdownlint-cli2.jsonc` | Markdown linting         | 80-col prose, rules and ignores in one file              |
+| `package.json`             | Theme metadata           | Ghost version requirement (6.0+), Node requirement (24+) |
+| `gulpfile.js`              | Build system             | PostCSS compilation, JS minification, asset watching     |
+| GScan                      | Ghost theme validator    | Validates templates, helpers, Ghost API compatibility    |
 
-**No prettier/eslint config** - This is a Ghost theme using upstream's build system. Follow existing code style in templates and assets.
+`.prettierignore` excludes every upstream-owned file, so Prettier only reformats
+fork code. Markdown is excluded from Prettier entirely - `pnpm lint:md` owns it.
 
 ## Development Workflow
 
@@ -319,7 +346,8 @@ The devcontainer ensures exact version matches and provides complete Ghost envir
 
 **Pre-commit hooks** (recommended):
 
-Pre-commit hooks automatically validate your changes before each commit. Install once:
+Pre-commit hooks automatically validate your changes before each commit. Install
+once:
 
 ```bash
 # Install pre-commit (if not already installed)
@@ -333,12 +361,15 @@ pre-commit install
 
 **Hooks run automatically on `git commit`:**
 
-- **Prettier formatting** - Auto-formats code for consistency (Handlebars, CSS, JS, JSON, YAML)
+- **Prettier formatting** - Auto-formats fork code (Handlebars, CSS, JS, JSON,
+  YAML); upstream files are excluded
 - **ESLint validation** - Checks JavaScript code quality, auto-fixes issues
-- **GScan validation** - Ensures Ghost 6.0+ compatibility (catches breaking changes)
+- **GScan validation** - Ensures Ghost 6.0+ compatibility (catches breaking
+  changes)
 - **JSON syntax check** - Validates package.json and locales/\*.json
 - **YAML validation** - Checks GitHub Actions workflows and routes.yaml
-- **Built assets protection** - Prevents accidentally committing to assets/built/ (should edit source files)
+- **Built assets protection** - Prevents accidentally committing to
+  assets/built/ (should edit source files)
 
 **Manual hook execution:**
 
@@ -352,12 +383,13 @@ pre-commit run gscan          # Run specific hook
 ```bash
 pnpm test          # GScan validation
 pnpm lint          # ESLint JavaScript validation
+pnpm lint:md       # markdownlint
 pnpm zip           # Production build test
 ```
 
 **Check for errors:**
 
-- Template syntax errors in `pnpm ghost:logs`
+- Template syntax errors in `docker compose logs ghost-dev`
 - Broken Ghost helpers or context usage
 - Missing required templates (index.hbs, post.hbs, etc.)
 - CSS/JS compilation errors in `pnpm dev` output
@@ -373,13 +405,14 @@ pnpm zip           # Production build test
 
 - `assets/built/screen.css` - Compiled CSS
 - `assets/built/main.min.js` - Minified JavaScript
+- `partials/generated/*.hbs` - Entity pickers built from the mock data package
 
 ```bash
 # Development mode - watch and compile
 pnpm dev
 
 # Production build
-pnpm zip    # Creates dist/headline.zip
+pnpm zip    # Creates dist/publicledger-headline-fork.zip
 ```
 
 ### Code Quality
@@ -392,9 +425,8 @@ pnpm lint          # ESLint validation (reports issues)
 pnpm lint:fix      # Auto-fix ESLint issues
 
 # Format code
-pnpm exec prettier --write .              # Format all files
-pnpm exec prettier --check .              # Check formatting without changes
-npx prettier --write "**/*.hbs"     # Format Handlebars only
+pnpm format        # Prettier write
+pnpm format:check  # Check formatting without changes
 ```
 
 **ESLint checks:**
@@ -406,23 +438,35 @@ npx prettier --write "**/*.hbs"     # Format Handlebars only
 
 **Prettier formats:**
 
-- Handlebars templates (`*.hbs`) - 120 char width, HTML parser
+- Handlebars templates (`*.hbs`) - 120 char width
 - CSS (`*.css`) - 100 char width, PostCSS compatible
 - JavaScript (`*.js`) - 100 char width, double quotes, semicolons
 - JSON (`*.json`) - No trailing commas (strict JSON)
+- **Not** Markdown - `*.md` is in `.prettierignore`
 
 **Markdown linting:**
 
-All Markdown files must pass markdownlint validation:
+All Markdown must pass `pnpm lint:md`. Rules live in
+`.markdownlint-cli2.jsonc`:
 
+- **MD013**: Wrap prose at 80 columns, matching `.editorconfig`. Code blocks and
+  tables are exempt because commands and table rows cannot be wrapped.
 - **MD034**: Wrap bare URLs in `<https://example.com>` or `[text](url)` format
-- **MD040**: Specify language for code blocks (`` `bash` ``, `` `json` ``, `` `text` ``)
-- **MD060**: Align table columns with pipe characters
+- **MD040**: Specify language for code blocks (`bash`, `json`, `text`)
 - **MD031/MD032**: Blank lines required around code blocks and lists
+- **MD041**: Start each file with a top-level heading, or opt out with
+  `<!-- markdownlint-disable-file MD041 -->` for fragments
 
-Check the VS Code Problems panel for validation errors or use `get_errors()` in Copilot. Excluded: `docs-local/` (contains CSV data).
+```bash
+pnpm lint:md       # Report issues
+pnpm lint:md:fix   # Auto-fix what can be fixed
+```
 
-**Both run automatically on commit** via pre-commit hooks.
+**Excluded from linting:** `README.md`, `AGENTS.md` and `CLAUDE.md` are the three
+Markdown files that also exist upstream - reformatting them would be undone by
+the next sync. `docs-local/` is excluded because it holds CSV data.
+
+**All of these run automatically on commit** via pre-commit hooks.
 
 ### Running Validation
 
@@ -430,6 +474,9 @@ Check the VS Code Problems panel for validation errors or use `get_errors()` in 
 # Ghost compatibility check
 pnpm test          # Quick GScan validation
 pnpm validate      # Verbose GScan report with warnings
+
+# Fork identity
+pnpm validate:fork # LICENSE, author, contributors, build, GScan
 
 # Production package
 pnpm zip           # Validates + compiles + packages
@@ -447,81 +494,85 @@ pnpm zip           # Validates + compiles + packages
 
 ### Theme Build & Validation
 
-| Command         | Purpose                                          |
-| --------------- | ------------------------------------------------ |
-| `pnpm dev`      | Watch mode - auto-rebuild CSS/JS on changes      |
-| `pnpm test`     | GScan validation for Ghost 6.0+ compatibility    |
-| `pnpm validate` | Verbose GScan report with warnings               |
-| `pnpm zip`      | Build production theme zip (`dist/headline.zip`) |
-| `pnpm lint`     | ESLint JavaScript validation                     |
-| `pnpm lint:fix` | Auto-fix ESLint issues                           |
+| Command              | Purpose                                                      |
+| -------------------- | ------------------------------------------------------------ |
+| `pnpm dev`           | Watch mode - auto-rebuild CSS/JS on changes                  |
+| `pnpm test`          | GScan validation for Ghost 6.0+ compatibility                |
+| `pnpm validate`      | Verbose GScan report with warnings                           |
+| `pnpm validate:fork` | Fork identity, LICENSE, build and GScan checks               |
+| `pnpm zip`           | Build production zip (`dist/publicledger-headline-fork.zip`) |
+| `pnpm lint`          | ESLint JavaScript validation                                 |
+| `pnpm lint:fix`      | Auto-fix ESLint issues                                       |
+| `pnpm lint:md`       | markdownlint validation                                      |
+| `pnpm lint:md:fix`   | Auto-fix Markdown issues                                     |
+| `pnpm format`        | Prettier write                                               |
+| `pnpm format:check`  | Prettier check                                               |
 
 ### Ghost Management (Devcontainer)
 
-| Command | Purpose |
-| --------------------- | -------------------------------------------- |
-| `pnpm check-env` | Validate full environment setup |
-| `pnpm ghost:seed` | Sync from production (requires `.env`) |
-| `pnpm ghost:restart` | Restart Ghost container |
+| Command              | Purpose                                        |
+| -------------------- | ---------------------------------------------- |
+| `pnpm ghost:seed`    | Sync published pages from production (`.env`)  |
+| `pnpm ghost:records` | Seed one demo record per collection            |
+| `pnpm ghost:refresh` | Upload `routes.yaml` and reload the theme      |
+| `pnpm ghost:verify`  | Check that every collection permalink resolves |
+
+`pnpm ghost:restart` exists only to fail loudly. Restarting ghost-dev tears down
+the network namespace this container borrows, leaving it with no `eth0` and no
+DNS until it is itself restarted. Use `pnpm ghost:refresh`, or restart from the
+host and then restart the devcontainer too.
 
 **Ghost URLs:**
 
 - **Admin Panel**: <http://localhost:3001/ghost/> (from host browser)
 - **Public Site**: <http://localhost:3001/>
+- **Inside the devcontainer**: <http://localhost:2368/>
 - **Credentials**: `admin@example.com` / `RandomSecure123456789`
 
 ### Testing in Ghost
-
-**Development instance** (<http://localhost:3001>):
 
 ```bash
 # Start asset watcher
 pnpm dev
 
-# Check Ghost status
-pnpm ghost:check
+# Check Ghost is up (from inside the devcontainer)
+curl -sf http://localhost:2368/ghost/ && echo OK
 
-# View Ghost connection info
-pnpm ghost:info
-
-# Access Ghost Admin
-pnpm ghost:open
-# Or manually: open http://localhost:3001/ghost
+# Check every data route at once
+pnpm ghost:verify
 ```
 
-**View logs** (from host terminal or inside container with Docker CLI):
+**View logs** (from the host terminal):
 
 ```bash
-pnpm ghost:logs                    # Inside container
-# OR from host terminal:
-cd .devcontainer
 docker compose logs -f ghost-dev
 ```
 
-**Restart Ghost** (when needed):
+**Restart Ghost** (when genuinely needed):
 
 - **Via VS Code**: Command Palette → "Dev Containers: Rebuild Container"
-- **From container**: `pnpm ghost:restart`
-- **From host terminal**: `cd .devcontainer && docker compose restart ghost-dev`
+- **From host terminal**: `cd .devcontainer && docker compose restart ghost-dev`,
+  then restart the devcontainer
 
 **Manual testing checklist:**
 
-- Homepage (index.hbs) - post grid, pagination
+- Homepage (page.hbs via the `/` route → Ghost page `home`)
 - Post page (post.hbs) - content, author, images
 - Tag page (tag.hbs) - filtered posts
 - Author page (author.hbs) - author bio, posts
+- Every collection index and one detail record each
 - Search functionality
 - Mobile responsiveness
-- Custom templates (custom-\*.hbs)
 - Translations (locales/\*.json)
 
 **Common workflows:**
 
-1. **Template changes**: Edit `.hbs` files → Ghost auto-reloads → hard refresh browser
-1. **CSS changes**: Edit `assets/css/*.css` → `pnpm dev` compiles → hard refresh browser
-1. **JS changes**: Edit `assets/js/*.js` → `pnpm dev` compiles → hard refresh browser
-1. **Route changes**: Edit `routes.yaml` → rebuild theme → restart Ghost → hard refresh
-1. **Data changes**: Edit test mocks → `pnpm dev` → verify in data pages
+1. **Template changes**: Edit `.hbs` files → Ghost auto-reloads → hard refresh
+1. **CSS changes**: Edit `assets/css/*.css` → `pnpm dev` compiles → hard refresh
+1. **JS changes**: Edit `assets/js/*.js` → `pnpm dev` compiles → hard refresh
+1. **Route changes**: Edit `routes.yaml` → `pnpm ghost:refresh` →
+   `pnpm ghost:verify`
+1. **Card changes**: Edit `scripts/cards/*` → `pnpm ghost:records` → hard refresh
 
 ## Ghost Theme Architecture
 
@@ -529,44 +580,62 @@ docker compose logs -f ghost-dev
 
 Ghost uses Handlebars templates with specific routing:
 
-| Template       | Route                            | Context               |
-| -------------- | -------------------------------- | --------------------- |
-| `index.hbs`    | `/` (homepage)                   | `posts`, `pagination` |
-| `home.hbs`     | `/` (if exists, overrides index) | `posts`, `pagination` |
-| `post.hbs`     | `/post-slug/`                    | `post`, `author`      |
-| `page.hbs`     | `/page-slug/`                    | `page`                |
-| `tag.hbs`      | `/tag/tag-slug/`                 | `tag`, `posts`        |
-| `author.hbs`   | `/author/author-slug/`           | `author`, `posts`     |
-| `custom-*.hbs` | Manual selection in Ghost Admin  | Varies by page type   |
+| Template       | Route                                                | Context                   |
+| -------------- | ---------------------------------------------------- | ------------------------- |
+| `index.hbs`    | `/articles/` collection                              | `posts`, `pagination`     |
+| `page.hbs`     | `/` (routes.yaml maps it to the Ghost page `home`)   | `page`                    |
+| `home.hbs`     | Unused - routes.yaml forces the static page homepage | —                         |
+| `post.hbs`     | `/post-slug/`                                        | `post`, `author`          |
+| `tag.hbs`      | `/tag/tag-slug/`                                     | `tag`, `posts`            |
+| `author.hbs`   | `/author/author-slug/`                               | `author`, `posts`         |
+| `job.hbs` etc. | Collection index                                     | `posts`                   |
+| `custom-*.hbs` | Manual selection in Ghost Admin                      | Nothing until `{{#post}}` |
 
 **Partials** (`partials/*.hbs`):
 
 - Reusable components included with `{{> partial-name}}`
 - Example: `{{> loop-grid}}` for post grid layout
+- `partials/pl-record.hbs` is the shared body for every collection detail
+  template
+- `partials/generated/*` is build output - never edit
 
 **Context objects**: <https://ghost.org/docs/themes/context/>
 
 ### Ghost Helpers
 
-**Version constraints**: This theme supports Ghost 6.0+. Check helper compatibility:
+**Version constraints**: This theme supports Ghost 6.0+. Check helper
+compatibility:
 
 - <https://ghost.org/docs/themes/helpers/>
 
 **Common helpers:**
 
 ```handlebars
-{{! Content }} {{content}} {{! Post/page HTML content }} {{excerpt}} {{! Post excerpt }} {{title}}
-{{! Post/page title }} {{! Images }} {{img_url feature_image size="l"}} {{! Responsive image URL }}
-{{#if feature_image}}...{{/if}} {{! Conditional rendering }} {{! Loops }} {{#foreach posts}}
+{{! Content }}
+{{content}}
+{{excerpt}}
+{{title}}
+
+{{! Images }}
+{{img_url feature_image size="l"}}
+{{#if feature_image}}...{{/if}}
+
+{{! Loops }}
+{{#foreach posts}}
   {{title}}
-{{/foreach}} {{! Translations }} {{t "Subscribe"}} {{! From locales/*.json }} {{! Pagination }}
-{{pagination}} {{! Pagination links }}
+{{/foreach}}
+
+{{! Translations }}
+{{t "Subscribe"}}
+
+{{! Pagination }}
+{{pagination}}
 ```
 
 **Testing helpers:**
 
 - View page in Ghost dev instance
-- Check `pnpm ghost:logs` for errors
+- Check `docker compose logs ghost-dev` for errors
 - Run `pnpm test` to validate Ghost 6.0 compatibility
 
 ### Internationalization
@@ -599,26 +668,36 @@ Ghost uses Handlebars templates with specific routing:
 
 ```json
 {
-  "name": "publicledger-headline-fork", // NEVER CHANGE
+  "name": "publicledger-headline-fork",
   "author": {
-    "name": "Gasworks Data", // NEVER CHANGE
-    "email": "info@gasworksdata.com" // NEVER CHANGE
+    "name": "Ghost Foundation",
+    "email": "hello@ghost.org"
   },
+  "contributors": [
+    {
+      "name": "Gasworks Data",
+      "email": "info@gasworksdata.com"
+    }
+  ],
   "engines": {
-    "node": ">=24.0.0", // NEVER CHANGE (devcontainer requirement)
-    "ghost": ">=6.0.0" // Safe to update if needed
-  },
-  "scripts": {
-    "ghost:dev": "...", // NEVER CHANGE (fork scripts)
-    "ghost:logs": "...", // NEVER CHANGE
-    "ghost:restart": "..." // NEVER CHANGE
+    "node": ">=24.0.0",
+    "ghost": ">=6.0.0"
   }
 }
 ```
 
+- `name` - never change; deployment automation depends on it
+- `author` - never change. **The MIT license requires Ghost Foundation to remain
+  the author.** Fork attribution belongs in `contributors`, and
+  `pnpm validate:fork` fails if this is wrong.
+- `engines.node` - never change (devcontainer requirement)
+- `engines.ghost` - safe to update if needed
+- Fork scripts (`ghost:*`, `validate:fork`, `lint*`, `format*`) - preserve
+
 **`locales/en.json`:**
 
-- Custom strings: "Access site", "Password" (intentionally different from upstream)
+- Custom strings: "Access site", "Password" (intentionally different from
+  upstream)
 
 **`.devcontainer/`:**
 
@@ -628,11 +707,17 @@ Ghost uses Handlebars templates with specific routing:
 
 - Deployment automation is fork-specific
 
+**`README.md`, `AGENTS.md`, `CLAUDE.md`:**
+
+- The only Markdown files that also exist upstream. Only the fork note at the top
+  of `README.md` is ours to edit.
+
 ### Upstream Sync Protocol
 
 **Before editing any file:**
 
-1. Check if upstream modified it: `git log upstream/main..HEAD -- path/to/file`
+1. Check whether it exists upstream:
+   `git ls-tree -r upstream/main --name-only | grep path/to/file`
 1. Review [sync/README.md](sync/README.md) for known conflicts
 1. Mark fork-specific changes: `{{!-- FORK CUSTOM: reason --}}`
 
@@ -645,6 +730,7 @@ Ghost uses Handlebars templates with specific routing:
 **Low conflict risk files:**
 
 - `custom-*.hbs` - Fork-only custom templates
+- `scripts/*` - Fork-only
 - `.devcontainer/*` - Fork-only
 - `.github/workflows/*` - Fork-only
 
@@ -671,6 +757,10 @@ git diff upstream/main -- package.json
 
 # If upstream updated recently, sync with upstream instead
 ```
+
+Fork-only dev tools (ESLint, Prettier, markdownlint-cli2, `@tryghost/admin-api`)
+are listed in `_comment_devDependencies`; keep them when taking upstream's
+versions for everything else.
 
 ### GitHub Actions
 
@@ -727,7 +817,8 @@ git reset --hard backup-before-sync-20260630-143022
 git push origin staging --force-with-lease
 ```
 
-See [sync/README.md](sync/README.md) for detailed upstream sync and rollback procedures.
+See [sync/README.md](sync/README.md) for detailed upstream sync and rollback
+procedures.
 
 ## Repository Setup
 
@@ -748,7 +839,8 @@ Configure in GitHub → Settings → Branches → Branch protection rules.
 - ✅ Do not allow bypassing the above settings
 - ✅ Restrict who can push (changes only via PRs from `staging`)
 
-**Workflow:** `staging → PR → main (tests run) → merge → deploy-theme.yaml triggers`
+**Workflow:** `staging → PR → main (tests run) → merge → deploy-theme.yaml
+triggers`
 
 #### staging (Development Branch)
 
@@ -774,13 +866,15 @@ Settings → Secrets and variables → Actions → Repository secrets:
 **`GHOST_ADMIN_API_KEY`**
 
 - Format: `<id>:<secret>` (long hexadecimal string)
-- Find: Ghost Admin → Settings → Integrations → Custom Integration → Admin API Key
+- Find: Ghost Admin → Settings → Integrations → Custom Integration → Admin API
+  Key
 
 ### Fork Integrity Validation
 
 #### Automated Validation
 
-The fork includes automated validation to prevent license violations and upstream drift:
+The fork includes automated validation to prevent license violations and upstream
+drift:
 
 **`.github/workflows/validate-fork.yaml`** (runs on every PR, push, and weekly)
 
@@ -847,7 +941,7 @@ git restore LICENSE
 
 **Theme validation failed:**
 
-- Fix GScan errors: `pnpm validate --verbose`
+- Fix GScan errors: `pnpm validate`
 - Test build: `pnpm zip`
 
 **Fork behind upstream:**
@@ -859,7 +953,8 @@ git restore LICENSE
 
 Settings → General → Default branch: `main`
 
-Why main? New clones get production-ready code, releases reference main, upstream sync targets main.
+Why main? New clones get production-ready code, releases reference main, upstream
+sync targets main.
 
 Developers: `git checkout staging`
 
@@ -870,7 +965,7 @@ Developers: `git checkout staging`
 1. Access Ghost Admin: <http://localhost:3001/ghost>
 1. Navigate to Settings → Design
 1. Click "Change theme"
-1. Select "headline" from installed themes
+1. Select "publicledger-headline-fork" from installed themes
 1. Click "Activate"
 
 ### Testing Content
@@ -884,16 +979,17 @@ Developers: `git checkout staging`
 
 **Test different contexts:**
 
-- Homepage (post grid)
+- Homepage (static page)
 - Single post (post.hbs)
 - Tag archive (tag.hbs)
 - Author archive (author.hbs)
+- Each data collection index and detail
 
 **Custom templates:**
 
-1. Pages → New page
+1. Open a post or page
 1. Settings (gear icon) → Template
-1. Select custom template (e.g., "Full feature image")
+1. Select a custom template (e.g., "Job agency seat")
 
 ### Content Seeding
 
@@ -902,84 +998,90 @@ Local Ghost content comes from two sources, seeded once at container creation by
 
 **1. Published pages from production** (`pnpm ghost:seed`)
 
-Sync is **one-way, production → local**. Production is the source of truth for editorial
-content; local Ghost is disposable. Configure in `.env`:
+Sync is **one-way, production → local**. Production is the source of truth for
+editorial content; local Ghost is disposable. Configure in `.env`:
 
 ```bash
 GHOST_PRD_URL=https://your-production-ghost.com
 GHOST_PRD_KEY=your-content-api-key
 ```
 
-Use the **Content API key**, never the Admin API key. Ghost Admin API keys cannot be
-scoped — one grants full read/write access to members' PII, staff accounts, and settings,
-and `.env` is injected into the devcontainer where every process can read it. The seeder
-only needs to read published pages. Because the Content API returns published pages only,
-production **drafts are not synced**.
+Use the **Content API key**, never the Admin API key. Ghost Admin API keys cannot
+be scoped — one grants full read/write access to members' PII, staff accounts,
+and settings, and `.env` is injected into the devcontainer where every process
+can read it. The seeder only needs to read published pages. Because the Content
+API returns published pages only, production **drafts are not synced**.
 
-**2. Local card pages** (`./scripts/seed-all-cards.sh`)
+Returning almost nothing is normal: production currently exposes only a couple of
+published pages.
 
-Reads the HTML in `data/fragments/` and writes it into Ghost pages, then
-`pnpm ghost:refresh` re-uploads `routes.yaml` so the new pages resolve. Pages created
-directly in SQLite are invisible to Ghost's router until routes are re-registered.
+**2. Demo records, one per collection** (`pnpm ghost:records`)
+
+Runs `scripts/seed-demo-records.sh` inside ghost-dev, which calls
+`scripts/seed-record.js` once per collection. Each record is created through the
+Ghost Admin API with:
+
+- its internal `#hash-*` tag and its parent tag
+- the right `custom-*` template selected
+- one Lexical `html` card per entry in that type's `cards` array, rendered
+  server-side by `scripts/cards/*`
+
+Slugs come from the mock `@publicledger/data` package so the cards resolve to
+real records.
+
+```bash
+pnpm ghost:records   # seed every collection
+pnpm ghost:refresh   # upload routes.yaml and reload the theme
+pnpm ghost:verify    # confirm every permalink resolves
+```
+
+Records are written through the Admin API rather than straight to SQLite, so
+Ghost registers the new URLs immediately and no restart is needed.
 
 #### ⚠️ ghost:seed deletes every page, with no prompt
 
-`ghost-seed.js` runs `DELETE FROM posts WHERE type='page'` before inserting. There is no
-confirmation and no local-change detection. Two consequences:
+`ghost-seed.js` deletes every page before inserting. There is no confirmation and
+no local-change detection. Two consequences:
 
-- **Order is load-bearing:** `ghost:seed` → `seed-all-cards.sh` → `ghost:refresh`. Running
-  `ghost:seed` after seeding cards deletes them.
-- Seeding runs from `postCreateCommand`, not `postStartCommand`, so an ordinary container
-  restart cannot wipe local work. Re-run by hand with
+- **Order is load-bearing:** `ghost:seed` → `ghost:records` → `ghost:refresh`.
+  Running `ghost:seed` afterwards destroys the seeded content.
+- Seeding runs from `postCreateCommand`, not `postStartCommand`, so an ordinary
+  container restart cannot wipe local work. Re-run by hand with
   `bash .devcontainer/post-create.sh`.
 
-Never create permanent fragment pages in local Ghost — they are destroyed on the next
-seed. Create them in production, then re-sync. To keep an experiment, export it first via
+Never keep anything permanent in local Ghost — it is destroyed on the next seed.
+Create it in production, then re-sync. To keep an experiment, export it first via
 Ghost Admin → Settings → Labs → Export.
-
-#### Fragment naming
-
-Pattern: `{template}-{param1}-{param2}-…`, lowercase with hyphens, matching URL segments
-exactly. A page's slug is what binds it to a route's `data:` property.
-
-```text
-job-agency-seat-lancaster-county-sheriff
-election-agency-seat-year-lancaster-county-sheriff-2024
-```
-
-Fragments hold editorial HTML only — copy, formatting, SEO text. They must not contain
-Handlebars variables (they will not render) or dynamic data; templates handle that in a
-separate section. See [docs/TEMPLATE_FRAGMENTS.md](docs/TEMPLATE_FRAGMENTS.md) for the
-full `routes.yaml` + page-fragment architecture.
 
 #### Verifying a seed
 
-```bash
-docker exec ghost-dev sqlite3 /var/lib/ghost/content/data/ghost-dev.db \
-  "SELECT slug, title FROM posts WHERE type='page';"
+`updated_at` is **not** evidence a seed ran — Ghost does not bump it for a no-op
+edit. Check the revision history or the routes themselves:
 
-curl -I http://localhost:3001/jobs/lancaster-county/county-commissioner/
+```bash
+bash scripts/ghost-exec.sh sqlite3 /var/lib/ghost/content/data/ghost-dev.db \
+  "SELECT post_id, created_at FROM post_revisions ORDER BY created_at DESC LIMIT 5;"
+
+pnpm ghost:verify
 ```
 
-If pages exist in SQLite but 404 in the browser, routes were not re-registered — run
-`pnpm ghost:refresh`.
+If records exist in SQLite but 404 in the browser, routes were not re-registered
+— run `pnpm ghost:refresh`.
 
 ### Theme Settings
 
-Ghost Admin → Settings → Design → Configure theme:
+Ghost Admin → Settings → Design → Configure theme.
 
-- Navigation layout (logo position, stacked)
-- Typography options
-- Color scheme customization
-- Social media links
-
-**Note**: Settings defined in `package.json` under `config.custom`
+**Note**: the fork removed the entire `config.custom` block from `package.json`
+and hardcoded those choices (Cardo/Manrope fonts, left logo, light header) in
+`default.hbs` and `assets/css/fonts-custom.css`. If an upstream sync reintroduces
+`config.custom`, remove it again — see [sync/README.md](sync/README.md).
 
 ## Common Gotchas
 
 ### Editing Built Assets
 
-❌ **Don't edit** `assets/built/screen.css` or `assets/built/main.min.js`  
+❌ **Don't edit** `assets/built/*` or `partials/generated/*`  
 ✅ **Do edit** `assets/css/*.css` and `assets/js/*.js`, then run `pnpm dev`
 
 ### Ghost Helper Version
@@ -990,11 +1092,17 @@ Ghost Admin → Settings → Design → Configure theme:
 ### Template Context
 
 ❌ **Don't assume** all context objects available everywhere  
-✅ **Do check** <https://ghost.org/docs/themes/context/> for route-specific context
+✅ **Do check** <https://ghost.org/docs/themes/context/> for route-specific
+context, and open `{{#post}}` in every `custom-*.hbs`
+
+### Expecting Live Data
+
+❌ **Don't expect** a template to read `@publicledger/data` at render time  
+✅ **Do re-seed** with `pnpm ghost:records` after data or renderer changes
 
 ### Package.json Identity
 
-❌ **Don't change** name, author, engines.node, ghost:\* scripts  
+❌ **Don't change** name, author, engines.node, fork scripts  
 ✅ **Do preserve** fork identity fields (see "Never Change" section)
 
 ### Upstream Conflicts
@@ -1006,7 +1114,7 @@ Ghost Admin → Settings → Design → Configure theme:
 
 Contact a developer if you see:
 
-- **Ghost crashes** on startup (check `pnpm ghost:logs`)
+- **Ghost crashes** on startup (check `docker compose logs ghost-dev`)
 - **White screen** in Ghost Admin or frontend
 - **Database errors** in Ghost logs
 - **Theme validation failures** that can't be resolved (GScan errors)
@@ -1022,6 +1130,8 @@ Contact a developer if you see:
 - **Upstream Repository**: <https://github.com/TryGhost/Headline>
 - **Fork Documentation**:
   - [DEVCONTAINER.md](DEVCONTAINER.md) - Devcontainer setup and workflow
+  - [.devcontainer/README.md](.devcontainer/README.md) - Operations reference
+  - [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Symptom-by-symptom fixes
   - [sync/README.md](sync/README.md) - Upstream sync procedures
   - [AI_DEVELOPMENT.md](AI_DEVELOPMENT.md) - AI agent development guidelines
   - [AGENT_LESSONS.md](AGENT_LESSONS.md) - Common mistakes to avoid

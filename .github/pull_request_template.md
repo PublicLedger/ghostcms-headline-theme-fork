@@ -1,15 +1,19 @@
+<!-- markdownlint-disable-file MD041 -->
 <!--
 This PR template enforces consistent PR description format.
+GitHub renders the PR title as the top-level heading, so this file starts at H2.
 Delete instructional comments before submitting.
 -->
 
 ## Summary
 
-<!-- Brief description of what changed and why. Keep it simple and direct for developers and designers. -->
+<!-- Brief description of what changed and why. Keep it simple and direct for
+developers and designers. -->
 
 ## Work
 
-<!-- List all changes as one bullet tree. Bold parent bullets that act like subheadings. -->
+<!-- List all changes as one bullet tree. Bold parent bullets that act like
+subheadings. -->
 
 - **Feature/Change category**
   - Specific implementation detail
