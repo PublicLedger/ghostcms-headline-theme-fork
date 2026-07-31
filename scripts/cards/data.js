@@ -1,5 +1,5 @@
 /**
- * Server-side reader for the @publicledger/data package.
+ * Server-side reader for the `@publicledger/data` package.
  *
  * Ghost themes are sandboxed — no server-side JS, no custom Handlebars helpers, and
  * {{#get}} only queries Ghost's own resources. So a template can never read this
@@ -117,7 +117,11 @@ const getOffice = idOrSlug =>
 const getCandidate = idOrSlug =>
   candidates().find(c => c.id === idOrSlug || c.slug === idOrSlug) || null;
 
-/** Escape a value for interpolation into HTML. */
+/**
+ * Escape a value for interpolation into HTML.
+ * @param {string|null|undefined} value the value to escape
+ * @returns {string} the escaped value, or "" for null/undefined
+ */
 function e(value) {
   if (value === null || value === undefined) return "";
   return String(value)
@@ -127,7 +131,11 @@ function e(value) {
     .replace(/"/g, "&quot;");
 }
 
-/** Format a number as whole US dollars. */
+/**
+ * Format a number as whole US dollars.
+ * @param {number} amount the number to format
+ * @returns {string} e.g. "$1,234"
+ */
 const currency = amount =>
   new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -136,7 +144,11 @@ const currency = amount =>
     maximumFractionDigits: 0,
   }).format(amount || 0);
 
-/** "AHMED AHMED" -> "Ahmed Ahmed" */
+/**
+ * "AHMED AHMED" -> "Ahmed Ahmed"
+ * @param {string} value the string to title-case
+ * @returns {string} the title-cased string
+ */
 const titleCase = value =>
   String(value || "")
     .toLowerCase()

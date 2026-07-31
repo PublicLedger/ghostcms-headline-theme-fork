@@ -1,5 +1,5 @@
 /**
- * Display labels for codes owned by the @publicledger/data package.
+ * Display labels for codes owned by the `@publicledger/data` package.
  *
  * Server-side only: these are consumed by the card renderers in this directory,
  * which run in Node at seed/build time. They are deliberately NOT in assets/js/ —

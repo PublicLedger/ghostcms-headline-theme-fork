@@ -12,8 +12,12 @@
 
 const { partyLabel } = require("./constants");
 
-/** "2023-05-16" -> "May 16, 2023". Formatted in UTC: the package stores bare dates,
- *  and a local-timezone read of midnight UTC lands on the previous day west of GMT. */
+/** 
+ * create a long date string from an ISO date
+ * - e.g., "2023-05-16" -> "May 16, 2023" formatted in UTC
+ * @param {string} iso the ISO date string
+ * @returns {string} the long date string, or the original string if invalid
+ */
 function longDate(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso || "";
