@@ -29,9 +29,16 @@ fi
 if git diff --cached --name-only | grep -q "^package.json$"; then
     echo "Checking package.json author field..."
     
-    # Get staged package.json
-    staged_author=$(git show :package.json | jq -r '.author.name' 2>/dev/null || echo "")
-    
+    # Read the STAGED package.json with node, not jq: the devcontainer is
+    # node:24-alpine and has no jq. The old `jq ... || echo ""` swallowed the
+    # "command not found" and blocked every commit that staged package.json,
+    # reporting an empty author as a license violation.
+    staged_author=$(git show :package.json |
+        node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).author?.name ?? ''" 2>/dev/null) || {
+        echo -e "${RED}❌ ERROR: staged package.json is not valid JSON${NC}"
+        exit 1
+    }
+
     if [[ "$staged_author" != "Ghost Foundation" ]]; then
         echo -e "${RED}❌ ERROR: package.json author must be 'Ghost Foundation'${NC}"
         echo ""

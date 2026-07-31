@@ -56,3 +56,14 @@ repos:
         language: system
         files: \.js$
         exclude: ^(node_modules|assets/built|dist)/
+
+      # Markdown linting. Rules, globs and ignores all live in
+      # .markdownlint-cli2.jsonc, so this runs with no filenames: passing paths
+      # would bypass the ignore list that protects the upstream-owned
+      # README.md / AGENTS.md / CLAUDE.md.
+      - id: markdownlint
+        name: markdownlint
+        entry: npx markdownlint-cli2
+        language: system
+        files: \.md$
+        pass_filenames: false

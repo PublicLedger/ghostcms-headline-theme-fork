@@ -6,7 +6,12 @@
       "Bash(docker run *)",
       "Bash(rm -f /tmp/claude-1000/-home-tiff-dev-ghostcms-headline-theme-fork/1456b728-bd7c-4401-b15d-49034ee8050e/scratchpad/seedtest.db /tmp/claude-1000/-home-tiff-dev-ghostcms-headline-theme-fork/1456b728-bd7c-4401-b15d-49034ee8050e/scratchpad/content.json)",
       "Bash(npx gscan *)",
-      "Bash(docker compose *)"
+      "Bash(docker compose *)",
+      "Bash(git rev-list *)",
+      "Bash(pnpm lint:md)",
+      "Bash(echo \"=== EXIT: $? ===\")",
+      "Bash(command -v python3 python)",
+      "Bash(node -e \"const y=require\\('js-yaml'\\); const fs=require\\('fs'\\); y.load\\(fs.readFileSync\\('routes.yaml','utf8'\\)\\); console.log\\('routes.yaml parses ✓ \\(js-yaml resolvable\\)'\\)\")"
     ]
   }
 }

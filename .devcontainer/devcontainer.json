@@ -59,7 +59,7 @@
   "postCreateCommand": "bash .devcontainer/post-create.sh",
 
   // Wait for Ghost setup to complete before allowing user interaction
-  "postStartCommand": "timeout 120 sh -c 'while [ ! -f /workspace/.ghost-setup-complete ]; do sleep 1; done' && echo '✓ Ghost is ready at http://localhost:3001/ghost/' || echo '⚠ Ghost setup timeout - check: pnpm ghost:logs'",
+  "postStartCommand": "timeout 120 sh -c 'while [ ! -f /workspace/.ghost-setup-complete ]; do sleep 1; done' && echo '✓ Ghost is ready at http://localhost:3001/ghost/' || echo '⚠ Ghost setup timeout'",
 
   // Comment out to connect as root instead
   "remoteUser": "node"

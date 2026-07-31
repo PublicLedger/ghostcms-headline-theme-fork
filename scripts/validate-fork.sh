@@ -26,13 +26,23 @@ else
     echo -e "${GREEN}✅ LICENSE matches upstream${NC}"
 fi
 
+# Read a field from package.json with node rather than jq. The devcontainer is
+# node:24-alpine and has no jq; the previous `jq ... || echo ""` swallowed the
+# "command not found" and reported an empty author as a real failure. GitHub
+# runners do ship jq, so this only ever broke locally.
+pkg_field() {
+    node -p "const v=require('./package.json')$1; v===undefined||v===null?'':String(v)"
+}
+
 # 2. package.json author field
 echo ""
 echo "2️⃣  Checking package.json author..."
-author=$(jq -r '.author.name' package.json 2>/dev/null || echo "")
-if [[ "$author" != "Ghost Foundation" ]]; then
+if ! author=$(pkg_field ".author?.name" 2>/dev/null); then
+    echo -e "${RED}❌ could not read package.json (invalid JSON?)${NC}"
+    ERRORS=$((ERRORS + 1))
+elif [[ "$author" != "Ghost Foundation" ]]; then
     echo -e "${RED}❌ author must be 'Ghost Foundation'${NC}"
-    echo "Current: $author"
+    echo "Current: ${author:-<empty>}"
     ERRORS=$((ERRORS + 1))
 else
     echo -e "${GREEN}✅ author is 'Ghost Foundation'${NC}"
@@ -41,11 +51,12 @@ fi
 # 3. Contributors field
 echo ""
 echo "3️⃣  Checking contributors field..."
-if ! jq -e '.contributors' package.json > /dev/null 2>&1; then
-    echo -e "${YELLOW}⚠️  contributors field missing${NC}"
+contributors=$(pkg_field ".contributors?.length" 2>/dev/null || echo "")
+if [[ -z "$contributors" || "$contributors" == "0" ]]; then
+    echo -e "${YELLOW}⚠️  contributors field missing or empty${NC}"
     echo "Add your attribution to contributors array"
 else
-    echo -e "${GREEN}✅ contributors field present${NC}"
+    echo -e "${GREEN}✅ contributors field present ($contributors entries)${NC}"
 fi
 
 # 4. Upstream sync status
