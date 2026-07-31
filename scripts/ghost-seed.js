@@ -16,7 +16,7 @@
 const https = require("https");
 const http = require("http");
 const { URL } = require("url");
-const { execSync } = require("child_process");
+const { execFileSync } = require("child_process");
 const fs = require("fs");
 
 // Configuration
@@ -65,9 +65,15 @@ function ghostRequest(baseUrl, apiKey, endpoint, method = "GET") {
 }
 
 // Execute SQLite command
+//
+// Runs sqlite3 directly rather than through a shell. The previous version built
+// a shell string and escaped only double quotes, which left backticks and $()
+// live -- and `query` carries page titles and HTML fetched from production, so
+// a page title could run commands in the devcontainer. Passing argv avoids the
+// shell entirely, so no escaping is needed.
 function sqliteExec(query) {
   try {
-    const result = execSync(`sqlite3 "${DB_PATH}" "${query.replace(/"/g, '\\"')}"`, {
+    const result = execFileSync("sqlite3", [DB_PATH, query], {
       encoding: "utf8",
       stdio: ["pipe", "pipe", "pipe"],
     });
@@ -109,8 +115,18 @@ function copyRoutesToGhost() {
   // ghost-exec.sh resolves the container by Compose service label — it has no fixed
   // name, see the header of .devcontainer/docker-compose.yml.
   try {
-    execSync(
-      `bash /workspace/scripts/ghost-exec.sh sh -c 'mkdir -p /var/lib/ghost/content/settings && cp /var/lib/ghost/content/themes/publicledger-headline-fork/routes.yaml ${ghostRoutesPath}'`,
+    // Destination is passed as $1 rather than interpolated into the sh -c
+    // string, so the path can never be read as shell syntax.
+    execFileSync(
+      "bash",
+      [
+        "/workspace/scripts/ghost-exec.sh",
+        "sh",
+        "-c",
+        'mkdir -p /var/lib/ghost/content/settings && cp /var/lib/ghost/content/themes/publicledger-headline-fork/routes.yaml "$1"',
+        "_",
+        ghostRoutesPath,
+      ],
       { stdio: "pipe" }
     );
     return true;
@@ -118,21 +134,6 @@ function copyRoutesToGhost() {
     console.log(`  ⚠ Failed to copy routes.yaml: ${err.message}`);
     return false;
   }
-}
-
-// Update local setting
-function updateLocalSetting(key, value) {
-  const jsonValue = JSON.stringify(value);
-  const query = `UPDATE settings SET value = ${sqlEscape(jsonValue)} WHERE key = ${sqlEscape(key)};`;
-  sqliteExec(query);
-}
-
-// Get page slug by ID
-function getPageSlugById(pageId) {
-  const result = sqliteExec(
-    `SELECT slug FROM posts WHERE id = ${sqlEscape(pageId)} AND type='page';`
-  );
-  return result || null;
 }
 
 // Get existing page slugs from local database

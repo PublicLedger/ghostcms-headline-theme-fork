@@ -66,13 +66,17 @@ function selector(name) {
  * @returns {string} the concatenated admin CSS
  */
 function readAdminCss() {
+  // The assets path is passed as $1 rather than interpolated into the sh -c
+  // string, so it is data to the shell rather than part of the command.
   const list = execFileSync(
     "bash",
     [
       path.join(THEME_ROOT, "scripts", "ghost-exec.sh"),
       "sh",
       "-c",
-      `grep -o 'assets/[a-zA-Z0-9._-]*\\.css' ${ADMIN_ASSETS}/index.html | sort -u`,
+      "grep -o 'assets/[a-zA-Z0-9._-]*\\.css' \"$1\"/index.html | sort -u",
+      "_",
+      ADMIN_ASSETS,
     ],
     { encoding: "utf8" }
   )
