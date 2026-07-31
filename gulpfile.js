@@ -129,15 +129,17 @@ function cardPartials(done) {
   done();
 }
 
+// FORK CUSTOM: publish the data package to assets/built/data/ for the browser.
+// The source is resolved by scripts/cards/data.js — the SAME resolver the card
+// seeder uses — so the build and the seeded post bodies can never disagree about
+// which data they read. Installing the real @publicledger/data package is all it
+// takes to switch both over; nothing here names the mock.
 function dataCopy(done) {
-  // Use mock @publicledger/data package for development
-  // In production, this will come from the real NPM package
-  const mockPackagePath = "test/mocks/publicledger-data/data";
-  const dataSource = fs.existsSync(mockPackagePath)
-    ? `${mockPackagePath}/**/*.json`
-    : "data/**/*.json"; // Fallback if real package is installed
-
-  pump([src(dataSource, { encoding: false }), dest("assets/built/data/")], handleError(done));
+  const dataRoot = require("./scripts/cards/data").root();
+  pump(
+    [src(`${dataRoot}/**/*.json`, { encoding: false }), dest("assets/built/data/")],
+    handleError(done)
+  );
 }
 
 function zipper(done) {
@@ -188,8 +190,14 @@ const cssWatcher = () => watch('assets/css/**/*.css', css);
 const jsWatcher = () => watch('assets/js/**/*.js', js);
 const dataLoaderWatcher = () =>
   watch(["assets/js/data-loader.js", "assets/js/cards/*.js"], dataLoader);
-const dataWatcher = () =>
-  watch("test/mocks/publicledger-data/data/**/*.json", series(cardPartials, dataCopy));
+// FORK CUSTOM: only worth watching while the data lives in this repo. Once the real
+// package is installed the files sit in node_modules and change only on reinstall,
+// so watching them would cost a large recursive watch for nothing.
+const dataWatcher = () => {
+  const data = require("./scripts/cards/data");
+  if (!data.rootIsLocal()) return Promise.resolve();
+  return watch(`${data.root()}/**/*.json`, series(cardPartials, dataCopy));
+};
 const watcher = parallel(
   hbsWatcher,
   cssWatcher,

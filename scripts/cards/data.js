@@ -28,19 +28,59 @@ let dataRoot = null;
 const cache = new Map();
 
 /**
+ * Ask Node to resolve the real published package, if it is installed.
+ *
+ * Preferred over the hardcoded node_modules path in CANDIDATE_ROOTS because it
+ * survives layouts that path does not — pnpm's symlinked store, a workspace link,
+ * or hoisting to a parent node_modules.
+ *
+ * Two probes, because we cannot assume what the published package exposes:
+ * `dataPath` is the entry point the mock declares, and the `./data/*` exports
+ * subpath works even for a package that ships no JS at all. Under `exports`
+ * encapsulation neither `require.resolve("@publicledger/data")` nor
+ * `.../package.json` is guaranteed to resolve, so both probes are wrapped.
+ * @returns {string|null} absolute path to the installed package's data directory
+ */
+function installedPackageRoot() {
+  try {
+    const pkg = require("@publicledger/data");
+    if (pkg && pkg.dataPath && fs.existsSync(path.join(pkg.dataPath, "meta.json"))) {
+      return pkg.dataPath;
+    }
+  } catch {
+    // Not installed, or it exposes no main entry point. Fall through.
+  }
+  try {
+    return path.dirname(require.resolve("@publicledger/data/data/meta.json"));
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Locate the data package on disk.
  * @returns {string} absolute path to the data directory
  */
 function root() {
   if (dataRoot) return dataRoot;
-  dataRoot = CANDIDATE_ROOTS.find(p => fs.existsSync(path.join(p, "meta.json")));
+  dataRoot =
+    installedPackageRoot() || CANDIDATE_ROOTS.find(p => fs.existsSync(path.join(p, "meta.json")));
   if (!dataRoot) {
     throw new Error(
-      "@publicledger/data not found. Looked in:\n  " + CANDIDATE_ROOTS.join("\n  ")
+      "@publicledger/data not found. Install it, or keep the mock in place. Looked in:\n" +
+        "  (resolved @publicledger/data)\n  " +
+        CANDIDATE_ROOTS.join("\n  ")
     );
   }
   return dataRoot;
 }
+
+/**
+ * Whether the resolved data lives in this repo rather than in an installed package.
+ * Only a local root is worth a file watcher — see gulpfile.js dataWatcher.
+ * @returns {boolean} true when the data is checked in here
+ */
+const rootIsLocal = () => root().startsWith(THEME_ROOT) && !root().includes("node_modules");
 
 /**
  * Read one JSON file from the data package.
@@ -118,6 +158,8 @@ const jurisdictionSlug = office =>
     .replace(/^-+|-+$/g, "");
 
 module.exports = {
+  root,
+  rootIsLocal,
   load,
   offices,
   candidates,

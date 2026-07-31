@@ -20,6 +20,7 @@ tmp/
 
 # Lock files (formatting breaks them)
 package-lock.json
+pnpm-lock.yaml
 *.lock
 
 # UPSTREAM FILES - Do not format (parent theme doesn't use prettier)
@@ -56,6 +57,12 @@ partials/icons/
 # Upstream config
 gulpfile.js
 routes.yaml
+
+# package.json is upstream-owned and upstream touches it on nearly every
+# renovate bump. Prettier's tabWidth:2 reindents it from upstream's 4-space
+# style, which turns every one-line upstream change into a whole-file merge
+# conflict. Leave the indentation alone so syncs produce small hunks.
+package.json
 
 # Upstream locales
 locales/
