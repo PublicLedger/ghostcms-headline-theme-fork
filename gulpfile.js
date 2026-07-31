@@ -165,6 +165,55 @@ function zipper(done) {
             "!test/**",
             "!data",
             "!data/**",
+
+            // FORK CUSTOM: the glob above is "**" with { dot: true }, so every
+            // dotfile and dot-directory in the repo was being packaged and
+            // uploaded to the production Ghost site. `.git` alone was 2.4 MB
+            // across 229 entries -- about 65% of the artifact, and larger than
+            // the theme itself. Ghost needs the templates, partials,
+            // assets/built, assets/fonts, locales and package.json; nothing
+            // below is read at render time.
+
+            // Every dot-entry, at any depth. Ghost reads no dotfiles from a
+            // theme, and enumerating them one by one is a denylist that always
+            // lags: building from a working checkout (rather than a fresh CI
+            // clone) also picked up `.env` -- the Ghost Admin API credentials
+            // used by `pnpm ghost:seed` -- along with `.claude/`. Those are
+            // gitignored, so they are invisible to any CI-only test. Excluding
+            // the whole class is the only version that stays correct.
+            "!**/.*",
+            "!**/.*/**",
+
+            // Build tooling that lives at the repo root
+            "!eslint.config.js",
+            "!gulpfile.js",
+
+            // Scratch output (gulp intermediate, local experiments)
+            "!tmp",
+            "!tmp/**",
+
+            // Fork tooling and documentation. scripts/ is seed and card
+            // tooling run against a local Ghost; the devcontainer bind-mounts
+            // the repo itself, so excluding it here does not affect local dev.
+            "!scripts",
+            "!scripts/**",
+            "!sync",
+            "!sync/**",
+            "!AGENT_LESSONS.md",
+            "!AI_DEVELOPMENT.md",
+            "!CONTRIBUTING.md",
+            "!DEVCONTAINER.md",
+            "!README.FORK.md",
+            "!TROUBLESHOOTING.md",
+
+            // Source CSS/JS -- PostCSS and the js task compile these into
+            // assets/built, which is what the templates load via {{asset}}.
+            // The only references to these paths in .hbs files are comments.
+            "!assets/css",
+            "!assets/css/**",
+            "!assets/js",
+            "!assets/js/**",
+
             // Explicitly include built assets (in .gitignore but needed in package)
             "assets/built/**",
           ],
