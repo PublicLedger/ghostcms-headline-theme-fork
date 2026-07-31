@@ -5,7 +5,7 @@
  * checks, without touching Ghost, that the data package can actually fill their
  * cards). Keeping one list means the report can never drift from what gets seeded.
  *
- * Slugs are taken from the mock @publicledger/data package so the cards resolve
+ * Slugs are taken from the mock `@publicledger/data` package so the cards resolve
  * against real records rather than inventing placeholders.
  */
 

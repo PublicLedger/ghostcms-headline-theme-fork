@@ -1,12 +1,20 @@
 #!/bin/bash
 # Seed one record per collection, proving every permalink shape in routes.yaml.
 #
-# Runs inside ghost-dev (that is where the SQLite database and node live).
+# This file declares WHICH records exist. scripts/seed-record.js owns HOW each one is
+# made — template, cards, Lexical body, Admin API upsert.
+#
+# `pnpm ghost:records` runs this inside ghost-dev, but it no longer has to be there:
+# seed-record.js talks to Ghost over the Admin API and never touches SQLite, and both
+# containers have node and reach Ghost on the same port (they share a network
+# namespace). An earlier header claimed the SQLite database was the reason; it was not.
+# The theme root is resolved from this script's own location so either path works.
+#
 # Slugs are taken from the mock @publicledger/data package so the cards have
 # something real to resolve.
 set -e
 
-THEME=/var/lib/ghost/content/themes/publicledger-headline-fork
+THEME="$(cd "$(dirname "$0")/.." && pwd)"
 SEED="node $THEME/scripts/seed-record.js"
 
 echo "🌱 Seeding one record per collection..."

@@ -22,8 +22,18 @@
 
 const { renderCard } = require("./cards");
 
-const GHOST_URL = process.env.GHOST_INTERNAL_URL || "http://localhost:2368";
-const ORIGIN = process.env.GHOST_URL || "http://localhost:3001";
+// These two are deliberately different values, and neither is GHOST_URL.
+//
+// API_BASE is where the request is SENT. Ghost listens on 2368; the devcontainer
+// shares ghost-dev's network namespace, so 2368 is right from both containers and
+// 3001 (the host publish) is reachable from neither.
+//
+// SITE_URL is the origin Ghost VALIDATES the request against — it must equal the
+// `url` in Ghost's config, which is the host-facing http://localhost:3001. Send the
+// API base here instead and every write is rejected with "Request made from
+// incorrect origin".
+const API_BASE = process.env.GHOST_API_URL || "http://localhost:2368";
+const SITE_URL = process.env.GHOST_SITE_URL || "http://localhost:3001";
 const EMAIL = process.env.GHOST_ADMIN_EMAIL || "admin@example.com";
 const PASSWORD = process.env.GHOST_ADMIN_PASSWORD || "RandomSecure123456789";
 
@@ -130,12 +140,12 @@ let cookie = "";
  * @returns {Promise<{status: number, json: object|null, text: string}>} the response
  */
 async function api(path, options = {}) {
-  const res = await fetch(GHOST_URL + path, {
+  const res = await fetch(API_BASE + path, {
     ...options,
     headers: {
       "Content-Type": "application/json",
-      Origin: ORIGIN,
-      Referer: ORIGIN + "/ghost/",
+      Origin: SITE_URL,
+      Referer: SITE_URL + "/ghost/",
       Accept: "application/json",
       ...(cookie ? { Cookie: cookie } : {}),
       ...(options.headers || {}),
@@ -201,7 +211,7 @@ async function main() {
   }
 
   const post = res.json.posts[0];
-  console.log(`  url        : ${String(post.url || "").replace(ORIGIN, "")}`);
+  console.log(`  url        : ${String(post.url || "").replace(SITE_URL, "")}`);
   console.log(`  primary tag: ${post.primary_tag ? post.primary_tag.slug : "(none)"}`);
   console.log(`  template   : ${post.custom_template}`);
 }
