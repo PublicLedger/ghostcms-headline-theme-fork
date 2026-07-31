@@ -5,7 +5,7 @@ with the upstream TryGhost/Headline repository.
 
 **Upstream:** <https://github.com/TryGhost/Headline>  
 **Fork:** <https://github.com/PublicLedger/ghostcms-headline-theme-fork>  
-**Last sync:** 2026-07-19 (upstream commit `cabad11`)
+**Last sync:** 2026-07-31 (upstream commit `94aad76`)
 
 ---
 
@@ -20,8 +20,8 @@ The script will:
 1. Check working directory is clean
 1. Fetch latest from upstream
 1. Show what's new
-1. Create a backup branch
-1. Rebase onto upstream/main
+1. Create a backup branch (local and pushed to origin)
+1. Merge upstream/main
 1. Rebuild assets with pnpm
 1. Run GScan validation
 1. Provide next steps
@@ -49,14 +49,23 @@ git log --oneline staging..upstream/main  # See what's new
 ### 2. Integrate
 
 ```bash
-# Rebase (recommended)
+# Merge (recommended)
 git checkout -b integrate-upstream-$(date +%Y-%m-%d)
-git rebase upstream/main
+git merge upstream/main
 
-# Resolve conflicts as they occur (see Conflict Resolution below)
+# Resolve conflicts (see Conflict Resolution below)
 git add <resolved-file>
-git rebase --continue
+git commit          # completes the merge
 ```
+
+**Use merge, not rebase.** Why? Rebasing would be painful:
+
+- We have many custom changes here that conflict with upstream updates
+- With rebase, you'd fix the same conflicts over and over (once per change)
+- With merge, you fix them once and you're done
+- Merge keeps the `staging` branch safe for automatic updates from upstream
+- Rebase rewrites history and breaks the automated checks in
+  `.github/workflows/guard-main-source.yaml`
 
 ### 3. Update Dependencies
 
@@ -89,8 +98,11 @@ pnpm ghost:verify
 ```bash
 git checkout staging
 git merge integrate-upstream-$(date +%Y-%m-%d) --ff-only
-git push origin staging --force-with-lease
+git push origin staging
 ```
+
+A regular `git push` is all you need here. If you ever need `--force-with-lease`,
+it means someone rewrote git history — investigate before proceeding.
 
 ---
 
@@ -99,6 +111,16 @@ git push origin staging --force-with-lease
 These customizations **must be preserved** during sync:
 
 ### package.json
+
+**This file conflicts almost every sync.** The upstream project updates it
+frequently (dependency bumps), and we've customized it for this fork. Two simple
+rules keep conflicts manageable:
+
+1. **Use 4-space indentation.** If you switch to 2-space, git will see the entire
+   file as changed (even a tiny upstream update becomes a 200+ line conflict).
+   Keep 4-space, and conflicts stay small (7 lines instead).
+2. **Keep `package.json` in `.prettierignore`.** The code formatter wants to
+   reindent it to 2-space. Don't let it — that recreates the whole-file conflict.
 
 **Keep from fork:**
 
@@ -112,7 +134,7 @@ These customizations **must be preserved** during sync:
 
 **Take from upstream:**
 
-- `packageManager`: "pnpm@11.9.0"
+- `packageManager`: always take upstream's pinned pnpm version
 - All `devDependencies` versions except the fork-only tools listed in
   `_comment_devDependencies`
 - Standard `scripts`: dev, test, zip, validate

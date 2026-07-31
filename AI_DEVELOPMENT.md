@@ -20,7 +20,7 @@ account for future upstream merges.
 
 **Living Fork:** PublicLedger/ghostcms-headline-theme-fork tracks
 TryGhost/Headline  
-**Last upstream sync:** 2026-07-19 (upstream commit `cabad11`)  
+**Last upstream sync:** check git logs  
 **Environment:** Docker devcontainer with Node.js 24, Ghost 6.0+, SQLite  
 **Theme Mount:** `/var/lib/ghost/content/themes/publicledger-headline-fork` with
 live reload
