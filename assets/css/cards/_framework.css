@@ -6,6 +6,22 @@
  * @import "_framework.css";
  */
 
+/* ---------------------------------------------------------------------------
+ * The Admin/public split.
+ *
+ * Ghost Admin loads its own Tailwind build and none of this file, so in the editor
+ * `.hidden` collapses the body and `.custom-card-admin` has no rule and shows. Here
+ * it is the mirror image. The two stylesheets never load together, so neither rule
+ * needs !important. See scripts/cards/index.js for the full reasoning.
+ * --------------------------------------------------------------------------- */
+.custom-card-body {
+  display: block;
+}
+
+.custom-card-admin {
+  display: none;
+}
+
 /* Base card container */
 .custom-card {
   border: 1px solid var(--color-light-gray, #e5e7eb);
@@ -211,6 +227,10 @@
 }
 
 /* Utility classes */
+.custom-card-badge-wrapper {
+  padding: 14px 20px 0;
+}
+
 .custom-card-badge {
   display: inline-block;
   padding: 4px 10px;
@@ -239,6 +259,24 @@
 .custom-card-badge--danger {
   background: #ef4444;
   color: white;
+}
+
+/* The lead-in badge every card opens with ("WHAT THE JOB IS", "ON THE BALLOT"). */
+.custom-card-badge--muted {
+  background: transparent;
+  padding-left: 0;
+  color: var(--color-tertiary-text, #9ca3af);
+  letter-spacing: 0.08em;
+}
+
+/* Emitted by scripts/cards/index.js when a renderer throws, so it belongs to every
+   card type rather than to any one of them. */
+.custom-card-error {
+  padding: 1rem 1.25rem;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.9rem;
 }
 
 /* Print styles */
@@ -282,5 +320,9 @@
   .custom-card-footer {
     background: #111827;
     color: #9ca3af;
+  }
+
+  .custom-card-error {
+    border-color: rgba(255, 255, 255, 0.22);
   }
 }

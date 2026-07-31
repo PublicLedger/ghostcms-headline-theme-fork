@@ -1,4 +1,4 @@
-/* job-seat card — populated at runtime by assets/js/cards/job-seat.js */
+/* job-seat card — rendered server-side by scripts/cards/job-seat.js */
 
 .job-seat-card {
   container-type: inline-size;
@@ -41,14 +41,6 @@
   }
 }
 
-.custom-card-error {
-  padding: 1rem 1.25rem;
-  border: 1px dashed rgba(0, 0, 0, 0.18);
-  border-radius: 8px;
-  color: var(--color-secondary-text, #626d79);
-  font-size: 0.9rem;
-}
-
 @media (prefers-color-scheme: dark) {
   [data-card-type][data-card-state="loading"] {
     background: linear-gradient(
@@ -58,9 +50,5 @@
       rgba(255, 255, 255, 0.05) 63%
     );
     background-size: 400% 100%;
-  }
-
-  .custom-card-error {
-    border-color: rgba(255, 255, 255, 0.22);
   }
 }

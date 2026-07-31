@@ -44,6 +44,17 @@ module.exports = {
 
   attrs: ctx => ({ "data-seat": ctx.seat || ctx.slug || "" }),
 
+  adminSummary(ctx, data) {
+    const key = ctx.seat || ctx.slug;
+    const office = data.getOffice(key);
+    if (office) {
+      const held = (office.incumbents || []).length;
+      return `${office.name} · ${held} ${held === 1 ? "officeholder" : "officeholders"}`;
+    }
+    const candidate = data.getCandidate(key);
+    return candidate ? data.titleCase(candidate.name.full) : key || "";
+  },
+
   render(ctx, data) {
     const { e } = data;
     const key = ctx.seat || ctx.slug;

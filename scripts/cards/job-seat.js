@@ -10,6 +10,13 @@ module.exports = {
 
   attrs: ctx => ({ "data-seat": ctx.seat || "" }),
 
+  adminSummary(ctx, data) {
+    const office = data.getOffice(ctx.seat);
+    if (!office) return ctx.seat || "";
+    const seats = office.seats > 1 ? `${office.seats} seats` : "1 seat";
+    return `${office.name} · ${seats} · ${data.currency(office.totalRaisedAllTime)} raised`;
+  },
+
   render(ctx, data) {
     const { e, currency } = data;
     if (!ctx.seat) throw new Error("job-seat card needs a seat slug in context");

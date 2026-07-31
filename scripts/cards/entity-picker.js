@@ -77,6 +77,13 @@ module.exports = {
 
   attrs: ctx => ({ "data-source": ctx.source || "offices" }),
 
+  adminSummary(ctx, data) {
+    const source = ctx.source || "offices";
+    const build = SOURCES[source];
+    const count = build ? build(data).length : 0;
+    return `${source} · ${count} ${count === 1 ? "option" : "options"}`;
+  },
+
   render(ctx, data) {
     const { e } = data;
     const source = ctx.source || "offices";

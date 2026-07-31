@@ -5,6 +5,7 @@
 @import "cards/_framework.css";
 @import "cards/job-seat.css";
 @import "cards/official-brief.css";
+@import "cards/election-race.css";
 @import "cards/entity-picker.css";
 
 :root {

@@ -1,4 +1,4 @@
-/* official-brief card — populated at runtime by assets/js/cards/official-brief.js */
+/* official-brief card — rendered server-side by scripts/cards/official-brief.js */
 
 .official-brief-title {
   margin: 0.5rem 0 0.25rem;
