@@ -106,7 +106,7 @@
         "gulp-zip": "5.1.0",
         "markdownlint-cli2": "^0.23.2",
         "ordered-read-streams": "2.0.0",
-        "postcss": "8.5.15",
+        "postcss": "8.5.25",
         "postcss-easy-import": "4.0.0",
         "postcss-nested": "^7.0.2",
         "prettier": "^3.4.2",
