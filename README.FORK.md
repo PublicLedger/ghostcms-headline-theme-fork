@@ -128,7 +128,7 @@ See [DEVCONTAINER.md](DEVCONTAINER.md) for complete setup guide.
 ```bash
 pnpm format                     # Format all files with Prettier
 pnpm lint:fix                   # Fix all auto-fixable ESLint issues
-pre-commit run --all-files      # Run all pre-commit hooks manually
+bash scripts/hooks/pre-commit   # Run the pre-commit checks manually
 ```
 
 ---

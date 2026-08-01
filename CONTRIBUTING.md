@@ -34,9 +34,9 @@ pnpm install                   # Theme dependencies
 pnpm dev                       # Watch and compile assets
 pnpm test                      # Validate with GScan
 
-# Optional: Install pre-commit hooks (recommended)
-pip install pre-commit         # or: brew install pre-commit
-pre-commit install
+# Optional: Install the pre-commit hook (recommended)
+cp scripts/hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 ```
 
 ### Verify Setup
@@ -346,36 +346,39 @@ fork code. Markdown is excluded from Prettier entirely - `pnpm lint:md` owns it.
 
 **Pre-commit hooks** (recommended):
 
-Pre-commit hooks automatically validate your changes before each commit. Install
-once:
+The hook is a bash script — there is no framework to install. Copy it once:
 
 ```bash
-# Install pre-commit (if not already installed)
-pip install pre-commit
-# or: brew install pre-commit (macOS)
-# or: apt install pre-commit (Debian/Ubuntu)
-
-# Install hooks for this repo
-pre-commit install
+cp scripts/hooks/pre-commit .git/hooks/pre-commit
+chmod +x .git/hooks/pre-commit
 ```
 
-**Hooks run automatically on `git commit`:**
+**Checks that run on `git commit`:**
 
-- **Prettier formatting** - Auto-formats fork code (Handlebars, CSS, JS, JSON,
-  YAML); upstream files are excluded
-- **ESLint validation** - Checks JavaScript code quality, auto-fixes issues
-- **GScan validation** - Ensures Ghost 6.0+ compatibility (catches breaking
-  changes)
-- **JSON syntax check** - Validates package.json and locales/\*.json
-- **YAML validation** - Checks GitHub Actions workflows and routes.yaml
-- **Built assets protection** - Prevents accidentally committing to
-  assets/built/ (should edit source files)
+- **LICENSE protection** - Blocks any commit that modifies LICENSE
+- **package.json author** - Must stay "Ghost Foundation" for MIT compliance
+- **Built assets protection** - Blocks commits to assets/built/ (edit the
+  source files instead)
+- **JSON syntax check** - Validates staged `.json` against the staged blob
+- **Prettier formatting** - Fork code only; `.prettierignore` excludes
+  upstream-owned files
+- **ESLint validation** - Staged JavaScript
+- **markdownlint** - Staged Markdown, using the ignore list in
+  `.markdownlint-cli2.jsonc`
+- **GScan validation** - Ghost 6.0+ compatibility, when theme files change
 
-**Manual hook execution:**
+Checks report and fail; they never rewrite your files. Auto-fixing would mean
+re-staging, which silently commits unstaged edits in a partially staged file.
+Each failure prints the command that fixes it.
+
+Two checks are deliberately absent: GitHub Actions workflow schemas (GitHub
+rejects malformed workflows on push) and routes.yaml YAML syntax (covered by
+`.github/workflows/validate-routes.yaml`).
+
+**Manual execution:**
 
 ```bash
-pre-commit run --all-files    # Run all hooks manually
-pre-commit run gscan          # Run specific hook
+bash scripts/hooks/pre-commit    # Run the checks against staged changes
 ```
 
 **Always run validation:**
