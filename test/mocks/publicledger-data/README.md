@@ -82,7 +82,5 @@ separate schema document in this repository.
 - **2 complete campaigns** with contributions and expenditures
 - Realistic finance totals, categories, and relationships
 
-> **Known gap:** `index.js` exports `getCandidatesByOffice()`, but
-> `data/indexes/candidates-by-office.json` does not exist in the mock. Calling it
-> throws. The `by-office/` and `finance/donors/` directories are likewise empty
-> placeholders.
+> **Known gap:** The `by-office/` and `finance/donors/` directories are empty
+> placeholders in the mock.
