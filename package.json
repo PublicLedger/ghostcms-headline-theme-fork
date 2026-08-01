@@ -1,23 +1,41 @@
 {
-    "name": "headline",
-    "description": "A Ghost theme",
+    "_comment_identity": "Fork-specific identity fields",
+    "name": "publicledger-headline-fork",
+    "url": "https://publicledger.news",
+    "description": "Fork of Ghost Foundation's Headline theme for The Public Ledger project",
     "version": "1.0.0",
     "private": true,
     "engines": {
-        "ghost": ">=5.0.0"
+        "node": ">=24.0.0",
+        "ghost": ">=6.0.0"
     },
     "license": "MIT",
+    "_comment_author": "REQUIRED: Must preserve Ghost Foundation as author per MIT license",
     "author": {
         "name": "Ghost Foundation",
         "email": "hello@ghost.org",
         "url": "https://ghost.org"
     },
+    "_comment_contributors": "Fork maintainer attribution goes here",
+    "contributors": [
+        {
+            "name": "Gasworks Data",
+            "email": "info@gasworksdata.com",
+            "url": "https://gasworksdata.com"
+        }
+    ],
+    "_comment_repository": "Fork-specific repository URL",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/PublicLedger/ghostcms-headline-theme-fork.git"
+    },
     "keywords": [
         "ghost",
-        "theme",
-        "ghost-theme"
+        "ghost-theme",
+        "fork"
     ],
     "docs": "https://headline.ghost.io/about/",
+    "_comment_config": "UPSTREAM: Ghost theme configuration - do not modify unless syncing from TryGhost/Headline",
     "config": {
         "posts_per_page": 7,
         "image_sizes": {
@@ -40,70 +58,58 @@
                 "width": 2000
             }
         },
-        "card_assets": true,
-        "custom": {
-            "navigation_layout": {
-                "type": "select",
-                "options": ["Logo on the left", "Logo in the middle", "Stacked"],
-                "default": "Stacked"
-            },
-            "header_style": {
-                "type": "select",
-                "options": ["Light", "Accent color", "Dark"],
-                "default": "Light"
-            },
-            "title_font": {
-                "type": "select",
-                "options": ["Modern sans-serif", "Elegant serif"],
-                "default": "Modern sans-serif"
-            },
-            "body_font": {
-                "type": "select",
-                "options": ["Modern sans-serif", "Elegant serif"],
-                "default": "Elegant serif"
-            },
-            "white_publication_logo_for_transparent_header": {
-                "type": "image"
-            },
-            "email_signup_text": {
-                "type": "text",
-                "default": "Don't miss out on the latest news. Sign up now to get access to the library of members-only articles."
-            },
-            "footer_text": {
-                "type": "text"
-            },
-            "enter_tag_slugs_for_primary_sections": {
-                "type": "text",
-                "group": "homepage"
-            },
-            "enter_tag_slugs_for_secondary_sections": {
-                "type": "text",
-                "group": "homepage"
-            }
-        }
+        "card_assets": true
     },
+    "_comment_scripts": "UPSTREAM scripts: dev, test, zip. FORK additions: validate:fork, ghost:*, lint*",
     "scripts": {
         "dev": "gulp",
         "test": "gscan .",
-        "zip": "gulp zip"
+        "zip": "gulp zip",
+        "validate": "gscan . --verbose",
+        "validate:fork": "bash scripts/validate-fork.sh",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
+        "lint:md": "markdownlint-cli2",
+        "lint:md:fix": "markdownlint-cli2 --fix",
+        "format": "prettier --write \"**/*.{hbs,css,js,json,html}\"",
+        "format:check": "prettier --check \"**/*.{hbs,css,js,json,html}\"",
+        "ghost:seed": "node scripts/ghost-seed.js",
+        "ghost:verify": "bash scripts/verify-routes.sh",
+        "ghost:records": "bash scripts/ghost-exec.sh sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/seed-demo-records.sh",
+        "ghost:refresh": "bash scripts/ghost-exec.sh sh /var/lib/ghost/content/themes/publicledger-headline-fork/scripts/refresh-routes.sh",
+        "ghost:restart": "echo '⚠️  WARNING: Ghost restart causes terminal hangs. Use \"pnpm ghost:refresh\" to reload routes instead. See /memories/repo/devcontainer-rules.md' && exit 1"
     },
-    "packageManager": "pnpm@11.15.1",
+    "_comment_packageManager": "Pinned to match TryGhost/Headline upstream (easier sync)",
+    "packageManager": "pnpm@11.17.0",
+    "_comment_devDependencies": "UPSTREAM: dependencies from TryGhost/Headline - do not modify. FORK additions: eslint*, globals, prettier*, @typescript-eslint/parser, @tryghost/admin-api, markdownlint-cli2, @publicledger/data",
+    "_comment_publicledger_data": "STUB: points at the in-repo mock until the real package publishes, then becomes a normal version range. devDependency, not dependency: it is a build- and seed-time input only. Ghost never installs a theme's deps, and gulp copies the JSON into assets/built/data/ before packaging. Must be link:, NOT file: -- pnpm hard-links a file: directory, and an editor that saves via atomic rename breaks the link, leaving the package silently serving stale data.",
     "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "@gitkumi/prettier-plugin-handlebars": "^1.5.0",
+        "@publicledger/data": "link:test/mocks/publicledger-data",
+        "@tryghost/admin-api": "^1.14.11",
         "@tryghost/shared-theme-assets": "2.7.1",
         "@tryghost/theme-translations": "^0.0.9",
-        "autoprefixer": "10.5.2",
+        "@typescript-eslint/parser": "^8.62.0",
+        "autoprefixer": "10.5.0",
         "beeper": "2.1.0",
         "cssnano": "8.0.2",
-        "gscan": "6.4.2",
+        "eslint": "^10.6.0",
+        "eslint-plugin-jsdoc": "^63.0.10",
+        "globals": "^17.7.0",
+        "gscan": "6.4.1",
         "gulp": "5.0.1",
         "gulp-concat": "2.6.1",
         "gulp-livereload": "4.0.2",
         "gulp-postcss": "10.0.0",
         "gulp-uglify": "3.0.2",
         "gulp-zip": "5.1.0",
+        "markdownlint-cli2": "^0.23.2",
         "ordered-read-streams": "2.0.0",
-        "postcss": "8.5.16",
+        "postcss": "8.5.25",
         "postcss-easy-import": "4.0.0",
+        "postcss-nested": "^7.0.2",
+        "prettier": "^3.4.2",
         "pump": "3.0.4"
     }
 }

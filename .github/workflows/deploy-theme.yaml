@@ -1,0 +1,153 @@
+name: Deploy Theme
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+      
+permissions:
+  contents: write
+  
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04
+    if: github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message || '', '[skip-ci]')
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+      
+      - name: Determine version bump
+        id: bump
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || 'manual release' }}
+        run: |
+          # Parse commit message for version tags: [major], [minor], [patch]
+          # Default to [patch] if none specified
+          
+          if echo "$COMMIT_MESSAGE" | grep -qiE '\[major\]'; then
+            echo "type=major" >> $GITHUB_OUTPUT
+            echo "Detected: MAJOR version bump"
+          elif echo "$COMMIT_MESSAGE" | grep -qiE '\[minor\]'; then
+            echo "type=minor" >> $GITHUB_OUTPUT
+            echo "Detected: MINOR version bump"
+          else
+            echo "type=patch" >> $GITHUB_OUTPUT
+            echo "Detected: PATCH version bump (default)"
+          fi
+      
+      - name: Get current version and calculate next
+        id: version
+        run: |
+          # Get the version from git tags instead of package.json.
+          # Why? The main branch has strict rules requiring pull requests, and
+          # this workflow can't bypass them, so we can't push version changes
+          # back to main. Instead, we read the latest release tag as the source
+          # of truth. This keeps version numbers in order without modifying the
+          # protected branch.
+          # 
+          # Only match tags in vMAJOR.MINOR.PATCH format (e.g., v1.2.3).
+          # Loose patterns break if old tags like v1.0.0-4 exist.
+          latest_tag=$(git tag -l 'v*' --sort=-v:refname \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -1)
+
+          if [[ -n "$latest_tag" ]]; then
+            current="${latest_tag#v}"
+            echo "Latest release tag: $latest_tag"
+          else
+            current=$(node -p "require('./package.json').version")
+            echo "No release tags yet, seeding from package.json: $current"
+          fi
+
+          echo "current=$current" >> $GITHUB_OUTPUT
+          
+          # Split version into parts
+          IFS='.' read -r major minor patch <<< "$current"
+          
+          # Bump based on type
+          case "${{ steps.bump.outputs.type }}" in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          next="${major}.${minor}.${patch}"
+          echo "next=$next" >> $GITHUB_OUTPUT
+          echo "Version: $current → $next"
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+      
+      - name: Update package.json version
+        run: |
+          pnpm version ${{ steps.version.outputs.next }} --no-git-tag-version
+      
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      
+      - name: Build theme
+        run: pnpm zip
+      
+      - name: Validate theme compatibility
+        run: pnpm test
+      
+      # NOTE: the version bump is deliberately NOT committed back to main. The
+      # bump above is in-place only, so the built zip and the release tag carry
+      # the right version; the tag itself is the durable record. Pushing to main
+      # would be rejected by the "staging PRs to main" ruleset.
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.next }}
+          name: v${{ steps.version.outputs.next }}
+          files: dist/*.zip
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Deploy to Ghost
+        uses: TryGhost/action-deploy-theme@v1.6.6
+        with:
+          # FORK CUSTOM: `file` makes the action upload the artifact we just
+          # built and validated. Without it the action re-zips the runner's
+          # checkout with only `-x *.git* *.zip yarn* npm* node_modules*
+          # *routes.yaml *redirects.*`, which shipped scripts/, sync/, the fork
+          # docs, .devcontainer/, source assets/css + assets/js, gulpfile.js,
+          # pnpm-lock.yaml and test/mocks/ to production -- none of which the
+          # gulp exclusions could reach, because they never touched that path.
+          # `theme-name` is ignored when `file` is set; the name then comes from
+          # the zip's package.json, which is the same value.
+          file: dist/publicledger-headline-fork.zip
+          theme-name: "publicledger-headline-fork"
+          api-url: ${{ secrets.GHOST_ADMIN_API_URL }}
+          api-key: ${{ secrets.GHOST_ADMIN_API_KEY }}
+      
+      - name: Summary
+        run: |
+          echo "## ✅ Deployment Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version:** v${{ steps.version.outputs.next }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Theme:** publicledger-headline-fork" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 🔄 Rollback" >> $GITHUB_STEP_SUMMARY
+          echo "If this deployment fails, rollback via:" >> $GITHUB_STEP_SUMMARY
+          echo "**Actions → Rollback Theme → Run workflow → v${{ steps.version.outputs.current }}**" >> $GITHUB_STEP_SUMMARY

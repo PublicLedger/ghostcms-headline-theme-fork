@@ -1,0 +1,15 @@
+{
+  "name": "@publicledger/data",
+  "version": "0.1.0-mock",
+  "description": "Mock election and campaign finance data for PublicLedger (Lancaster County, PA)",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./data/*": "./data/*"
+  },
+  "files": ["data/", "index.js", "README.md"],
+  "keywords": ["elections", "campaign-finance", "lancaster-county"],
+  "author": "PublicLedger",
+  "license": "UNLICENSED",
+  "private": true
+}

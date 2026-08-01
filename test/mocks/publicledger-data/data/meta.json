@@ -1,0 +1,23 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "generated": "2024-01-15T10:30:00Z",
+  "dataRange": {
+    "elections": "2016-2023",
+    "finance": "2016-2023"
+  },
+  "counts": {
+    "candidates": 10,
+    "offices": 5,
+    "elections": 2,
+    "races": 8,
+    "donors": 25,
+    "contributions": 150,
+    "expenditures": 120
+  },
+  "sources": {
+    "elections": "Mock data generated from 122923_Lancaster_elections_results_enhanced_2016_2023primary.csv",
+    "contributions": ["Mock individual and organizational contributions"],
+    "expenses": "Mock campaign expenditures"
+  },
+  "cacheKey": "20240115103000"
+}

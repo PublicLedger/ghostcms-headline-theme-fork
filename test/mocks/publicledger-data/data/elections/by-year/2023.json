@@ -1,0 +1,83 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "year": 2023,
+  "electionType": "Municipal Primary",
+  "date": "2023-05-16",
+  "races": [
+    {
+      "id": "2023-primary-county-commissioner",
+      "slug": "2023-county-commissioner",
+      "office": "office-county-commissioner",
+      "officeName": "County Commissioner",
+      "jurisdiction": "LANCASTER",
+      "seats": 3,
+      "candidates": [
+        {
+          "candidateId": "alice-yoder-001",
+          "name": "Alice Yoder",
+          "party": "DEM",
+          "position": "open_seat",
+          "financeRecords": "records scanned",
+          "raised": 45000,
+          "spent": 38000,
+          "resultLink": "https://vr.co.lancaster.pa.us/ElectionReturns/May_16,_2023_-_Municipal_Primary/13.html"
+        }
+      ],
+      "raceNotes": "Three seats available for County Commissioner.",
+      "totalRaised": 45000,
+      "totalSpent": 38000
+    },
+    {
+      "id": "2023-primary-lancaster-city-council-2yr",
+      "slug": "2023-lancaster-city-council-2yr",
+      "office": "office-lancaster-city-council",
+      "officeName": "Lancaster City Council - 2 Year",
+      "jurisdiction": "LANCASTER CITY",
+      "seats": 1,
+      "candidates": [
+        {
+          "candidateId": "ahmed-ahmed-001",
+          "name": "Ahmed Ahmed",
+          "party": "DEM",
+          "position": "open_seat",
+          "financeRecords": "records scanned",
+          "raised": 15000,
+          "spent": 12500,
+          "resultLink": "https://vr.co.lancaster.pa.us/ElectionReturns/May_16,_2023_-_Municipal_Primary/111.html"
+        }
+      ],
+      "raceNotes": "Two-year term for Lancaster City Council.",
+      "totalRaised": 15000,
+      "totalSpent": 12500
+    },
+    {
+      "id": "2023-primary-prothonotary",
+      "slug": "2023-prothonotary",
+      "office": "office-prothonotary",
+      "officeName": "Prothonotary",
+      "jurisdiction": "LANCASTER",
+      "seats": 1,
+      "candidates": [
+        {
+          "candidateId": "andrew-spade-001",
+          "name": "Andrew E Spade",
+          "party": "REP",
+          "position": "open_seat",
+          "financeRecords": "records scanned",
+          "raised": 25000,
+          "spent": 22000,
+          "resultLink": "https://vr.co.lancaster.pa.us/ElectionReturns/May_16,_2023_-_Municipal_Primary/22.html"
+        }
+      ],
+      "raceNotes": null,
+      "totalRaised": 25000,
+      "totalSpent": 22000
+    }
+  ],
+  "summary": {
+    "raceCount": 3,
+    "candidateCount": 3,
+    "totalRaised": 85000,
+    "totalSpent": 72500
+  }
+}

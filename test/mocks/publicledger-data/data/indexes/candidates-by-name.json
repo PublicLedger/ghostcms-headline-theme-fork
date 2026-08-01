@@ -1,0 +1,68 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "index": {
+    "A": [
+      {
+        "id": "ahmed-ahmed-001",
+        "name": "Ahmed Ahmed",
+        "party": "DEM",
+        "office": "Lancaster City Council"
+      },
+      {
+        "id": "alice-yoder-001",
+        "name": "Alice Yoder",
+        "party": "DEM",
+        "office": "County Commissioner"
+      },
+      {
+        "id": "amanda-chap-001",
+        "name": "Amanda Chap",
+        "party": "DEM/REP",
+        "office": "Warwick School Director"
+      },
+      {
+        "id": "andre-gilbert-001",
+        "name": "Andre Gilbert",
+        "party": "DEM",
+        "office": "Lancaster City Council"
+      },
+      {
+        "id": "andrew-spade-001",
+        "name": "Andrew E Spade",
+        "party": "REP",
+        "office": "Prothonotary"
+      },
+      {
+        "id": "arthur-mann-sr-001",
+        "name": "Arthur Mann Sr",
+        "party": "REP",
+        "office": "Lancaster School Director"
+      }
+    ],
+    "B": [
+      {
+        "id": "bryan-cutler-001",
+        "name": "Bryan Cutler",
+        "party": "REP",
+        "office": "State House 100"
+      }
+    ],
+    "C": [
+      {
+        "id": "craig-lehman-001",
+        "name": "Craig Lehman",
+        "party": "DEM",
+        "office": "State Senate 13"
+      }
+    ],
+    "J": [
+      { "id": "janet-diaz-001", "name": "Janet Diaz", "party": "DEM", "office": "State House 106" },
+      {
+        "id": "josh-parsons-001",
+        "name": "Josh Parsons",
+        "party": "REP",
+        "office": "County Commissioner"
+      }
+    ]
+  }
+}

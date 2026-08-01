@@ -1,0 +1,40 @@
+{{!-- FORK CUSTOM: shared body for every collection detail template.
+
+  Turns Ghost's routing context into DOM attributes. Ghost cannot hand route
+  parameters to a template, but inside a collection the post carries them: its
+  primary tag is the parent (agency / jurisdiction) and its slug is the entity.
+
+  {{#post}} is REQUIRED. A custom post template gets no ambient post context —
+  without it {{title}} is empty and {{content}} renders the literal "undefined".
+
+  Everything inside {{content}} is editor-owned: headline, prose, subheads,
+  embeds, and the inert card shells they arrange in Admin.
+--}}
+<main class="gh-main">
+  {{#post}}
+    <article class="gh-article {{post_class}}">
+      <header class="gh-article-header gh-canvas">
+        {{#if primary_tag}}<a class="gh-article-tag" href="{{primary_tag.url}}">{{primary_tag.name}}</a>{{/if}}
+
+        <h1 class="gh-article-title">{{title}}</h1>
+
+        {{#if custom_excerpt}}<p class="gh-article-excerpt">{{custom_excerpt}}</p>{{/if}} {{> "post-meta"}}
+      </header>
+
+      <div
+        class="gh-content gh-canvas pl-context"
+        {{!-- recordType is passed by the including template:
+             {{> "pl-record" recordType="official"}}
+             ../ is required: {{#post}} shifts scope, so a bare {{recordType}}
+             resolves against the post object and comes out empty. --}}
+        data-record-type="{{../recordType}}"
+        data-agency="{{primary_tag.slug}}"
+        data-agency-name="{{primary_tag.name}}"
+        data-seat="{{slug}}"
+        data-slug="{{slug}}"
+      >
+        {{content}}
+      </div>
+    </article>
+  {{/post}}
+</main>

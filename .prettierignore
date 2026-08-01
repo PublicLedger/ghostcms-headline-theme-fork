@@ -1,0 +1,68 @@
+# Build outputs (auto-generated, don't format)
+dist/
+assets/built/
+
+# Dependencies
+node_modules/
+.bundle/
+.vscode/
+tmp/
+
+# Skip markdown for now (formatting can change semantics)
+*.md
+
+# Compiled/minified files
+*.min.js
+*.min.css
+
+# Git metadata
+.git/
+
+# Lock files (formatting breaks them)
+package-lock.json
+pnpm-lock.yaml
+*.lock
+
+# UPSTREAM FILES - Do not format (parent theme doesn't use prettier)
+# Only format fork-specific files below
+
+# Upstream root templates
+author.hbs
+default.hbs
+home.hbs
+index.hbs
+page.hbs
+post.hbs
+tag.hbs
+custom-full-feature-image.hbs
+custom-wide-feature-image.hbs
+
+# Upstream CSS/JS (not custom)
+assets/css/fonts.css
+assets/css/screen.css
+assets/js/main.js
+
+# Upstream partials (not custom)
+partials/comments.hbs
+partials/feature-image.hbs
+partials/loop-grid.hbs
+partials/loop-minimal.hbs
+partials/post-meta.hbs
+partials/pswp.hbs
+partials/related-posts.hbs
+partials/topic-grid.hbs
+partials/topic-minimal.hbs
+partials/icons/
+
+# Upstream config
+gulpfile.js
+routes.yaml
+
+# package.json is upstream-owned and upstream touches it on nearly every
+# renovate bump. Prettier's tabWidth:2 reindents it from upstream's 4-space
+# style, which turns every one-line upstream change into a whole-file merge
+# conflict. Leave the indentation alone so syncs produce small hunks.
+package.json
+
+# Upstream locales
+locales/

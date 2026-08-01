@@ -1,0 +1,99 @@
+/* election-race card — rendered server-side by scripts/cards/election-race.js */
+
+.election-race-card {
+  container-type: inline-size;
+}
+
+.election-race-title {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.election-race-intro {
+  margin: 0 0 1.25rem;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.election-race-races {
+  display: grid;
+  gap: 0.75rem;
+  padding: 1.25rem;
+}
+
+.election-race-race {
+  padding: 1rem 1.125rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+.election-race-race-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.election-race-office {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.election-race-notes {
+  margin: 0 0 0.75rem;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.8125rem;
+}
+
+.election-race-candidates {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.election-race-candidate {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 0.75rem;
+  align-items: baseline;
+}
+
+.election-race-candidate-name {
+  font-weight: 600;
+}
+
+.election-race-candidate-money {
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.election-race-result-link {
+  font-size: 0.8125rem;
+}
+
+.election-race-race-total {
+  margin: 0.75rem 0 0;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.election-race-empty {
+  margin: 0.75rem 0 0;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.8125rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .election-race-race {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+}

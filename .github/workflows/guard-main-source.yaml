@@ -1,0 +1,43 @@
+name: Main Merge Guard
+
+# FORK CUSTOM: GitHub rulesets cannot constrain a pull request's *source*
+# branch -- the `pull_request` rule has no such parameter. This workflow
+# supplies that constraint as a status check, so the ruleset on `main` can
+# require it. Without this, "all merges to main come from staging" is a
+# convention rather than an enforced rule.
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  source-branch:
+    name: Source branch must be staging
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Verify PR originates from staging
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          BASE_REPO: ${{ github.repository }}
+        run: |
+          # Check the repo first: a PR from any fork could name its own
+          # branch "staging", which would satisfy the ref check alone.
+          if [ "$HEAD_REPO" != "$BASE_REPO" ]; then
+            echo "::error::PRs into main must originate from $BASE_REPO. This PR comes from the fork $HEAD_REPO."
+            echo "Upstream changes reach main by syncing into staging locally, not by cross-fork PR."
+            exit 1
+          fi
+
+          if [ "$HEAD_REF" != "staging" ]; then
+            echo "::error::PRs into main must originate from the 'staging' branch. This PR comes from '$HEAD_REF'."
+            echo "Merge '$HEAD_REF' into staging first, then open staging -> main."
+            exit 1
+          fi
+
+          echo "Source branch verified: $HEAD_REPO@$HEAD_REF"

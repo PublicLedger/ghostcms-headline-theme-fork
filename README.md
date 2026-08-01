@@ -1,3 +1,7 @@
+> **📦 PublicLedger Fork:** This is a customized fork with devcontainer setup. See [README.FORK.md](README.FORK.md) for fork-specific documentation, setup instructions, and development guide.
+
+---
+
 # Headline
 
 > [!IMPORTANT]

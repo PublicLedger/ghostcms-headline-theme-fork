@@ -1,0 +1,66 @@
+{
+  "name": "Ghost Theme Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "devcontainer",
+  "workspaceFolder": "/workspace",
+
+  // Claude Code CLI + VS Code extension. The feature's install script only runs
+  // `npm install -g @anthropic-ai/claude-code` here, since node:24-alpine already
+  // provides node/npm. The musl runtime deps it does NOT install (libgcc, libstdc++,
+  // ripgrep) are handled in the Dockerfile.
+  "features": {
+    "ghcr.io/anthropics/devcontainer-features/claude-code:1.0": {}
+  },
+
+  // Persist Claude Code auth + settings across rebuilds. ~/.claude.json lives OUTSIDE
+  // ~/.claude, so CLAUDE_CONFIG_DIR is required alongside the volume to stay signed in.
+  "mounts": ["source=claude-code-config-${devcontainerId},target=/home/node/.claude,type=volume"],
+
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    // Bundled ripgrep is glibc-linked; use the apk one installed in the Dockerfile.
+    // Without this, Search / @file mentions / agents / skills silently return nothing.
+    "USE_BUILTIN_RIPGREP": "0",
+    // Feature installs globally as root but we run as `node`, so in-place
+    // auto-update can't write to /usr/local/lib/node_modules.
+    "DISABLE_AUTOUPDATER": "1"
+  },
+
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      // Essential extensions only (saves ~100MB)
+      "extensions": [
+        // The claude-code feature installs only the CLI — it contributes no
+        // extension, so without this the container has `claude` in the terminal
+        // but no Claude Code UI.
+        "anthropic.claude-code",
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "andrejunges.Handlebars",
+        "TryGhost.ghost"
+      ],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "workbench.externalBrowser": "google-chrome"
+      }
+    }
+  },
+
+  // No forwardPorts: this service uses `network_mode: service:ghost-dev`, so inside
+  // that shared namespace Ghost listens on 2368, not 3001. The compose `3001:2368`
+  // publish already exposes it on the host at http://localhost:3001.
+
+  // Build assets, then seed production pages + local card pages exactly once.
+  // Seeding lives here rather than postStartCommand because ghost:seed deletes every
+  // page before inserting — running it on each start would destroy local edits.
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  // Wait for Ghost setup to complete before allowing user interaction
+  "postStartCommand": "timeout 120 sh -c 'while [ ! -f /workspace/.ghost-setup-complete ]; do sleep 1; done' && echo '✓ Ghost is ready at http://localhost:3001/ghost/' || echo '⚠ Ghost setup timeout'",
+
+  // Comment out to connect as root instead
+  "remoteUser": "node"
+}

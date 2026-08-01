@@ -1,0 +1,40 @@
+name: Dependency Review
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  dependency-review:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v5
+        with:
+          # Fail on any severity vulnerabilities
+          fail-on-severity: low
+          # Deny restrictive licenses in runtime dependencies
+          deny-licenses: AGPL-3.0, SSPL-1.0
+          # Comment on PR with findings
+          comment-summary-in-pr: always
+          # Note: this does NOT limit findings to production deps here. The
+          # theme declares zero runtime dependencies (only devDependencies), 
+          # yet the scan still failed -- the action reads pnpm-lock.yaml, 
+          # which does not reliably express dev vs runtime scope, so dev-tree 
+          # packages are evaluated anyway.
+          fail-on-scopes: runtime
+          # FORK CUSTOM: no allow-ghsas allowlist. The brace-expansion
+          # advisories (GHSA-3jxr-9vmj-r5cp, GHSA-mh99-v99m-4gvg) that used to
+          # be listed here were assumed unfixable because build tools pin an
+          # older minimatch. That was wrong -- the consumers all declare caret
+          # ranges, so `pnpm update brace-expansion -r` resolved both. Fix the
+          # lockfile rather than re-adding an allowlist.

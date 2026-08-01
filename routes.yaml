@@ -1,0 +1,81 @@
+# Ghost routing for the data-driven app.
+#
+# Ghost's `routes:` block does NOT support path parameters. A key like
+# /jobs/{agency}/{seat}/ is a LITERAL path and never matches — verified against
+# Ghost 6.53. Curly-brace placeholders are only valid in a collection `permalink:`,
+# where these are available: {slug} {id} {primary_tag} {primary_author}
+#                            {year} {month} {day} {author}
+#
+# So every multi-segment data URL is a collection. A record is a Post whose:
+#   slug        = the entity  -> {slug}
+#   primary tag = the parent  -> {primary_tag}   (sort_order 0, must be public)
+#   internal tag              -> selects the collection, hidden from readers
+#
+# The Post is the editorial container (headline, prose, subheads, embeds) and the
+# data cards live in its body as inert shells. The detail template writes routing
+# context onto .pl-context; assets/js/cards/* reads it and populates the shells
+# from the @publicledger/data package at request time.
+#
+# Ghost requires every post to belong to exactly ONE collection, so the filters
+# below are mutually exclusive and /articles/ excludes all of them.
+
+routes:
+  /:
+    data: page.home
+    template: page
+
+collections:
+  # /jobs/{agency}/{seat}/   e.g. /jobs/lancaster-county/county-commissioner/
+  /jobs/:
+    permalink: /jobs/{primary_tag}/{slug}/
+    filter: tag:hash-job
+    template: job
+    order: published_at desc
+
+  # /election/{jurisdiction}/{slug}/   e.g. /election/lancaster-county/2023-general/
+  /election/:
+    permalink: /election/{primary_tag}/{slug}/
+    filter: tag:hash-election
+    template: election
+    order: published_at desc
+
+  # /official/{slug}/   e.g. /official/alice-yoder/
+  /official/:
+    permalink: /official/{slug}/
+    filter: tag:hash-official
+    template: official
+    order: published_at desc
+
+  # /donor/{slug}/   e.g. /donor/pa-chamber-pac/
+  /donor/:
+    permalink: /donor/{slug}/
+    filter: tag:hash-donor
+    template: donor
+    order: published_at desc
+
+  # /lookup/{jurisdiction}/   e.g. /lookup/lancaster-county/
+  # One page per jurisdiction, so the jurisdiction IS the slug.
+  /lookup/:
+    permalink: /lookup/{slug}/
+    filter: tag:hash-lookup
+    template: lookup
+    order: published_at desc
+
+  # /finance/{jurisdiction}/   e.g. /finance/lancaster-county/
+  # One page per jurisdiction, so the jurisdiction IS the slug.
+  /finance/:
+    permalink: /finance/{slug}/
+    filter: tag:hash-finance
+    template: finance
+    order: published_at desc
+
+  # Everything else. Must exclude every collection above or Ghost rejects the
+  # routes file for leaving posts in two collections.
+  /articles/:
+    permalink: /articles/{slug}/
+    filter: tag:-hash-job+tag:-hash-election+tag:-hash-official+tag:-hash-donor+tag:-hash-lookup+tag:-hash-finance
+    template: index
+
+taxonomies:
+  tag: /tag/{slug}/
+  author: /author/{slug}/

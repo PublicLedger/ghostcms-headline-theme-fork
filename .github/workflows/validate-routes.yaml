@@ -1,0 +1,115 @@
+name: Validate Routes
+
+# FORK CUSTOM: checks routes.yaml before anyone uploads it to production.
+#
+# Deploying the theme does not configure routing. Ghost ignores a theme's
+# routes.yaml, so the six data collections only exist once the file is uploaded
+# by hand in Settings -> Labs -> Routes. That upload cannot be automated: the
+# routes endpoint returns 403 for API tokens and accepts only a logged-in staff
+# user, so scripting it would mean storing an Administrator password with 2FA
+# disabled. Not worth it for a file that changes a handful of times.
+#
+# What IS worth automating is catching a bad routes.yaml before it reaches that
+# manual step, because the two ways it breaks are both nasty:
+#   - a template typo passes Ghost's own validation, then the route 500s
+#   - a new collection missing from the /articles/ exclusions makes Ghost
+#     reject the upload, which you find out mid-paste on production
+#
+# NOTE: the paths filter below means this does not run on every PR. Do not add
+# it to the ruleset as a required status check -- a required check that never
+# reports blocks the PR forever.
+
+on:
+  pull_request:
+    paths:
+      # .hbs too: deleting or renaming a template breaks routes.yaml without
+      # routes.yaml itself changing.
+      - "routes.yaml"
+      - "*.hbs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Validate routes.yaml
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Check routes.yaml is sane
+        run: |
+          npx --yes js-yaml@4 routes.yaml > /tmp/routes.json
+          node - <<'NODE'
+          const fs = require('fs');
+          const r = JSON.parse(fs.readFileSync('/tmp/routes.json', 'utf8'));
+          const errors = [];
+
+          const collections = r.collections || {};
+          const expected = ['/jobs/', '/election/', '/official/', '/donor/', '/lookup/', '/finance/'];
+
+          for (const key of expected) {
+            if (!collections[key]) errors.push(`missing collection ${key}`);
+          }
+          if (!collections['/articles/']) errors.push('missing /articles/ catch-all');
+
+          // Ghost rejects the file if a post could land in two collections, so
+          // the catch-all must exclude every hash tag the others select on.
+          // Check EVERY collection, not just the expected six -- adding a new
+          // one and forgetting to exclude it is the whole point of this check.
+          const catchAll = collections['/articles/']?.filter || '';
+          for (const [key, c] of Object.entries(collections)) {
+            if (key === '/articles/') continue;
+            const tag = (c.filter || '').replace('tag:', '');
+            if (tag && !catchAll.includes(`tag:-${tag}`)) {
+              errors.push(`/articles/ does not exclude ${tag} (from ${key})`);
+            }
+          }
+
+          // Every referenced template must exist, or the route 500s at runtime.
+          for (const [key, c] of Object.entries(collections)) {
+            if (c.template && !fs.existsSync(`${c.template}.hbs`)) {
+              errors.push(`${key} references missing template ${c.template}.hbs`);
+            }
+          }
+          for (const [key, route] of Object.entries(r.routes || {})) {
+            if (route.template && !fs.existsSync(`${route.template}.hbs`)) {
+              errors.push(`route ${key} references missing template ${route.template}.hbs`);
+            }
+          }
+
+          console.log('Routes:');
+          for (const [key, route] of Object.entries(r.routes || {})) {
+            console.log(`  ${key} -> template ${route.template || '(default)'}`);
+          }
+          console.log('Collections:');
+          for (const [key, c] of Object.entries(collections)) {
+            console.log(`  ${key} -> ${c.permalink}  [${c.filter}]  template ${c.template}`);
+          }
+
+          if (errors.length) {
+            console.error('\nProblems:');
+            errors.forEach(e => console.error(`  - ${e}`));
+            process.exit(1);
+          }
+          console.log('\nroutes.yaml looks valid.');
+          NODE
+
+      - name: Summary
+        run: |
+          {
+            echo "## routes.yaml validated"
+            echo ""
+            echo "Parsed and checked against the templates in this commit."
+            echo ""
+            echo "Routing is **not** applied by deploying the theme. To publish"
+            echo "these routes, upload \`routes.yaml\` in Ghost Admin:"
+            echo "Settings → Labs → Routes."
+          } >> "$GITHUB_STEP_SUMMARY"

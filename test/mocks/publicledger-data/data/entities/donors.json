@@ -1,0 +1,207 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "donors": {
+    "individuals": [
+      {
+        "id": "donor-ind-757",
+        "clusterId": "757",
+        "slug": "carol-aastad",
+        "name": "CAROL AASTAD",
+        "address": {
+          "street": "606 WILLOW VALLEY LAKES DR",
+          "city": "WILLOW STREET",
+          "state": "PA",
+          "zip": "17584"
+        },
+        "totalContributions": 10350,
+        "contributionCount": 5,
+        "recipientCount": 1,
+        "topRecipient": "alice-yoder-001",
+        "yearRange": "2023-2023"
+      },
+      {
+        "id": "donor-ind-5411",
+        "clusterId": "5411",
+        "slug": "david-aaker",
+        "name": "DAVID AAKER",
+        "address": {
+          "street": "18 EASTWOOD DR",
+          "city": "ORINDA",
+          "state": "CA",
+          "zip": "94563"
+        },
+        "totalContributions": 300,
+        "contributionCount": 1,
+        "recipientCount": 1,
+        "topRecipient": "janet-diaz-001",
+        "yearRange": "2020-2020"
+      },
+      {
+        "id": "donor-ind-3394",
+        "clusterId": "3394",
+        "slug": "dawud-abdur-rahman",
+        "name": "DAWUD ABDUR-RAHMAN",
+        "address": {
+          "street": "2304 S HAMPTON DRIVE",
+          "city": "BRYANS ROAD",
+          "state": "MD",
+          "zip": "20616"
+        },
+        "totalContributions": 500,
+        "contributionCount": 1,
+        "recipientCount": 1,
+        "topRecipient": "andre-gilbert-001",
+        "yearRange": "2023-2023"
+      },
+      {
+        "id": "donor-ind-4340",
+        "clusterId": "4340",
+        "slug": "tierney-foster-abel",
+        "name": "TIERNEY FOSTER ABEL",
+        "address": {
+          "street": "1160 B N MARKET STREET",
+          "city": "ELIZABETHTOWN",
+          "state": "PA",
+          "zip": "17022"
+        },
+        "totalContributions": 2800,
+        "contributionCount": 1,
+        "recipientCount": 1,
+        "topRecipient": "josh-parsons-001",
+        "yearRange": "2021-2021"
+      },
+      {
+        "id": "donor-ind-6848",
+        "clusterId": "6848",
+        "slug": "thomas-aaron",
+        "name": "THOMAS AARON",
+        "address": {
+          "street": "1037 CHESTNUT LEVEL RD",
+          "city": "QUARRYVILLE",
+          "state": "PA",
+          "zip": "17566"
+        },
+        "totalContributions": 100,
+        "contributionCount": 1,
+        "recipientCount": 1,
+        "topRecipient": "bryan-cutler-001",
+        "yearRange": "2018-2018"
+      },
+      {
+        "id": "donor-ind-8821",
+        "clusterId": "8821",
+        "slug": "sarah-wellington",
+        "name": "SARAH WELLINGTON",
+        "address": {
+          "street": "423 OAK RIDGE LANE",
+          "city": "LANCASTER",
+          "state": "PA",
+          "zip": "17601"
+        },
+        "totalContributions": 5500,
+        "contributionCount": 4,
+        "recipientCount": 2,
+        "topRecipient": "janet-diaz-001",
+        "yearRange": "2020-2023",
+        "relationships": ["rel-siblings-wellington"]
+      },
+      {
+        "id": "donor-ind-8822",
+        "clusterId": "8822",
+        "slug": "michael-wellington",
+        "name": "MICHAEL WELLINGTON",
+        "address": {
+          "street": "789 MAPLE STREET",
+          "city": "LANCASTER",
+          "state": "PA",
+          "zip": "17602"
+        },
+        "totalContributions": 4200,
+        "contributionCount": 3,
+        "recipientCount": 2,
+        "topRecipient": "janet-diaz-001",
+        "yearRange": "2020-2023",
+        "relationships": ["rel-siblings-wellington"]
+      }
+    ],
+    "organizations": [
+      {
+        "id": "donor-org-actblue",
+        "slug": "actblue-pa",
+        "name": "ACTBLUE PA",
+        "standardizedName": "ACTBLUE PA",
+        "type": "PAC",
+        "subtype": "OTHER",
+        "identifiers": {
+          "pacFilerId": null,
+          "fecId": null,
+          "paEntityNo": null,
+          "ein": null
+        },
+        "totalContributions": 81,
+        "contributionCount": 1,
+        "recipientCount": 1
+      },
+      {
+        "id": "donor-org-afscme-council-13",
+        "slug": "afscme-council-13",
+        "name": "AFSCME COUNCIL 13 POLITICAL AND LEGISLATIVE",
+        "standardizedName": "AFSCME COUNCIL 13",
+        "type": "PAC",
+        "subtype": "UNION",
+        "identifiers": {
+          "pacFilerId": "7900006",
+          "fecId": null,
+          "paEntityNo": null,
+          "ein": null
+        },
+        "totalContributions": 1000,
+        "contributionCount": 1,
+        "recipientCount": 1
+      },
+      {
+        "id": "donor-org-emilys-list",
+        "slug": "emilys-list",
+        "name": "EMILY'S LIST FEDERAL FUND",
+        "standardizedName": "EMILY'S LIST",
+        "type": "PAC",
+        "subtype": "OTHER",
+        "identifiers": {
+          "pacFilerId": "20140161",
+          "fecId": "C00591073",
+          "paEntityNo": null,
+          "ein": null
+        },
+        "totalContributions": 2000,
+        "contributionCount": 2,
+        "recipientCount": 1
+      },
+      {
+        "id": "donor-org-fairness-pa",
+        "slug": "fairness-pa",
+        "name": "FAIRNESS PA",
+        "standardizedName": "FAIRNESS PA",
+        "type": "PAC",
+        "subtype": "OTHER",
+        "identifiers": {
+          "pacFilerId": "20150166",
+          "fecId": null,
+          "paEntityNo": null,
+          "ein": null
+        },
+        "totalContributions": 21250,
+        "contributionCount": 1,
+        "recipientCount": 1
+      }
+    ],
+    "relationships": [
+      {
+        "id": "rel-siblings-wellington",
+        "type": "siblings",
+        "description": "Siblings",
+        "members": ["donor-ind-8821", "donor-ind-8822"],
+        "notes": "Sarah and Michael Wellington are siblings who have both contributed to local campaigns"
+      }
+    ]
+  }
+}

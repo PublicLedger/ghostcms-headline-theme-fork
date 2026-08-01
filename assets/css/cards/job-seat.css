@@ -1,0 +1,59 @@
+/* job-seat card — rendered server-side by scripts/cards/job-seat.js */
+
+.job-seat-card {
+  container-type: inline-size;
+}
+
+.job-seat-title {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.job-seat-intro {
+  margin: 0 0 1.25rem;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* Shells have no height before hydration; reserve space so the page doesn't jump. */
+[data-card-type][data-card-state="loading"] {
+  min-height: 12rem;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.07) 37%,
+    rgba(0, 0, 0, 0.04) 63%
+  );
+  background-size: 400% 100%;
+  animation: pl-card-shimmer 1.4s ease infinite;
+}
+
+@keyframes pl-card-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-card-type][data-card-state="loading"] {
+    animation: none;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  [data-card-type][data-card-state="loading"] {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.05) 25%,
+      rgba(255, 255, 255, 0.09) 37%,
+      rgba(255, 255, 255, 0.05) 63%
+    );
+    background-size: 400% 100%;
+  }
+}

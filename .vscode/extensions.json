@@ -1,0 +1,15 @@
+{
+  "recommendations": [
+    // Core formatting and linting
+    "esbenp.prettier-vscode",
+    "dbaeumer.vscode-eslint",
+
+    // Ghost theme development
+    "TryGhost.ghost",
+    "bradlc.vscode-tailwindcss",
+
+    // Infrastructure
+    "redhat.vscode-yaml",
+    "github.vscode-pull-request-github"
+  ]
+}

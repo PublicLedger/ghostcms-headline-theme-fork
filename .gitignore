@@ -1,0 +1,34 @@
+node_modules
+.pnpm-store
+tmp/
+
+# Build outputs
+assets/built/
+dist/
+*.zip
+
+# Package manager lockfiles (fork uses pnpm/pnpm-lock.yaml only)
+yarn.lock
+package-lock.json
+
+# Environment variables (secrets)
+# Glob covers .env.local, .env.bak, etc. — a bare `.env` rule misses backups
+.env
+.env.*
+!.env.example
+
+# Devcontainer setup marker (transient)
+.ghost-setup-complete
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local documentation (not for upstream)
+docs-local/
+
+# Claude Code personal settings (shared settings live in .claude/settings.json)
+.claude/settings.local.json

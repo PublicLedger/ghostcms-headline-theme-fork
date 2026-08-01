@@ -1,0 +1,194 @@
+{
+  "version": "2024-01-15T10:30:00Z",
+  "campaign": {
+    "id": "camp-yoder-2023-001",
+    "candidateId": "alice-yoder-001",
+    "candidateName": "Alice Yoder",
+    "election": "2023-primary-county-commissioner",
+    "electionDate": "2023-05-16",
+    "office": "COUNTY COMMISSIONER",
+    "jurisdiction": "LANCASTER",
+    "committee": "Yoder for Lancaster"
+  },
+  "summary": {
+    "totalRaised": 45000,
+    "totalSpent": 38000,
+    "cashOnHand": 7000,
+    "contributorCount": 12,
+    "avgContribution": 3750,
+    "largestContribution": 10000,
+    "dateRange": "2023-01-01 to 2023-05-16"
+  },
+  "contributions": [
+    {
+      "id": "contrib-001",
+      "date": "2023-01-02",
+      "amount": 10000,
+      "donor": {
+        "id": "donor-ind-757",
+        "name": "CAROL AASTAD",
+        "type": "individual",
+        "address": "WILLOW STREET, PA"
+      },
+      "sourceFile": "2023_502_CYCLE2_YODERFORLANCASTER.pdf",
+      "sourcePage": 4,
+      "schedule": "1",
+      "part": "B"
+    },
+    {
+      "id": "contrib-002",
+      "date": "2023-05-03",
+      "amount": 150,
+      "donor": {
+        "id": "donor-ind-757",
+        "name": "CAROL AASTAD",
+        "type": "individual",
+        "address": "WILLOW STREET, PA"
+      },
+      "sourceFile": "2023_502_cycle3_YoderforLancaster.pdf",
+      "sourcePage": 4,
+      "schedule": "1",
+      "part": "B"
+    },
+    {
+      "id": "contrib-003",
+      "date": "2023-10-11",
+      "amount": 100,
+      "donor": {
+        "id": "donor-ind-757",
+        "name": "CAROL AASTAD",
+        "type": "individual",
+        "address": "WILLOW STREET, PA"
+      },
+      "sourceFile": "2023_502_cycle5_YoderforLancaster.pdf",
+      "sourcePage": 39,
+      "schedule": "1",
+      "part": "B"
+    },
+    {
+      "id": "contrib-004",
+      "date": "2023-03-15",
+      "amount": 21250,
+      "donor": {
+        "id": "donor-org-fairness-pa",
+        "name": "FAIRNESS PA",
+        "type": "organization"
+      },
+      "sourceFile": "2020_502_Cycle11_FamilyandFriendsofJanetDiaz.pdf",
+      "sourcePage": 14,
+      "schedule": "24-hour report",
+      "part": "late_contrib"
+    },
+    {
+      "id": "contrib-005",
+      "date": "2023-02-10",
+      "amount": 5000,
+      "donor": {
+        "id": "donor-org-afscme-council-13",
+        "name": "AFSCME COUNCIL 13",
+        "type": "organization"
+      },
+      "sourceFile": "2023_502_24HR_1026_LancasterCoDemCom.pdf",
+      "sourcePage": 1,
+      "schedule": "24-hour report",
+      "part": "late_contrib"
+    },
+    {
+      "id": "contrib-006",
+      "date": "2023-04-20",
+      "amount": 8500,
+      "donor": {
+        "id": "donor-org-emilys-list",
+        "name": "EMILY'S LIST",
+        "type": "organization"
+      },
+      "sourceFile": "2021_502_cycle3_Friends&FamilyofJanetDiaz.pdf",
+      "sourcePage": 5,
+      "schedule": "1",
+      "part": "C"
+    }
+  ],
+  "expenditures": [
+    {
+      "id": "exp-001",
+      "date": "2023-03-15",
+      "amount": 1500,
+      "category": "MEDIA_ACTIVITIES",
+      "subcategory": "YARD_SIGNS",
+      "description": "Campaign yard signs",
+      "paidTo": "SIGN-A-RAMA",
+      "address": "1748 COLUMBIA AVENUE, LANCASTER, PA 17603",
+      "sourceFile": "2013_502_Cycle2_LancasterCityRepCom.pdf",
+      "sourcePage": 3,
+      "schedule": "3"
+    },
+    {
+      "id": "exp-002",
+      "date": "2023-04-01",
+      "amount": 5000,
+      "category": "MEDIA_ACTIVITIES",
+      "subcategory": "DIRECT_MAIL",
+      "description": "Direct mail campaign materials",
+      "paidTo": "POSTAL CONNECTIONS",
+      "address": "1653 LITITZ PIKE, LANCASTER, PA 17601",
+      "sourceFile": "2013_502_cycle2_Jimenez_Janice.pdf",
+      "sourcePage": 3,
+      "schedule": "3"
+    },
+    {
+      "id": "exp-003",
+      "date": "2023-02-15",
+      "amount": 2500,
+      "category": "CAMPAIGNING_ACTIVITIES",
+      "subcategory": "FOOD_DRINK",
+      "description": "Campaign kickoff event",
+      "paidTo": "LOXLEY'S",
+      "address": "500 CENTERVILLE RD, LANCASTER, PA 17603",
+      "sourceFile": "2012_502_Cycle7_ConstitutionCommitteeofLancasterCounty.pdf",
+      "sourcePage": 3,
+      "schedule": "3"
+    },
+    {
+      "id": "exp-004",
+      "date": "2023-03-01",
+      "amount": 12000,
+      "category": "MEDIA_ACTIVITIES",
+      "subcategory": "GENERAL_PROD",
+      "description": "Television advertising",
+      "paidTo": "LOCAL MEDIA SERVICES",
+      "address": "LANCASTER, PA",
+      "sourceFile": "mock_source.pdf",
+      "sourcePage": 10,
+      "schedule": "3"
+    },
+    {
+      "id": "exp-005",
+      "date": "2023-01-15",
+      "amount": 500,
+      "category": "GENERAL_OPERATING",
+      "subcategory": "BANKING",
+      "description": "Bank fees and account setup",
+      "paidTo": "FULTON BANK",
+      "address": "1 N QUEEN ST, LANCASTER, PA 17602",
+      "sourceFile": "mock_source.pdf",
+      "sourcePage": 5,
+      "schedule": "3"
+    }
+  ],
+  "receipts": [
+    {
+      "id": "receipt-001",
+      "date": "2023-03-31",
+      "amount": 8.85,
+      "type": "interest",
+      "description": "Bank account interest",
+      "from": "FULTON BANK",
+      "sourceFile": "2023_502_cycle3_FriendsofRayD_Agostino.pdf",
+      "sourcePage": 4,
+      "schedule": "1",
+      "part": "E"
+    }
+  ],
+  "inKind": [],
+  "debts": []
+}

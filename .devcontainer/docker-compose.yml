@@ -1,0 +1,84 @@
+# No `container_name:` on either service, on purpose. A fixed name is global to the
+# Docker daemon, so a stack started from the CLI (Compose infers project
+# `devcontainer` from this file's directory) and one started by VS Code (project
+# `<repo-folder>_devcontainer`) fought over it — "Reopen in Container" died with
+# `Conflict. The container name "/ghost-dev" is already in use`. Generated names
+# (<project>-ghost-dev-1) let the two coexist. Reach containers by Compose service
+# name (`docker compose ... ghost-dev`) or via scripts/ghost-exec.sh, never by a
+# hardcoded `docker exec ghost-dev`.
+services:
+  # Development container with Node.js for theme building
+  devcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Must match the HOST docker group GID or the mounted socket is unreadable.
+        # Find yours with: getent group docker | cut -d: -f3
+        DOCKER_GID: "${DOCKER_GID:-995}"
+    volumes:
+      - ..:/workspace:cached
+      # Mount Ghost database volume for seeding scripts
+      - ghost-dev-data:/var/lib/ghost/content/data:rw
+      # Mount docker socket for ghost-dev interaction (seed, refresh scripts).
+      # NOTE: not :ro — read-only on a unix socket restricts nothing, and anything
+      # in this container has full Docker API access (equivalent to host root).
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: sleep infinity
+    network_mode: service:ghost-dev
+    env_file:
+      # required:false so a fresh clone without .env still builds
+      - path: ../.env
+        required: false
+    depends_on:
+      - ghost-dev
+
+  # Ghost development instance (SQLite, auto-reload)
+  ghost-dev:
+    image: ghost:6-alpine
+    restart: unless-stopped
+    ports:
+      - "3001:2368"
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        # Install required tools for ghost-setup.sh (curl for API, openssl for JWT, sqlite for DB)
+        apk add --no-cache curl openssl sqlite
+        # Launch Ghost setup (admin account + theme activation) in background
+        sh /var/lib/ghost/ghost-setup.sh &
+        # Start Ghost normally (this replaces the current shell process)
+        exec docker-entrypoint.sh node current/index.js
+    environment:
+      NODE_ENV: development
+      url: http://localhost:3001
+      database__client: sqlite3
+      database__connection__filename: /var/lib/ghost/content/data/ghost-dev.db
+      # Disable email sending (prevents login notification errors)
+      mail__transport: Direct
+      mail__options__host: localhost
+      # Disable staff device verification (prevents email verification on login)
+      security__staffDeviceVerification: false
+      # Auto-setup credentials (used by ghost-setup.sh)
+      # Password must be 10+ chars, no common phrases (Ghost validation is strict)
+      GHOST_ADMIN_EMAIL: admin@example.com
+      GHOST_ADMIN_PASSWORD: RandomSecure123456789
+      GHOST_ADMIN_NAME: PublicLedger Admin
+      GHOST_SITE_TITLE: The Public Ledger
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:2368/ghost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    volumes:
+      # Mount the theme from workspace (watched for changes)
+      - ..:/var/lib/ghost/content/themes/publicledger-headline-fork:cached
+      # Mount setup script (creates admin account + activates theme)
+      - ./ghost-setup.sh:/var/lib/ghost/ghost-setup.sh:ro
+      # Persistent storage for Ghost database only (everything else ephemeral)
+      - ghost-dev-data:/var/lib/ghost/content/data
+      # Images, logs, apps, settings are ephemeral - rebuilt on container restart
+
+volumes:
+  # Only persist database - saves disk space and simplifies cleanup
+  ghost-dev-data:

@@ -1,0 +1,252 @@
+/* Custom Footer Styles */
+/* Fork-specific footer design - does not exist in upstream */
+
+.gh-foot-custom {
+  background-color: #1a4d4d; /* Dark teal background */
+  color: #ffffff;
+  padding: 60px 0 20px;
+  margin-top: 80px;
+}
+
+.gh-foot-custom-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* Main footer content */
+.gh-foot-custom-main {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr;
+  gap: 80px;
+  padding-bottom: 60px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 40px;
+}
+
+/* About section */
+.gh-foot-custom-about {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.gh-foot-custom-logo img {
+  height: 48px;
+  width: auto;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.gh-foot-custom-logo-text {
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+  display: block;
+  margin-bottom: 20px;
+}
+
+.gh-foot-custom-heading {
+  color: #d4ff00; /* Lime/yellow accent */
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+}
+
+.gh-foot-custom-text {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 20px 0;
+  max-width: 480px;
+  opacity: 0.95;
+}
+
+.gh-foot-custom-cta-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gh-foot-custom-cta-label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.gh-foot-custom-cta {
+  color: #d4ff00;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: opacity 0.2s;
+  border-bottom: 1px solid rgba(212, 255, 0, 0.3);
+  padding-bottom: 4px;
+  width: fit-content;
+}
+
+.gh-foot-custom-cta:hover {
+  opacity: 0.8;
+}
+
+.gh-foot-custom-cta svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Navigation */
+.gh-foot-custom-nav {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.gh-foot-custom-menu {
+  display: contents;
+}
+
+.gh-foot-custom-menu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gh-foot-custom-menu li {
+  margin: 0;
+}
+
+.gh-foot-custom-menu a {
+  color: #ffffff;
+  text-decoration: none;
+  font-size: 16px;
+  line-height: 1.4;
+  transition: opacity 0.2s;
+  display: block;
+}
+
+.gh-foot-custom-menu a:hover {
+  opacity: 0.7;
+}
+
+/* Credits section */
+.gh-foot-custom-credits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+  padding: 40px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  margin-bottom: 30px;
+}
+
+.gh-foot-custom-credit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.gh-foot-custom-credit-label {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  opacity: 0.6;
+  text-transform: uppercase;
+}
+
+.gh-foot-custom-credit-value {
+  font-size: 18px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.gh-foot-custom-publisher-logo {
+  height: 24px;
+  width: auto;
+}
+
+/* Bottom section */
+.gh-foot-custom-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 40px;
+  padding: 20px 0;
+}
+
+.gh-foot-custom-quote {
+  font-size: 15px;
+  font-style: italic;
+  opacity: 0.8;
+}
+
+.gh-foot-custom-legal {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 13px;
+}
+
+.gh-foot-custom-legal span {
+  opacity: 0.7;
+}
+
+.gh-foot-custom-legal a {
+  color: #ffffff;
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.gh-foot-custom-legal a:hover {
+  opacity: 1;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+  .gh-foot-custom-main {
+    grid-template-columns: 1fr;
+    gap: 60px;
+  }
+
+  .gh-foot-custom-nav {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .gh-foot-custom-credits {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+}
+
+@media (max-width: 767px) {
+  .gh-foot-custom {
+    padding: 40px 0 20px;
+  }
+
+  .gh-foot-custom-inner {
+    padding: 0 20px;
+  }
+
+  .gh-foot-custom-nav {
+    grid-template-columns: 1fr;
+    gap: 30px;
+  }
+
+  .gh-foot-custom-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .gh-foot-custom-legal {
+    flex-wrap: wrap;
+  }
+}

@@ -1,0 +1,35 @@
+/* Fork-specific custom fonts */
+/* Manrope for body copy, Cardo for serif headlines */
+
+/* Manrope - Body Copy */
+@font-face {
+  font-family: Manrope;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("../fonts/manrope-latin-500-normal.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: Manrope;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/manrope-latin-700-normal.woff2") format("woff2");
+}
+
+/* Cardo - Serif Headlines */
+@font-face {
+  font-family: Cardo;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("../fonts/cardo-latin-700-normal.woff2") format("woff2");
+}
+
+/* Apply custom fonts */
+:root {
+  --font-sans:
+    Manrope, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif; /* stylelint-disable-line value-keyword-case */
+  --font-serif: Cardo, Georgia, Times, serif; /* stylelint-disable-line value-keyword-case */
+}

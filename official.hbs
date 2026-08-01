@@ -1,0 +1,21 @@
+{{!< default}}
+{{!-- FORK CUSTOM: /official/ collection index (section landing page).
+
+     The picker below is an inert shell. assets/js/cards/entity-picker.js fills it
+     from the @publicledger/data package and navigates to the detail URL, so the
+     landing page needs no rebuild when the data package changes. --}}
+<main class="gh-main">
+  <section class="gh-content gh-canvas">
+    <h1 class="gh-article-title">Who represents me?</h1>
+    <p class="gh-article-excerpt">Look up the people currently holding elected office.</p>
+
+    {{> "generated/picker-officials"}}
+
+    {{!-- Editorially curated posts in this collection, if any --}}
+    {{#foreach posts}}
+      {{#if @first}}<ul class="pl-collection-list">{{/if}}
+      <li><a href="{{url}}">{{title}}</a></li>
+      {{#if @last}}</ul>{{/if}}
+    {{/foreach}}
+  </section>
+</main>

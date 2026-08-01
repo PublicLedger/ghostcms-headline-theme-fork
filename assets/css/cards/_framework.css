@@ -1,0 +1,328 @@
+/**
+ * Custom Card Framework
+ * Shared base styles for all custom data cards
+ * 
+ * Usage: Import this file at the top of each card-specific CSS file
+ * @import "_framework.css";
+ */
+
+/* ---------------------------------------------------------------------------
+ * The Admin/public split.
+ *
+ * Ghost Admin loads its own Tailwind build and none of this file, so in the editor
+ * `.hidden` collapses the body and `.custom-card-admin` has no rule and shows. Here
+ * it is the mirror image. The two stylesheets never load together, so neither rule
+ * needs !important. See scripts/cards/index.js for the full reasoning.
+ * --------------------------------------------------------------------------- */
+.custom-card-body {
+  display: block;
+}
+
+.custom-card-admin {
+  display: none;
+}
+
+/* Base card container */
+.custom-card {
+  border: 1px solid var(--color-light-gray, #e5e7eb);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-white, white);
+  margin: 24px 0;
+  /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; */
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* Card header */
+.custom-card-header {
+  background: var(--color-lighter-gray, #f3f4f6);
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-light-gray, #e5e7eb);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.custom-card-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-secondary-text, #6b7280);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.custom-card-link {
+  font-size: 13px;
+  color: var(--color-primary, #3b82f6);
+  text-decoration: none;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.custom-card-link:hover {
+  color: var(--color-primary-hover, #2563eb);
+  text-decoration: underline;
+}
+
+/* Card grid layout */
+.custom-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  border-bottom: 1px solid var(--color-light-gray, #e5e7eb);
+}
+
+@media (max-width: 768px) {
+  .custom-card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Metric block */
+.custom-card-metric {
+  padding: 12px;
+  background: var(--color-lightest-gray, #fafafa);
+  border-radius: 6px;
+}
+
+.custom-card-metric-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-secondary-text, #6b7280);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.custom-card-metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--color-primary-text, #111827);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.custom-card-metric-sublabel {
+  font-size: 12px;
+  color: var(--color-tertiary-text, #9ca3af);
+  line-height: 1.4;
+}
+
+/* Data visualization bars */
+.custom-card-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.custom-card-stat-row {
+  display: grid;
+  grid-template-columns: minmax(140px, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.custom-card-stat-label {
+  color: var(--color-secondary-text, #374151);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.custom-card-stat-bar {
+  height: 18px;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  min-width: 24px;
+  max-width: 120px;
+  background: var(--color-primary, #3b82f6);
+}
+
+.custom-card-stat-value {
+  font-weight: 600;
+  color: var(--color-primary-text, #111827);
+  text-align: right;
+  min-width: 48px;
+  font-size: 13px;
+}
+
+/* Card footer */
+.custom-card-footer {
+  padding: 12px 20px;
+  background: var(--color-lightest-gray, #f9fafb);
+  font-size: 11px;
+  color: var(--color-secondary-text, #6b7280);
+  line-height: 1.5;
+}
+
+/* Timeline/list layout alternative to grid */
+.custom-card-timeline {
+  position: relative;
+  padding: 20px 20px 20px 60px;
+}
+
+.custom-card-timeline::before {
+  content: "";
+  position: absolute;
+  left: 30px;
+  top: 10px;
+  bottom: 10px;
+  width: 2px;
+  background: var(--color-light-gray, #e5e7eb);
+}
+
+.custom-card-timeline-item {
+  position: relative;
+  padding: 12px 0;
+  margin-bottom: 12px;
+}
+
+.custom-card-timeline-item::before {
+  content: "";
+  position: absolute;
+  left: -35px;
+  top: 16px;
+  width: 10px;
+  height: 10px;
+  background: var(--color-primary, #3b82f6);
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--color-light-gray, #e5e7eb);
+}
+
+/* Table layout */
+.custom-card-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0;
+}
+
+.custom-card-table th {
+  background: var(--color-lighter-gray, #f3f4f6);
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-secondary-text, #6b7280);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--color-light-gray, #e5e7eb);
+}
+
+.custom-card-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--color-lightest-gray, #f3f4f6);
+  font-size: 13px;
+}
+
+.custom-card-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Utility classes */
+.custom-card-badge-wrapper {
+  padding: 14px 20px 0;
+}
+
+.custom-card-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-lighter-gray, #e5e7eb);
+  color: var(--color-secondary-text, #6b7280);
+}
+
+.custom-card-badge--primary {
+  background: var(--color-primary, #3b82f6);
+  color: white;
+}
+
+.custom-card-badge--success {
+  background: #10b981;
+  color: white;
+}
+
+.custom-card-badge--warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.custom-card-badge--danger {
+  background: #ef4444;
+  color: white;
+}
+
+/* The lead-in badge every card opens with ("WHAT THE JOB IS", "ON THE BALLOT"). */
+.custom-card-badge--muted {
+  background: transparent;
+  padding-left: 0;
+  color: var(--color-tertiary-text, #9ca3af);
+  letter-spacing: 0.08em;
+}
+
+/* Emitted by scripts/cards/index.js when a renderer throws, so it belongs to every
+   card type rather than to any one of them. */
+.custom-card-error {
+  padding: 1rem 1.25rem;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.9rem;
+}
+
+/* Print styles */
+@media print {
+  .custom-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin: 16px 0;
+  }
+
+  .custom-card-link {
+    color: var(--color-primary-text, #111827);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .custom-card {
+    background: #1f2937;
+    border-color: #374151;
+  }
+
+  .custom-card-header {
+    background: #111827;
+    border-color: #374151;
+  }
+
+  .custom-card-title {
+    color: #d1d5db;
+  }
+
+  .custom-card-metric {
+    background: #111827;
+  }
+
+  .custom-card-metric-value,
+  .custom-card-stat-value {
+    color: #f9fafb;
+  }
+
+  .custom-card-footer {
+    background: #111827;
+    color: #9ca3af;
+  }
+
+  .custom-card-error {
+    border-color: rgba(255, 255, 255, 0.22);
+  }
+}

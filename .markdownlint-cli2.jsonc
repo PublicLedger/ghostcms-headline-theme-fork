@@ -1,0 +1,54 @@
+// FORK CUSTOM: Markdown linting for the PublicLedger Headline fork.
+// Upstream TryGhost/Headline ships no markdownlint config.
+//
+// Replaces the earlier `.markdownlintignore`, which markdownlint-cli2 does not
+// read. Rules, globs and ignores all live here so `pnpm lint:md` and the VS Code
+// markdownlint extension apply exactly the same criteria.
+{
+  "globs": ["**/*.md"],
+
+  // UPSTREAM-OWNED. These three are the only .md files that also exist in
+  // upstream/main (`git ls-tree -r upstream/main --name-only | grep '\.md$'`).
+  // sync/upstream-sync.sh treats README.md as a sync exception - "Keep upstream
+  // content + fork note at top" - and the same reasoning covers the other two:
+  // reformatting them to our rules would be undone by the next sync and would
+  // manufacture merge conflicts in between. Do not lint or reflow them.
+  "ignores": [
+    "README.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    // Local documentation with CSV data files (not committed)
+    "docs-local/**",
+    // Dependencies and build output
+    "node_modules/**",
+    ".pnpm-store/**",
+    "dist/**",
+    "tmp/**"
+  ],
+
+  "config": {
+    "default": true,
+
+    // Prose width mirrors `.editorconfig` (`[*.md] max_line_length = 80`) so the
+    // two tools agree. Code blocks and tables are exempt: shell commands, URLs
+    // and table rows cannot be wrapped without breaking them.
+    "MD013": {
+      "line_length": 80,
+      "code_blocks": false,
+      "tables": false
+    },
+
+    // Ghost and GitHub both render raw HTML in Markdown. The fork banner in
+    // README.md and the comment headers in .github/instructions/ rely on it.
+    "MD033": false,
+
+    // Sibling headings must be unique, but repeating a section name under a
+    // different parent ("Symptom", "Solutions") is intentional in
+    // TROUBLESHOOTING.md.
+    "MD024": { "siblings_only": true },
+
+    // Documenting a command and its expected output in one block is the clearest
+    // form for the troubleshooting guides.
+    "MD014": false
+  }
+}

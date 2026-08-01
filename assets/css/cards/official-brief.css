@@ -1,0 +1,74 @@
+/* official-brief card — rendered server-side by scripts/cards/official-brief.js */
+
+.official-brief-title {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.official-brief-intro {
+  margin: 0 0 1.25rem;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.95rem;
+}
+
+.official-brief-people {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.official-brief-person {
+  padding: 1rem 1.125rem;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
+
+.official-brief-person-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.official-brief-name {
+  font-weight: 700;
+  font-size: 1.0625rem;
+}
+
+.official-brief-figures {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+
+.official-brief-figure {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.official-brief-figure-label {
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.official-brief-figure-value {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.official-brief-status,
+.official-brief-empty {
+  margin-top: 0.75rem;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.8125rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  .official-brief-person {
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+}

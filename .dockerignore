@@ -1,0 +1,23 @@
+# Devcontainer
+.devcontainer/
+
+# Git
+.git/
+.gitignore
+
+# Documentation
+*.md
+!package.json
+
+# Build artifacts
+node_modules/
+dist/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

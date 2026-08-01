@@ -1,0 +1,91 @@
+/* entity-picker — section landing page dropdown, filled by
+   assets/js/cards/entity-picker.js from the @publicledger/data package */
+
+.entity-picker {
+  margin: 1.5rem 0 2.5rem;
+}
+
+.entity-picker-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.entity-picker-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.entity-picker-select {
+  flex: 1 1 18rem;
+  min-width: 0; /* let the select shrink instead of overflowing the row */
+  padding: 0.625rem 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.18);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+
+.entity-picker-go {
+  padding: 0.625rem 1.25rem;
+  border: 0;
+  border-radius: 6px;
+  background: var(--ghost-accent-color, #1d3b53);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.entity-picker-go[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.entity-picker-count {
+  margin: 0.5rem 0 0;
+  color: var(--color-secondary-text, #626d79);
+  font-size: 0.8125rem;
+}
+
+.pl-collection-list {
+  margin: 2rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pl-collection-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .entity-picker-select {
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+
+  .pl-collection-list li {
+    border-bottom-color: rgba(255, 255, 255, 0.14);
+  }
+}
+
+/* Server-rendered picker is a real form so it works without JavaScript. */
+.entity-picker-form {
+  margin: 0;
+}
+
+.entity-picker-list {
+  margin: 1rem 0 0;
+  padding-left: 1.25rem;
+}
+
+.entity-picker-list li {
+  padding: 0.25rem 0;
+}

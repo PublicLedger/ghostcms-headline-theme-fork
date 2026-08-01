@@ -24,44 +24,24 @@
             </footer>
         </section>
 
-        {{#if @custom.enter_tag_slugs_for_primary_sections}}
-            {{#get "tags" filter="slug:[{{@custom.enter_tag_slugs_for_primary_sections}}]"}}
+        {{#match posts.length ">" 1}}
+            {{#get "tags" include="count.posts" order="count.posts desc" limit="3"}}
                 {{#foreach tags}}
                     {{> "topic-grid"}}
                 {{/foreach}}
             {{/get}}
-        {{else}}
-            {{#match posts.length ">" 1}}
-                {{#get "tags" include="count.posts" order="count.posts desc" limit="3"}}
-                    {{#foreach tags}}
-                        {{> "topic-grid"}}
-                    {{/foreach}}
-                {{/get}}
-            {{/match}}
-        {{/if}}
+        {{/match}}
 
-        {{#if @custom.enter_tag_slugs_for_secondary_sections}}
-            {{#get "tags" filter="slug:[{{@custom.enter_tag_slugs_for_secondary_sections}}]"}}
-                {{#if tags}}
+        {{#match posts.length ">" 1}}
+            {{#get "tags" include="count.posts" order="count.posts desc"}}
+                {{#if tags.[3]}}
                     <div class="gh-topic-list">
-                        {{#foreach tags}}
+                        {{#foreach tags from="4" limit="3"}}
                             {{> "topic-minimal"}}
                         {{/foreach}}
                     </div>
                 {{/if}}
             {{/get}}
-        {{else}}
-            {{#match posts.length ">" 1}}
-                {{#get "tags" include="count.posts" order="count.posts desc"}}
-                    {{#if tags.[3]}}
-                        <div class="gh-topic-list">
-                            {{#foreach tags from="4" limit="3"}}
-                                {{> "topic-minimal"}}
-                            {{/foreach}}
-                        </div>
-                    {{/if}}
-                {{/get}}
-            {{/match}}
-        {{/if}}
+        {{/match}}
     </div>
 </main>
