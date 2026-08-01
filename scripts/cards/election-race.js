@@ -12,7 +12,7 @@
 
 const { partyLabel } = require("./constants");
 
-/** 
+/**
  * create a long date string from an ISO date
  * - e.g., "2023-05-16" -> "May 16, 2023" formatted in UTC
  * @param {string} iso the ISO date string
@@ -102,7 +102,9 @@ module.exports = {
 
     const year = (String(electionId).match(/^(\d{4})/) || [])[1];
     if (!year) {
-      throw new Error(`Cannot read a year from election id “${electionId}” (expected e.g. 2023-primary).`);
+      throw new Error(
+        `Cannot read a year from election id “${electionId}” (expected e.g. 2023-primary).`
+      );
     }
 
     let election;

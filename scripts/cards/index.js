@@ -47,7 +47,8 @@ const RENDERERS = {
 // Utilities confirmed present in Ghost 6 Admin's index-*.css and absent from the
 // theme's built screen.css. Verify with scripts/check-admin-classes.js after a Ghost
 // upgrade — a purged-away class silently degrades the chip to unstyled text.
-const CHIP = "flex items-center gap-2 rounded border border-grey-200 bg-grey-50 px-3 py-2 select-none";
+const CHIP =
+  "flex items-center gap-2 rounded border border-grey-200 bg-grey-50 px-3 py-2 select-none";
 const CHIP_TYPE = "font-mono text-xs uppercase tracking-wide text-grey-700";
 const CHIP_TEXT = "truncate text-sm text-grey-600";
 

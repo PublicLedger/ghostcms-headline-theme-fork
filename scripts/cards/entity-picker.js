@@ -31,7 +31,11 @@ const SOURCES = {
         .replace(/^-+|-+$/g, "");
     const rows = [];
     (d.organizations || []).forEach(o =>
-      rows.push({ label: o.name, href: `/donor/${o.slug || slug(o.name)}/`, group: "Organizations" })
+      rows.push({
+        label: o.name,
+        href: `/donor/${o.slug || slug(o.name)}/`,
+        group: "Organizations",
+      })
     );
     (d.individuals || []).forEach(i => {
       const full = i.name && i.name.full ? i.name.full : i.name;

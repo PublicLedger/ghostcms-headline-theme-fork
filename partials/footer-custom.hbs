@@ -18,10 +18,12 @@
         {{!-- Fetch "footer-about" page for rich content --}}
         {{#get "pages" filter="slug:footer-about" limit="1"}}
           
+          
           {{#foreach pages}}
             <h4 class="gh-foot-custom-heading">{{title}}</h4>
             <div class="gh-foot-custom-text">{{content}}</div>
           {{/foreach}}
+
 
         {{else}}
           {{!-- Fallback: Create page with slug "footer-about" in Ghost Admin --}}
@@ -95,9 +97,11 @@
         
         
         
+        
         {{#foreach pages}}
           <div class="gh-foot-custom-quote">{{content}}</div>
         {{/foreach}}
+
 
 
 

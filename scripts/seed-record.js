@@ -188,7 +188,9 @@ async function main() {
     ],
   };
 
-  const existing = await api(`/ghost/api/admin/posts/slug/${encodeURIComponent(slug)}/?formats=html`);
+  const existing = await api(
+    `/ghost/api/admin/posts/slug/${encodeURIComponent(slug)}/?formats=html`
+  );
 
   let res;
   if (existing.status === 200 && existing.json && existing.json.posts && existing.json.posts[0]) {

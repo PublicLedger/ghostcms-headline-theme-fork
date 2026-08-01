@@ -21,7 +21,12 @@
 [data-card-type][data-card-state="loading"] {
   min-height: 12rem;
   border-radius: 8px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.04) 25%, rgba(0, 0, 0, 0.07) 37%, rgba(0, 0, 0, 0.04) 63%);
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.07) 37%,
+    rgba(0, 0, 0, 0.04) 63%
+  );
   background-size: 400% 100%;
   animation: pl-card-shimmer 1.4s ease infinite;
 }

@@ -106,8 +106,7 @@ const meta = () => load("meta.json");
  * @param {string} idOrSlug office slug or id
  * @returns {object|null} the office record
  */
-const getOffice = idOrSlug =>
-  offices().find(o => o.slug === idOrSlug || o.id === idOrSlug) || null;
+const getOffice = idOrSlug => offices().find(o => o.slug === idOrSlug || o.id === idOrSlug) || null;
 
 /**
  * Find a candidate by id or slug.

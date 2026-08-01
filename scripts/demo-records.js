@@ -11,7 +11,12 @@
 
 module.exports = [
   // type, parent tag ("" for single-segment collections), slug, title
-  { type: "job", parent: "lancaster-county", slug: "county-commissioner", title: "County Commissioner" },
+  {
+    type: "job",
+    parent: "lancaster-county",
+    slug: "county-commissioner",
+    title: "County Commissioner",
+  },
   { type: "official", parent: "", slug: "alice-yoder", title: "Alice Yoder" },
   { type: "election", parent: "lancaster-county", slug: "2023-primary", title: "2023 Primary" },
   { type: "donor", parent: "", slug: "pa-chamber-pac", title: "PA Chamber PAC" },
