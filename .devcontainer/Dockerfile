@@ -19,8 +19,9 @@ RUN apk add --no-cache \
     libstdc++ \
     ripgrep
 
-# Install pnpm globally (required by package.json)
-RUN npm install -g pnpm@11.9.0
+# Install pnpm globally (required by package.json).
+# Must match `packageManager` in package.json, which tracks upstream on sync.
+RUN npm install -g pnpm@11.17.0
 
 # node:24-alpine already provides user/group `node` at uid/gid 1000 — don't recreate it.
 # Only the docker group needs handling, and its GID must match the HOST's docker group
