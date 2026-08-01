@@ -4,7 +4,7 @@
  */
 
 (function () {
-  ("use strict");
+  "use strict";
 
   // Cache for loaded data
   const dataCache = {};
