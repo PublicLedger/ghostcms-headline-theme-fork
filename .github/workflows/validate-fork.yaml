@@ -194,7 +194,18 @@ jobs:
           # pushes. A conflict or a validation failure exits non-zero with
           # nothing pushed, so a bad upstream commit can only turn this job
           # red -- it can never overwrite an already-open, already-valid PR.
-          if ! branch=$(./scripts/ci-upstream-sync.sh | tail -n1); then
+          #
+          # Captured as a plain command substitution, not piped through
+          # `tail`: `x=$(cmd | tail -n1)` gets its exit status from `tail`,
+          # not `cmd`, unless `pipefail` is set -- which would silently
+          # treat a failed sync as success. Deriving the branch name from
+          # the already-captured output sidesteps the pipe entirely instead
+          # of depending on a shell option this step doesn't set itself.
+          sync_output=$(./scripts/ci-upstream-sync.sh)
+          sync_status=$?
+          branch=$(tail -n1 <<< "$sync_output")
+
+          if [[ $sync_status -ne 0 ]]; then
             echo "## ❌ Upstream sync failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Merge or validation failed. Run \`./sync/upstream-sync.sh\` locally to sync manually." >> $GITHUB_STEP_SUMMARY

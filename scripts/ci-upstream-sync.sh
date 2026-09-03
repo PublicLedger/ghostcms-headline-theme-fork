@@ -52,6 +52,10 @@ resolve_package_json() {
     ours_json=$(mktemp)
     theirs_json=$(mktemp)
     merged_json=$(mktemp)
+    # Function-scoped: fires on every `return` below, including the early
+    # ones from a failed assertion, so a local run doesn't leave temp files
+    # behind in /tmp on every path except the lucky one that reaches the end.
+    trap 'rm -f "$ours_json" "$theirs_json" "$merged_json"' RETURN
 
     git show :2:package.json > "$ours_json"
     git show :3:package.json > "$theirs_json"
