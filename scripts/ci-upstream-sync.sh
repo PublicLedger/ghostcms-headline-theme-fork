@@ -159,12 +159,22 @@ if [[ -n $(git status -s) ]]; then
     exit 1
 fi
 
-if ! git remote | grep -q "^${UPSTREAM_REMOTE}$"; then
-    git remote add $UPSTREAM_REMOTE $UPSTREAM_REPO
+# The docstring above says this must run on a checkout of `staging` -- this
+# is what actually enforces it. Without this check, running from an
+# arbitrary branch or a detached HEAD (the real CI job always checks out
+# `ref: staging` explicitly, but a manual run has no such guarantee) would
+# silently branch the sync candidate off the wrong base.
+if [[ "$(git branch --show-current)" != "staging" ]]; then
+    echo "❌ Error: must be run on a checkout of 'staging' (currently on '$(git branch --show-current)')" >&2
+    exit 1
 fi
-git fetch $UPSTREAM_REMOTE main
 
-NEW_COMMITS=$(git rev-list --count HEAD..${UPSTREAM_REMOTE}/main)
+if ! git remote | grep -q "^${UPSTREAM_REMOTE}$"; then
+    git remote add "$UPSTREAM_REMOTE" "$UPSTREAM_REPO"
+fi
+git fetch "$UPSTREAM_REMOTE" main
+
+NEW_COMMITS=$(git rev-list --count "HEAD..${UPSTREAM_REMOTE}/main")
 if [[ $NEW_COMMITS -eq 0 ]]; then
     echo "✅ Already up-to-date with upstream, nothing to sync"
     exit 0
@@ -180,7 +190,7 @@ git branch -D "$SYNC_BRANCH" 2>/dev/null || true
 git checkout -b "$SYNC_BRANCH"
 
 echo "🔄 Merging ${UPSTREAM_REMOTE}/main..."
-if ! git merge --no-edit ${UPSTREAM_REMOTE}/main; then
+if ! git merge --no-edit "${UPSTREAM_REMOTE}/main"; then
     echo "⚠️  Merge conflicts detected, checking whether they're routine..." >&2
     if resolve_known_conflicts; then
         echo "✅ Auto-resolved known conflict patterns (assets/built/*, package.json)"

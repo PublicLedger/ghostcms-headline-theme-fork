@@ -201,8 +201,19 @@ jobs:
           # treat a failed sync as success. Deriving the branch name from
           # the already-captured output sidesteps the pipe entirely instead
           # of depending on a shell option this step doesn't set itself.
-          sync_output=$(./scripts/ci-upstream-sync.sh)
-          sync_status=$?
+          #
+          # The assignment is the condition of this `if`, not a bare
+          # statement: GitHub Actions runs `run:` steps as `bash -e`, and a
+          # bare `sync_output=$(./scripts/ci-upstream-sync.sh)` exits the
+          # whole step the instant the script fails -- before the next line
+          # can even read `$?` -- skipping the failure-reporting below
+          # entirely. Putting it in an `if` is one of the contexts `set -e`
+          # explicitly exempts, so a failure is caught, not fatal here.
+          if sync_output=$(./scripts/ci-upstream-sync.sh); then
+              sync_status=0
+          else
+              sync_status=$?
+          fi
           branch=$(tail -n1 <<< "$sync_output")
 
           if [[ $sync_status -ne 0 ]]; then
