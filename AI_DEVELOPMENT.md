@@ -401,3 +401,11 @@ When helping users, point to:
 - **Markdown:** 80-column prose, enforced by `pnpm lint:md`
 - **Comments:** Explain "why" not "what"
 - **Git commits:** Conventional commits (feat:, fix:, chore:)
+- **Bash in `.github/workflows/*.yaml` `run:` blocks:** never assign a
+  possibly-failing command substitution as a bare statement (`x=$(cmd)`).
+  GitHub Actions runs `run:` steps as `bash -e`, which terminates the step
+  right there if `cmd` fails — before the next line can read `$?` — so any
+  error handling that depends on that exit code never runs. Put the
+  assignment in the condition of an `if` instead, which `set -e` exempts:
+  `if x=$(cmd); then status=0; else status=$?; fi`. This shipped as a real
+  bug in `validate-fork.yaml` and was only caught by a later PR review.
