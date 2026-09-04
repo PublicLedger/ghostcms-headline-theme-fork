@@ -273,7 +273,7 @@ pnpm dev
 
 | Aspect          | Upstream            | This Fork            |
 |-----------------|---------------------|----------------------|
-| Package Manager | pnpm 11.9.0         | pnpm 11.9.0          |
+| Package Manager | pnpm 11+            | pnpm 11+             |
 | Lock File       | pnpm-lock.yaml      | pnpm-lock.yaml       |
 | Node Version    | 18+                 | 24+                  |
 | Rationale       | Monorepo workspace  | Easier upstream sync |

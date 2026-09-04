@@ -21,10 +21,12 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
+      # 24.15, not a bare '24': cssnano@9 declares engines.node ^24.15.0.
+      # See .github/workflows/validate-fork.yaml for the full rationale.
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '24'
+          node-version: '24.15.x'
       
       - name: Determine version bump
         id: bump
