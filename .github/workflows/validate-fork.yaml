@@ -161,11 +161,18 @@ jobs:
       # sync to attempt. workflow_dispatch is included alongside schedule so
       # the sync-PR flow can be exercised on demand instead of waiting for
       # Monday's cron.
+      # Pinned to 24.15+, not a bare '24': cssnano@9 (a real dependency as of
+      # the Sept 2026 upstream sync) declares engines.node "^24.15.0" for the
+      # 24.x line. package.json's own engines.node still says ">=24.0.0" (a
+      # protected field -- see AI_DEVELOPMENT.md) so pnpm won't hard-fail on
+      # an older 24.x (engine-strict defaults to off), but a bare '24' here
+      # would silently resolve to whatever's latest today and give no actual
+      # guarantee CI stays above the floor a real dependency requires.
       - name: Setup Node.js
         if: ${{ steps.sync.outputs.behind > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
         uses: actions/setup-node@v7
         with:
-          node-version: '24'
+          node-version: '24.15.x'
 
       - name: Setup pnpm
         if: ${{ steps.sync.outputs.behind > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
@@ -284,10 +291,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # See the upstream-sync-check job above for why this is 24.15, not a
+      # bare '24': cssnano@9 requires engines.node ^24.15.0.
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '24'
+          node-version: '24.15.x'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6

@@ -188,6 +188,15 @@ Run these from the **host**, not the devcontainer:
    instance
 4. **Document breaking changes** - Note any changes that might conflict with
    future syncs
+5. **Check bumped dependencies' own `engines` field** - `pnpm test`/`pnpm
+   zip` passing proves nothing here: they only ran on whatever Node happens
+   to be installed, which can easily be newer than the floor the fork
+   actually declares. A dependency bumped in by an upstream sync can raise
+   that floor silently (e.g. cssnano@9 needs `^24.15.0`, tighter than this
+   fork's own `>=24.0.0`) with every local/CI check still green. Since
+   `package.json`'s `engines.node` is protected (never change it directly -
+   see above), a mismatch found this way is a decision for a human, not
+   something to silently patch around.
 
 **Full sync workflow:** See [sync/README.md](sync/README.md) for detailed sync
 procedures and step-by-step guide.
