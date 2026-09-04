@@ -12,7 +12,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   license-compliance:
@@ -99,10 +98,18 @@ jobs:
 
   upstream-sync-check:
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+      pull-requests: write
+      # Labels are part of GitHub's Issues API even when applied to a PR, so
+      # creating/attaching the "upstream-sync" label below needs this scope
+      # too -- it is NOT used to open issues (see the step below).
+      issues: write
     steps:
       - name: Checkout fork
         uses: actions/checkout@v7
         with:
+          ref: staging
           fetch-depth: 0
 
       - name: Add upstream remote
@@ -150,25 +157,114 @@ jobs:
             echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Create issue if significantly behind
-        if: ${{ steps.sync.outputs.behind > 10 && github.event_name == 'schedule' }}
+      # FORK CUSTOM: only set up the build toolchain when there's actually a
+      # sync to attempt. workflow_dispatch is included alongside schedule so
+      # the sync-PR flow can be exercised on demand instead of waiting for
+      # Monday's cron.
+      - name: Setup Node.js
+        if: ${{ steps.sync.outputs.behind > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm
+        if: ${{ steps.sync.outputs.behind > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
+        uses: pnpm/action-setup@v6
+
+      # FORK CUSTOM: replaces the old issue-bot. That step called `gh issue`
+      # with no --repo while an `upstream` remote (TryGhost/Headline, issues
+      # disabled) was also present, so gh's repo auto-detection resolved to
+      # upstream and every scheduled run failed. This step never lets gh
+      # infer the repo, and it doesn't just notify -- it merges upstream,
+      # rebuilds, and validates, then opens the result as a PR here only if
+      # everything passed.
+      - name: Open or update sync PR
+        if: ${{ steps.sync.outputs.behind > 0 && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           behind=${{ steps.sync.outputs.behind }}
           upstream_head=${{ steps.sync.outputs.upstream_head }}
-          
-          existing=$(gh issue list --label "upstream-sync" --state open --json number --jq '.[0].number')
-          
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # ci-upstream-sync.sh merges, rebuilds (pnpm zip), and validates
+          # (pnpm test + validate:fork) on a throwaway branch, and never
+          # pushes. A conflict or a validation failure exits non-zero with
+          # nothing pushed, so a bad upstream commit can only turn this job
+          # red -- it can never overwrite an already-open, already-valid PR.
+          #
+          # Captured as a plain command substitution, not piped through
+          # `tail`: `x=$(cmd | tail -n1)` gets its exit status from `tail`,
+          # not `cmd`, unless `pipefail` is set -- which would silently
+          # treat a failed sync as success. Deriving the branch name from
+          # the already-captured output sidesteps the pipe entirely instead
+          # of depending on a shell option this step doesn't set itself.
+          sync_output=$(./scripts/ci-upstream-sync.sh)
+          sync_status=$?
+          branch=$(tail -n1 <<< "$sync_output")
+
+          if [[ $sync_status -ne 0 ]]; then
+            echo "## ❌ Upstream sync failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Merge or validation failed. Run \`./sync/upstream-sync.sh\` locally to sync manually." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          # Guards a race: the "Check sync status" step above and the script
+          # both compute behind-ness independently, seconds apart. If
+          # someone synced manually in between, the script exits 0 having
+          # printed its "already up-to-date" message instead of a branch
+          # name -- treat that as a no-op rather than pushing garbage.
+          if [[ "$branch" != "upstream-sync/staging" ]]; then
+            echo "Nothing to sync (already up-to-date)"
+            exit 0
+          fi
+
+          # force-with-lease, not force: this branch is reused (not
+          # date-suffixed) so every run can update the same open PR instead
+          # of piling up a new one each week, but --with-lease still refuses
+          # to clobber a push this workflow didn't make itself.
+          git push --force-with-lease origin "$branch"
+
+          body_file=$(mktemp)
+          echo "## Summary" >> "$body_file"
+          echo "" >> "$body_file"
+          echo "Automated merge of TryGhost/Headline \`$upstream_head\` into \`staging\`, validated in CI." >> "$body_file"
+          echo "" >> "$body_file"
+          echo "## Work" >> "$body_file"
+          echo "" >> "$body_file"
+          echo "- **Upstream sync**" >> "$body_file"
+          echo "  - Merged $behind commit(s) from upstream/main" >> "$body_file"
+          echo "  - \`pnpm zip\` passed (theme builds)" >> "$body_file"
+          echo "  - \`pnpm test\` passed (GScan validation)" >> "$body_file"
+          echo "  - \`pnpm validate:fork\` passed (fork identity preserved)" >> "$body_file"
+          # Built from fixed echo lines, not model-generated text, so it
+          # matches .github/pull_request_template.md's Summary/Work
+          # structure deterministically every run.
+
+          # The label was previously only ever used on `gh issue create`
+          # calls that never succeeded (see above), so it may not exist yet.
+          # --force makes this create-or-update, safe to run every time.
+          gh label create "upstream-sync" --repo "$GITHUB_REPOSITORY" \
+            --color "0E8A16" --description "Automated upstream sync PR" --force
+
+          existing=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$branch" --state open --json number --jq '.[0].number')
+
           if [[ -n "$existing" ]]; then
-            echo "Issue #$existing already exists, updating..."
-            gh issue comment "$existing" --body "Still $behind commits behind upstream/main"
+            # Same branch name means the force-push above already updated
+            # this PR's diff; refreshing the body just keeps the commit
+            # count/date accurate. Title is left alone -- editing it every
+            # run would just be churn.
+            echo "Updating existing PR #$existing"
+            gh pr edit "$existing" --repo "$GITHUB_REPOSITORY" --body-file "$body_file"
           else
-            echo "Creating new upstream sync issue..."
-            gh issue create \
-              --title "Fork is $behind commits behind upstream" \
+            echo "Creating new sync PR"
+            gh pr create --repo "$GITHUB_REPOSITORY" --base staging --head "$branch" \
               --label "upstream-sync" \
-              --body "The fork is $behind commits behind TryGhost/Headline. Run ./sync/upstream-sync.sh to sync. See sync/README.md for details."
+              --title "Sync upstream: $behind commits from TryGhost/Headline" \
+              --body-file "$body_file"
           fi
 
   theme-integrity:
