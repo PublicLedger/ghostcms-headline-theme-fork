@@ -272,12 +272,14 @@ mock data package.
 
 ### Built Assets
 
-**Always accept upstream versions:**
+`assets/built/` is gitignored in the fork (no longer tracked) but still tracked
+upstream, so a sync sees it as modify/delete: upstream changed the file, the
+fork deleted it. **Keep it deleted** — don't take upstream's copy, or you'll
+reintroduce tracked build output that fights the `.gitignore` entry on every
+sync after:
 
 ```bash
-git checkout --theirs assets/built/screen.css
-git checkout --theirs assets/built/main.min.js
-git add assets/built/
+git rm assets/built/screen.css assets/built/screen.css.map assets/built/main.min.js
 ```
 
 Then rebuild after merge: `pnpm dev`
